@@ -86,7 +86,7 @@ events.append(Event(100, "Execute", Reactions.execute, reportable=False))
 '''
 
 events = {
-    
+    1: Event(1, "execute", Reactions.execute, reportable=False)
 }
 
 
