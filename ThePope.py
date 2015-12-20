@@ -4,13 +4,13 @@ __author__ = 'SteinarrHrafn'
 import subprocess
 import threading
 import sys
-import serial
+import demjson
 import pyodbc
 # import time
 
 GroupID = 0
 
-proc1 = subprocess.Popen(['python', 'Test2.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+# proc1 = subprocess.Popen(['python', 'Test2.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 # proc2 = subprocess.Popen(['python', 'Asta.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 SerialLock = threading.Lock()
@@ -32,8 +32,8 @@ class Reactions:
         print("This has been a successfull test! HELL YEAH!")
 
     @staticmethod
-    def execute(incoming):
-        exec incoming
+    def execute(_json):
+        exec _json['exec']
 
     @staticmethod
     def greendude_correct_passcode(incoming):
@@ -96,10 +96,8 @@ class FireEventThread(threading.Thread):
         self.Incoming = incoming
 
     def run(self):
-        incoming = self.Incoming.split(':')
-        for e in events:
-            if e.ID == int(incoming[0]):
-                e.fire(incoming[1][:-1])
+        _json = demjson.decode(self.Incoming)
+        events[_json['id']].fire(_json)
 
 
 class ListeningThread(threading.Thread):
@@ -109,7 +107,7 @@ class ListeningThread(threading.Thread):
 
     def run(self):
         while True:
-            incoming = self.listen2.readline()
+            incoming = self.listen2.readline()[:-1] # nota .strip()?
             fire = FireEventThread(incoming)
             fire.start()
 
