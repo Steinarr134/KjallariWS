@@ -1,10 +1,8 @@
-__author__ = 'SteinarrHrafn'
-
 
 import subprocess
 import threading
 import sys
-import demjson
+import pickle
 import pyodbc
 # import time
 
@@ -14,7 +12,7 @@ GroupID = 0
 # proc2 = subprocess.Popen(['python', 'Asta.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 SerialLock = threading.Lock()
-stdoutLock = threading.Lock()
+StdoutLock = threading.Lock()
 
 
 # This static class was created to hold all reactions without clustering the global namespace
@@ -24,20 +22,25 @@ class Reactions:
 
 #   All Reactions must be defined here
     @staticmethod
-    def no_reaction():
+    def no_reaction(incoming=None, event=None):
         pass
 
     @staticmethod
-    def test(incoming):
-        print("This has been a successfull test! HELL YEAH!")
+    def test(incoming, event=None):
+        print( "this is a test, the " + str(event.Name) +
+               " raised this. Also, " + str(incoming))
 
     @staticmethod
-    def execute(_json):
-        exec _json['exec']
+    def execute(incoming, event=None):
+        exec incoming['exec']
 
     @staticmethod
-    def greendude_correct_passcode(incoming):
-        print "rwerw"
+    def greendude_correct_passcode(incoming, event=None):
+        print "program missing"
+        # play message
+        # start tape recorder
+        # let faceZ know about it
+        # stop tape recorder
 
 
 
@@ -61,7 +64,7 @@ class Event(object):
     def fire(self, incoming=None):
         if self.Reportable:
             self.report()
-        self.React_fun(incoming)
+        self.React_fun(incoming, event=self)
 
 
 # Populate events from database
@@ -96,8 +99,8 @@ class FireEventThread(threading.Thread):
         self.Incoming = incoming
 
     def run(self):
-        _json = demjson.decode(self.Incoming)
-        events[_json['id']].fire(_json)
+        incoming = pickle.loads(self.Incoming)
+        events[incoming['id']].fire(incoming)
 
 
 class ListeningThread(threading.Thread):
@@ -112,26 +115,11 @@ class ListeningThread(threading.Thread):
             fire.start()
 
 
-# # This might be an unneccesarry class... we'll see
-# class Moteinos:
-#     def __init__(self):
-#         pass
-#
-#     @staticmethod
-#     def send(outgoing):
-#         with SerialLock:
-#             Serial.write(outgoing)
-
 
 # SerialThread = BasicThread(Serial, moteinos.react)
 TestThread = ListeningThread(sys.stdin)
 
 # SerialThread.start()
 TestThread.start()
-# while True:
-#     time.sleep(1)
-#     with stdoutlock:
-#         print "things are happening...."
-# Hugmyndin nuna eer
 
 
