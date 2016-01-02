@@ -15,15 +15,26 @@ Serial = serial.Serial(
 
 SerialLock = threading.Lock()
 
+IDs = {
+    'Base': 1,
+    'GreenDude': 11,
+    'SegulBand': 10
+}
 
-BaseID = 1
-GreenDude = 11
-SegulBand = 10
+
+def hexprint(n):
+    if n is None:
+        Serial.write('\n')
+    else:
+        Serial.write(hex(n)[2:])
 
 
-def send(outgoing):
+def send(send2id=None, payload=None):
     with SerialLock:
-        Serial.write(chr(len(outgoing)) + outgoing)
+        hexprint(send2id)
+        for p in payload:
+            hexprint(p)
+        hexprint(None)
 
 
 class Give:
@@ -77,16 +88,17 @@ take_types = {'byte': Take.byte,
 len_types = {'byte': 1,
              'int': 2}
 
+
 class Struct:
     def __init__(self, _types):
         self.Types = _types
 
-    def sprint(self, values):
-        returner = str()
+    def code(self, values):
+        returner = list()
         while len(values) < len(self.Types):
             values.append(0)
         for i in range(len(self.Types)):
-            returner += give_types[self.Types[i]](values[i])
+            returner.append(give_types[self.Types[i]](values[i]))
         return returner
 
     def decode(self, s):
@@ -102,8 +114,6 @@ structs = {
     'TapeRecorder': Struct(['int', 'long', 'long'])
 }
 
-a = structs['GreenDude'].sprint([300, 300]) # thetta gefur structid a binary formi
+a = structs['GreenDude'].code([300, 300])  # thetta gefur structid sem lista af byte-um
 
-print [ord(A) for A in a]
-
-print structs['GreenDude'].decode(a) # thetta afkodar structid yfir i lista
+send(send2id=IDs['GreenDude'], payload=a)
