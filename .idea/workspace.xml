@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c02d8951-7c02-4d21-b42f-9b13b6d686ac" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Test4.py" afterPath="$PROJECT_DIR$/Test4.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ThePope.py" afterPath="$PROJECT_DIR$/ThePope.py" />
-    </list>
+    <list default="true" id="c02d8951-7c02-4d21-b42f-9b13b6d686ac" name="Default" comment="" />
     <ignored path="KjallariWS.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -295,7 +291,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-10" y="0" width="1094" height="1030" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22906642" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
