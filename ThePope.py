@@ -2,17 +2,31 @@
 import subprocess
 import threading
 import sys
-import pickle
+import demjson
 import pyodbc
+from Dictionaries import EventIDs
+from Imports import ListeningThread
+
 # import time
 
 GroupID = 0
 
-# proc1 = subprocess.Popen(['python', 'Test2.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 # proc2 = subprocess.Popen(['python', 'Asta.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-SerialLock = threading.Lock()
 StdoutLock = threading.Lock()
+
+
+class Moteino:
+    def __init__(self):
+        self.Proc = subprocess.Popen(['python', 'Moteinos.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.Lock = threading.Lock()
+
+    def send(self, diction):
+        with self.Lock:
+            self.Proc.stdin.write(demjson.encode(diction) + '\n')
+
+
+moteino = Moteino()
 
 
 # This static class was created to hold all reactions without clustering the global namespace
@@ -31,17 +45,34 @@ class Reactions:
                " raised this. Also, " + str(incoming))
 
     @staticmethod
+    def test2(incoming, event=None):
+        moteino.send({
+            'ID': event.ID,
+            'Command': 'Test2'
+        })
+
+    @staticmethod
     def execute(incoming, event=None):
         exec incoming['exec']
 
     @staticmethod
     def greendude_correct_passcode(incoming, event=None):
-        print "program missing"
         # play message
         # start tape recorder
         # let faceZ know about it
         # stop tape recorder
+        raise NotImplementedError
 
+
+def report_info(event_id, info2log):
+        _cnxn = pyodbc.connect(r'Driver={SQL Server};'
+                               r'Server=.\SQLEXPRESS;'
+                               r'Database=KjallariDB;'
+                               r'Trusted_Connection=yes;')
+        _cursor = _cnxn.cursor()
+        for (s, i) in info2log:
+            _cursor.execute("EXEC ReportInfo %d, \'%s\', %d" % (event_id, s, i))
+        _cnxn.close()
 
 
 # A class describing the Event object,
@@ -54,11 +85,11 @@ class Event(object):
 
     def report(self):
         _cnxn = pyodbc.connect(r'Driver={SQL Server};'
-                              r'Server=.\SQLEXPRESS;'
-                              r'Database=KjallariDB;'
-                              r'Trusted_Connection=yes;')
+                               r'Server=.\SQLEXPRESS;'
+                               r'Database=KjallariDB;'
+                               r'Trusted_Connection=yes;')
         _cursor = _cnxn.cursor()
-        _cursor.execute("EXEC ReportEvent %d, %d"%(self.ID, GroupID))
+        _cursor.execute("EXEC ReportEvent %d, %d" % (self.ID, GroupID))
         _cnxn.close()
 
     def fire(self, incoming=None):
@@ -67,7 +98,7 @@ class Event(object):
         self.React_fun(incoming, event=self)
 
 
-# Populate events from database
+# Populate events from database.......... haettur vid thetta hehehe
 '''
 events = list()
 cnxn = pyodbc.connect(r'Driver={SQL Server};'
@@ -89,7 +120,10 @@ events.append(Event(100, "Execute", Reactions.execute, reportable=False))
 '''
 
 events = {
-    1: Event(1, "execute", Reactions.execute, reportable=False)
+    EventIDs['Execute']: Event(EventIDs['Execute'], "Execute", Reactions.execute, reportable=False),
+    EventIDs['Test1']: Event(EventIDs['Test1'], 'Test1', Reactions.test, reportable=False),
+    EventIDs['Test2']: Event(EventIDs['Test2'], 'Test2', Reactions.test2, reportable=False)
+
 }
 
 
@@ -99,27 +133,15 @@ class FireEventThread(threading.Thread):
         self.Incoming = incoming
 
     def run(self):
-        incoming = pickle.loads(self.Incoming)
-        events[incoming['id']].fire(incoming)
+        try:
+            incoming = demjson.decode(self.Incoming)
+            events[incoming['ID']].fire(incoming)
+        except:
+            print "incoming: " + str(self.Incoming)
 
 
-class ListeningThread(threading.Thread):
-    def __init__(self, listen2):
-        threading.Thread.__init__(self)
-        self.listen2 = listen2
-
-    def run(self):
-        while True:
-            incoming = self.listen2.readline()[:-1] # nota .strip()?
-            fire = FireEventThread(incoming)
-            fire.start()
-
-
-
-# SerialThread = BasicThread(Serial, moteinos.react)
-TestThread = ListeningThread(sys.stdin)
-
-# SerialThread.start()
-TestThread.start()
-
+# TestThread = ListeningThread(sys.stdin, FireEventThread)
+# TestThread.start()
+MoteinoThread = ListeningThread(moteino.Proc.stdout, FireEventThread)
+MoteinoThread.start()
 
