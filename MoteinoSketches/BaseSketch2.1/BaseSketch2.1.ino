@@ -25,7 +25,7 @@ bool promiscuousMode = false; // set to 'true' to sniff all packets on the same 
 
 
 // Here we are defining "Payload" as a type of struct, in our case it contains an array of 11 ints
-typedef struct{byte[61] N; } Payload; 
+typedef struct{byte N[61]; } Payload; 
 
 // and here we define "OutgoingData" as a Payload. Most people are more familiar with seeing something
 // like: "int A" where we define A as an int. In the same way ae are defining OutgoingData as a Payload.
@@ -45,7 +45,7 @@ void setup()
   radio.setHighPower(); //only for RFM69HW! (all of ours are HW)
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
-  Serial.println("Ready  ");
+  //Serial.println("Ready  ");
 }
 // Global variables to recieve incoming serial messages
 char FirstHex; // Temp will hold our string that contains the number
@@ -69,7 +69,7 @@ void loop()
     if (incoming == '\n')
     { // if the line is over
       sendTheStuff();
-      Send2IDDone = 0
+      Send2IDDone = 0;
       Counter = 0;
     }
     else
@@ -80,7 +80,7 @@ void loop()
         if (Send2IDDone)
         {
           OutgoingData.N[Counter] = FirstHex*16+hexval(incoming);
-          Counter++
+          Counter;
         }
         else
         {
@@ -93,6 +93,7 @@ void loop()
         FirstHex = hexval(incoming);
         FirstHexDone = 1;
       }
+    }
   }
   
   // and then check on the radio:
@@ -122,23 +123,26 @@ void loop()
 
 void hexprint(byte b)
 {
-  Serial.print(b / 16);
-  Serial.print(b % 16);
+  if (b<16)
+  {
+    Serial.print('0');
+  }
+  Serial.print(b, HEX);
 }
 
 byte hexval(char c)
 {
   if (c <= '9')
   {
-    return c - '0'
+    return c - '0';
   }
   else if (c <= 'F')
   {
-    return 10 + c - 'A'
+    return 10 + c - 'A';
   }
   else
   {
-    return 10 + c - 'a'
+    return 10 + c - 'a';
   }
 }
 

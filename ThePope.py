@@ -1,4 +1,3 @@
-
 import subprocess
 import threading
 import sys
@@ -41,8 +40,8 @@ class Reactions:
 
     @staticmethod
     def test(incoming, event=None):
-        print( "this is a test, the " + str(event.Name) +
-               " raised this. Also, " + str(incoming))
+        print("this is a test, the " + str(event.Name) +
+              " raised this. Also, " + str(incoming))
 
     @staticmethod
     def test2(incoming, event=None):
@@ -137,11 +136,18 @@ class FireEventThread(threading.Thread):
             incoming = demjson.decode(self.Incoming)
             events[incoming['ID']].fire(incoming)
         except:
-            print "incoming: " + str(self.Incoming)
+            raise ValueError(str(self.Incoming))
 
+class printer(threading.Thread):
 
+    def __init__(self, incoming):
+        threading.Thread.__init__(self)
+        self.incoming = incoming
+
+    def run(self):
+        print self.incoming
 # TestThread = ListeningThread(sys.stdin, FireEventThread)
 # TestThread.start()
-MoteinoThread = ListeningThread(moteino.Proc.stdout, FireEventThread)
+MoteinoThread = ListeningThread(moteino.Proc.stdout, printer)
 MoteinoThread.start()
 
