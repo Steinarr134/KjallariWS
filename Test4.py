@@ -1,24 +1,14 @@
-import subprocess
-import sys
+import serial
+import time
 
-# proc1 = subprocess.Popen(['python', 'ThePope.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+Serial = serial.Serial(port='COM51')
 
-
-
-class A:
-
-    def __init__(self, a):
-        self.ID = a
-
-    def who(self):
-        print self.ID
-
-
-class B(A):
-    def __init__(self):
-        A.__init__(self, 2)
-        self.num = 0
-
-    def pr(self):
-        print self.num
-
+while True:
+    a = Serial.readline()
+    print a
+    time.sleep(0.01)
+    response = "FF" + a[:2] + "01\n"
+    Serial.write(response)
+    time.sleep(0.1)
+    Serial.write("0a626c61626c61626c612e01000200030004000500\n")
+    print response

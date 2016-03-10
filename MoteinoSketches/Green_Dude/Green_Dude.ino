@@ -216,13 +216,6 @@ void sendMessageAboutCorrect()
       Serial.println("No ack");
     LastSendCorrectTime = millis();
     Serial.println("message about correct sent");
-    Serial.print("Raw data:  ");
-    for (byte i = 0; i<11; i++)
-    {
-      Serial.print(*(byte*)(&OutgoingData + i));
-      Serial.print(", ");
-    }
-    Serial.println();
   }
 }
 

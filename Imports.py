@@ -1,5 +1,6 @@
 
 import threading
+import sys
 
 
 class ListeningThread(threading.Thread):
@@ -13,3 +14,19 @@ class ListeningThread(threading.Thread):
             incoming = self.listen2.readline().rstrip('\n')  # nota [:-1]?
             fire = self.React_With(incoming)
             fire.start()
+
+StdoutLock = threading.Lock()
+StderrLock = threading.Lock()
+
+Debug = True
+
+
+def debug_print(s):
+    if Debug:
+        with StdoutLock:
+            print(s)
+
+
+def warning(s):
+    with StderrLock:
+        sys.stderr.write(s + '\n')

@@ -37,6 +37,8 @@ Payload IncomingData; // Same goes for IncomingData
 // (Because this base will always be sending and recieving the same structure)
 byte DataLen = sizeof(OutgoingData);
 
+byte NoAck = 1;
+
 void setup() 
 { // Setup runs once
   Serial.begin(SERIAL_BAUD);
@@ -80,12 +82,12 @@ void loop()
         if (Send2IDDone)
         {
           OutgoingData.N[Counter] = FirstHex*16+hexval(incoming);
-          Counter;
+          Counter++;
         }
         else
         {
           Send2IDDone = 1;
-          Send2ID = FirstHex + hexval(incoming);
+          Send2ID = FirstHex*16 + hexval(incoming);
         }
       }
       else
@@ -165,8 +167,21 @@ int Int(char* c, byte len)
 
 void sendTheStuff()
 {
-  if (!radio.sendWithRetry(Send2ID,(const void*)(&OutgoingData),sizeof(OutgoingData)))
+  /*Serial.print("sending stuff to: ");
+  Serial.println(Send2ID);
+  for (byte i = 0; i<7; i++)
   {
-    Serial.println("ERROR: NO ACK Recieved");
+    Serial.print(OutgoingData.N[i]);
+    Serial.print(", ");
+  }*/
+  Serial.print("FF");
+  hexprint(Send2ID);
+  if (radio.sendWithRetry(Send2ID,(const void*)(&OutgoingData),sizeof(OutgoingData)))
+  {
+    Serial.println("01");
+  }
+  else
+  {
+    Serial.println("00");
   }
 }
