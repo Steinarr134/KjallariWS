@@ -12,8 +12,6 @@ MoteinoCommands = {
     'Status': 99,
     'Test1': 1,
     'Test2': 2,
-    'AckRecieved': 234,
-    'NoAckRecieved': 235,
 }
 
 MoteinoIDs = {

@@ -1,7 +1,6 @@
 import serial
 import threading
 import time
-from abc import ABCMeta, abstractmethod
 __author__ = 'SteinarrHrafn'
 
 """
@@ -229,8 +228,6 @@ class Struct:
         lines = structstring.rstrip(';').split(';')  # remove the last ';' and split by the other ones
         for line in lines:
             temp = line.rsplit(' ', 1)  # split by whitespaces
-            if not len(temp) == 2:  # each line should always contain 2 words
-                raise ValueError("problem in struct.__iniit__() with: " + temp)
             if '[' in temp[1]:  # if we are dealing with an array
                 ttemp = temp[1].split('[')
                 self.Parts.append((Array(types[temp[0]], int(ttemp[1][:-1])), ttemp[0]))
@@ -307,16 +304,16 @@ class Device:
             self.Network.LastReceived = d
             self.Network.ReceiveWithSendAndReceive = False
 
-    def get_status(self):
-        self.send2radio({'Command': self.Network.Commands['Status']}, expect_response=True)
-
 
 class BaseMoteino(Device):
     def __init__(self, network):
         Device.__init__(self, network, 0xFF, "byte Sender;bool AckReceived", 'BaseMoteino')
 
     def send2parent(self, payload):
+        dprint("BaseMoteino.send2parent")
         d = self.Struct.decode(payload)
+        if d['Sender'] not in self.Network.devices:
+            raise ValueError("Sender not in known devices")
         sender = self.Network.devices[d['Sender']]
         if d['AckReceived']:
             if not self.Network.ResponseExpected:
@@ -330,7 +327,8 @@ class BaseMoteino(Device):
 class Send2ParentThread(threading.Thread):
     """
     This is the thread that interprets the struct recieved by the moteino network
-    and runs the recieve function or the no_ack function.
+    and runs the recieve, no_ack or ack function. The user is allowed to hijack this
+    thread from the recieve, no_ack or ack functions.
     """
     def __init__(self, network, incoming):
         threading.Thread.__init__(self)
@@ -344,7 +342,7 @@ class Send2ParentThread(threading.Thread):
         # We use that to get a pointer to the sender (an instance of the Device class)
 
         sender_id = _hex2dec(self.Incoming[:2])
-        if sender_id not in self.Network.inv_IDs:
+        if sender_id not in self.Network.devices:
             print "Something must be wrong because BaseMoteino just recieved a message" \
                   "from moteino with ID: " + str(sender_id) + " but no such device has " \
                   "been registered to the network. Btw the raw data was: " + self.Incoming
@@ -356,7 +354,7 @@ class Send2ParentThread(threading.Thread):
 class ListeningThread(threading.Thread):
     """
     A thread that listens to the Serial port. When something (that ends with a newline) is recieved
-    the thread will start up the Send2Parent thread and go back to listening to the Serial port
+    the thread will start up a Send2Parent thread and go back to listening to the Serial port
     """
     def __init__(self, network):
         threading.Thread.__init__(self)
@@ -373,6 +371,7 @@ class ListeningThread(threading.Thread):
             except serial.SerialException:
                 break
             incoming.rstrip('\n')  # nota [:-1]?
+            print "ABC we got: " + incoming
             fire = Send2ParentThread(self.Network, incoming)
             fire.start()
 
@@ -418,6 +417,8 @@ class MoteinoNetwork:
                                     stopbits=stopbits,
                                     bytesize=bytesize,
                                     writeTimeout=0.5)
+        # Call readline to wait for BaseMoteino to start up
+        self.Serial.readline()
         self.SerialLock = threading.Lock()
 
         self.RadioIsBusy = False
@@ -426,8 +427,6 @@ class MoteinoNetwork:
         self.print_when_acks_recieved = False
 
         self.devices = dict()
-        self.IDs = dict()
-        self.inv_IDs = dict()
         self.serial_listening_thread = None
         self._serial_listening_thread_is_active = False
         self.max_wait = 500
@@ -479,18 +478,17 @@ class MoteinoNetwork:
         with self.SerialLock:
             # dprint("Waiting for radio....")
             self.Serial.write(_hexprints(send2id) + payload + '\n')
+            dprint("we sent: " + _hexprints(send2id) + payload)
             self.RadioIsBusy = True
             self._wait_for_radio(max_wait=max_wait)
             # debug_print("Sending2Radio: " + _hexprints(send2id) + payload + '\n')
 
     def _add_device(self, device):
         """
-
+        A private method that adds device to the networks list of devices
         :param device: Device
         :return:
         """
-        self.IDs[device.Name] = device.ID
-        self.inv_IDs[device.ID] = device.Name
         self.devices[device.Name] = device
         self.devices[device.ID] = device
 

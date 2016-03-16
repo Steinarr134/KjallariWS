@@ -19,7 +19,7 @@
 //Match frequency to the hardware version of the radio on your Moteino:
 #define FREQUENCY     RF69_433MHZ
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
-#define SERIAL_BAUD   9600
+#define SERIAL_BAUD   115200
 RFM69 radio;
 bool promiscuousMode = false; // set to 'true' to sniff all packets on the same network
 
@@ -47,7 +47,7 @@ void setup()
   radio.setHighPower(); //only for RFM69HW! (all of ours are HW)
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
-  //Serial.println("Ready  ");
+  Serial.println("Ready");
 }
 // Global variables to recieve incoming serial messages
 char FirstHex; // Temp will hold our string that contains the number
@@ -104,9 +104,6 @@ void loop()
   // We have to constantly check if something has been recieved and answer with an ACK
   if (radio.receiveDone())
   {
-    // the PC expects us to deliver the info in the same way as it gives us info, that is:
-    // (senderID)#(number1):(number2):  with up to 10 numbers and then a newline symbol.
-    
     // First lets put what we recieved into IncomingData. We have to do this before we 
     // send the ACK because the radio.DATA cache will be overwritten when sending the ACK.
     IncomingData = *(Payload*)radio.DATA;
@@ -148,23 +145,6 @@ byte hexval(char c)
   }
 }
 
-
-// This function parses a string to its decimal value. 
-// Inputs are the string and its length
-int Int(char* c, byte len)
-{
-  int exp10[] = {1,10,100};
-  int ans = 0;
-  for (byte i = 0;i<len;i++)
-  {
-    ans += (c[i]-'0')*exp10[len-i-1];
-    // '5'-'0' subtracts the ASCII value of '0' from the ASCII value of '5' 
-    // leaving us with the number 5.
-
-  }
-  return ans;
-}
-
 void sendTheStuff()
 {
   /*Serial.print("sending stuff to: ");
@@ -174,14 +154,17 @@ void sendTheStuff()
     Serial.print(OutgoingData.N[i]);
     Serial.print(", ");
   }*/
-  Serial.print("FF");
-  hexprint(Send2ID);
-  if (radio.sendWithRetry(Send2ID,(const void*)(&OutgoingData),sizeof(OutgoingData)))
+  bool success = radio.sendWithRetry(Send2ID,(const void*)(&OutgoingData),sizeof(OutgoingData));
+  if (success)
   {
+    Serial.print("FF");
+    hexprint(Send2ID);
     Serial.println("01");
   }
   else
   {
+    Serial.print("FF");
+    hexprint(Send2ID);
     Serial.println("00");
   }
 }
