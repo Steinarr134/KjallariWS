@@ -1,6 +1,7 @@
 import serial
 import threading
 import time
+import sys
 __author__ = 'SteinarrHrafn'
 
 """
@@ -26,9 +27,9 @@ mynetwork.send('TestDevice', {'Command': 123, 'Something': 456})
 """
 
 
-def dprint(s):  # print for debugging purposes
+def dprint(s, newline=True):  # print for debugging purposes
     if True:
-        print s
+        sys.stdout.write(s + ('\n' if newline else ''))
 
 
 def _hexprints(n):
@@ -299,10 +300,19 @@ class Device:
         d['Sender'] = self.Name
         self.Network.RadioIsBusy = False
         if not self.Network.ReceiveWithSendAndReceive:
-            self.Network.receive(d)
+            self.Network.receive(self, d)
         else:
             self.Network.LastReceived = d
             self.Network.ReceiveWithSendAndReceive = False
+
+    def send(self, diction, expect_response=False, max_wait=None):
+        self.Network.send(self.Name,
+                          diction=diction,
+                          expect_response=expect_response,
+                          max_wait=max_wait)
+
+    def send_and_receive(self, diction):
+        return self.Network.send_and_receive(self.Name, diction=diction)
 
 
 class BaseMoteino(Device):
@@ -343,7 +353,7 @@ class Send2ParentThread(threading.Thread):
 
         sender_id = _hex2dec(self.Incoming[:2])
         if sender_id not in self.Network.devices:
-            print "Something must be wrong because BaseMoteino just recieved a message" \
+            print "Something must be wrong because BaseMoteino just recieved a message " \
                   "from moteino with ID: " + str(sender_id) + " but no such device has " \
                   "been registered to the network. Btw the raw data was: " + self.Incoming
         else:
@@ -418,7 +428,9 @@ class MoteinoNetwork:
                                     bytesize=bytesize,
                                     writeTimeout=0.5)
         # Call readline to wait for BaseMoteino to start up
+        dprint("Waiting for BaseMoteino to send a waking up sign...", False)
         self.Serial.readline()
+        dprint("We got it!")
         self.SerialLock = threading.Lock()
 
         self.RadioIsBusy = False
@@ -481,7 +493,6 @@ class MoteinoNetwork:
             dprint("we sent: " + _hexprints(send2id) + payload)
             self.RadioIsBusy = True
             self._wait_for_radio(max_wait=max_wait)
-            # debug_print("Sending2Radio: " + _hexprints(send2id) + payload + '\n')
 
     def _add_device(self, device):
         """
@@ -508,7 +519,9 @@ class MoteinoNetwork:
                    name=name)
         self._add_device(d)
 
-    def send_and_recieve(self, send2, diction):
+        return d
+
+    def send_and_recieve(self, send2, diction, max_wait=None):
         """
         This function can be called from top level script. It sends the
         information found in diction to the device specified with send2.
@@ -524,7 +537,8 @@ class MoteinoNetwork:
         temp = id(self.LastReceived)
         self.send(send2=send2,
                   diction=diction,
-                  expect_response=True)
+                  expect_response=True,
+                  max_wait=max_wait)
         if id(self.LastReceived) != temp:
             return self.LastReceived
         else:
@@ -562,27 +576,28 @@ class MoteinoNetwork:
         self.Serial.close()
         self._serial_listening_thread_is_active = False
 
-    def receive(self, diction):
+    def receive(self, sender, diction):
         """
         User should overwrite this function
+        :param sender: Device
         :param diction: dict
         """
-        print diction
+        print "MoteinoNetwork received: " + str(diction) + "from" + sender.Name
 
     def no_ack(self, sender, last_sent_diction):
         """
         User might want to overwrite this function
-        :param sender: str
+        :param sender: Device
         :param last_sent_diction: dict
         """
-        print "Oh no! We didn't recieve an ACK from " + sender + " when we sent " + str(last_sent_diction)
+        print "Oh no! We didn't recieve an ACK from " + sender.Name + " when we sent " + str(last_sent_diction)
 
     def ack(self, sender, last_sent_diction):
         """
         This funcion is totally unnecessary.... mostly for debugging but maybe
         it will be usefull someday to overwrite this with something
-        :param sender: str
+        :param sender: Device
         :param last_sent_diction: dict
         """
         if self.print_when_acks_recieved:
-            print sender + " responded with an ack when we sent: " + str(last_sent_diction)
+            print sender.Name + " responded with an ack when we sent: " + str(last_sent_diction)
