@@ -1,8 +1,5 @@
 #include <EEPROMex.h>
 #include <EEPROMVar.h>
-//Ásgeir er bestur
-
-// Steinarr er bestur
 
 /////////////////// for the temperature sensors:
 #include <OneWire.h>
