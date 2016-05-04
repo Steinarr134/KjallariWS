@@ -1,28 +1,19 @@
 #include <EEPROMex.h>
 #include <EEPROMVar.h>
+//Ásgeir er bestur
 
 /////////////////// for the temperature sensors:
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#define ONE_WIRE_BUS 7  // ÞArf að stilla rétt!
+#define ONE_WIRE_BUS 2  // ÞArf að stilla rétt!
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 DeviceAddress MotorSensor;
 DeviceAddress DriverSensor;  //// Þarf a' stilla líka
 DeviceAddress HousingSensor;
 
-//////////////////////// for the radio
-#include <RFM69.h>    
-#include <SPI.h>
-#define NODEID        13    //unique for each node on same network   
-#define NETWORKID     7  //the same on all nodes that talk to each other
-//Match frequency to the hardware version of the radio on your Moteino (uncomment one):
-#define FREQUENCY     RF69_433MHZ
-#define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
-#define SERIAL_BAUD   9600
-RFM69 radio;
-bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
-typedef struct{
+
+typedef struct{         // Þarf að stilla
   int Command;
   byte MoteinoTemperature;
   byte MotorTemperature;
@@ -37,8 +28,7 @@ typedef struct{
 } Payload;
 Payload OutgoingData;
 Payload IncomingData;
-byte DataLen = sizeof(IncomingData);
-byte BaseID = 1;
+
 
 //////////// Command values
 // incoming:
@@ -58,6 +48,12 @@ const int SendPlay = 1353;
 const int SendStop = 1354;
 
 //// Variables
+byte N[20];
+byte Counter;
+bool FirstHexDone;
+byte FirstHex;
+
+/*
 const int FastSpeed_EEPROM_Address = 100;
 const int SlowSpeed_EEPROM_Address = 102;
 const int Acceleration_EEPROM_Address = 104;
@@ -66,10 +62,16 @@ int FastSpeed = EEPROMReadInt(FastSpeed_EEPROM_Address);
 int SlowSpeed = EEPROMReadInt(SlowSpeed_EEPROM_Address);
 int Acceleration = EEPROMReadInt(Acceleration_EEPROM_Address);
 long MaxPosition;
+*/
+
+int FastSpeed = 800;
+int SlowSpeed = 300;
+int Acceleration = 800;
+long MaxPosition = 100000;
 
 const byte MotorEnablePin = 7;
-const byte MotorStepPin = 3;
-const byte MotorDirectionPin = 4;
+const byte MotorStepPin = 9;
+const byte MotorDirectionPin = 8;
 
 
 ///// For the motor
@@ -78,13 +80,8 @@ AccelStepper Motor(AccelStepper::FULL2WIRE, MotorStepPin, MotorDirectionPin);
 
 
 //// For the lights
-byte LightPin = 6;  //// Þarf að stilla
+byte LightPin = 3;  //// Þarf að stilla
 
-///// For the buttons
-byte RewindPin = A6;
-byte FastForwardPin = A5;
-byte StopPin = A4;
-byte PlayPin = A3;
 
 byte ON = LOW;
 byte OFF = HIGH;
@@ -94,12 +91,6 @@ void setup() {
 
   ////// Setup Temperature sensors
   sensors.begin();
-
-  ///// Setup Radio
-  radio.initialize(FREQUENCY,NODEID,NETWORKID);
-  radio.setHighPower(); //only for RFM69HW!
-  radio.encrypt(ENCRYPTKEY);
-  radio.promiscuous(promiscuousMode);
 
   ////// Setup Motor
   Motor.setMaxSpeed(SlowSpeed);
@@ -121,9 +112,9 @@ void loop()
 {
   runMotor();
 
-  checkOnButtons();
+  checkOnSerial();
 
-  checkOnRadio();
+  
 }
 
 void runMotor()
@@ -135,93 +126,72 @@ void runMotor()
   }
 }
 
-void checkOnButtons()
-{
-  if (digitalRead(RewindPin))
+void checkOnSerial(){
+  // So, lets first process any serial input:
+  if (Serial.available() > 0)
   {
-    sendRewind();
-  }
-  if (digitalRead(FastForwardPin))
-  {
-    sendFastForward();
-  }
-  if (digitalRead(StopPin))
-  {
-    sendStop();
-  }
-  if (digitalRead(PlayPin))
-  {
-    sendPlay();
-  }
-}
-
-void sendRewind()
-{
-  OutgoingData.Command = SendRewind;
-  send();
-}
-void sendFastForward()
-{
-  OutgoingData.Command = SendFastForward;
-  send();
-}
-void sendPlay()
-{
-  OutgoingData.Command = SendPlay;
-  send();
-}
-void sendStop()
-{
-  OutgoingData.Command = SendStop;
-  send();
-}
-
-void checkOnRadio()
-{
-  if (radio.receiveDone())
-  {
-    if (radio.SENDERID == BaseID)
+    // The string will be on the form (Send2ID)#(number1):(number2):    with up to 10 numbers.
+    // every number will be 'terminated' by a ':'
+    char incoming = Serial.read(); // reads one char from the buffer
+    if (incoming == '\n')
+    { // if the line is over
+      IncomingData = *(Payload*)N;
+      react();
+      Counter = 0;
+    }
+    else
     {
-      IncomingData = *(Payload*)radio.DATA;
-      if (radio.ACKRequested())
+      if (FirstHexDone)
       {
-        radio.sendACK();
+        FirstHexDone = 0;
+        N[Counter] = FirstHex*16+hexval(incoming);
+        Counter++;
       }
-      Serial.print("Received Command:");
-      Serial.println(IncomingData.Command);
-      switch (IncomingData.Command) 
+      else
       {
-        case Status:
-          sendStatus();
-          break;
-        case Play:
-          play();
-          break;
-        case Stop:
-          stop();
-          break;
-        case Rewind:
-          rewind();
-          break;
-        case FastForward:
-          fastForward();
-          break;
-        case ReturnToZero:
-          returnToZero();
-          break;
-        case SetParams:
-          setParams();
-          break;
-        case SetLights:
-          setLights();
-          break;
-        default:
-          Serial.println("Error: Command not recognized");
-          break;
+        FirstHex = hexval(incoming);
+        FirstHexDone = 1;
       }
     }
   }
 }
+
+void react()
+{
+  Serial.print("Received Command:");
+  Serial.println(IncomingData.Command);
+  switch (IncomingData.Command) 
+  {
+    case Status:
+      sendStatus();
+      break;
+    case Play:
+      play();
+      break;
+    case Stop:
+      stop();
+      break;
+    case Rewind:
+      rewind();
+      break;
+    case FastForward:
+      fastForward();
+      break;
+    case ReturnToZero:
+      returnToZero();
+      break;
+    case SetParams:
+      setParams();
+      break;
+    case SetLights:
+      setLights();
+      break;
+    default:
+      Serial.println("Error: Command not recognized");
+      break;
+  }
+}
+
 
 void sendStatus()
 {
@@ -230,7 +200,7 @@ void sendStatus()
 //  OutgoingData.numbers[5] = 10*sensors.getTempC(MotorSensor);
 //  OutgoingData.numbers[6] = 10*sensors.getTempC(DriverSensor);
 //  OutgoingData.numbers[7] = 10*sensors.getTempC(HousingSensor);
-  send();
+//  send();
 }
 
 void play()
@@ -276,10 +246,6 @@ void setLights()
   analogWrite(LightPin, IncomingData.LightIntensity);
 }
 
-void send()
-{
-  radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen);
-}
 
 void enableMotor()
 {
@@ -290,6 +256,33 @@ void disableMotor()
 {
   digitalWrite(MotorEnablePin, OFF);
 }
+
+void hexprint(byte b)
+{
+  if (b<16)
+  {
+    Serial.print('0');
+  }
+  Serial.print(b, HEX);
+}
+
+byte hexval(char c)
+{
+  if (c <= '9')
+  {
+    return c - '0';
+  }
+  else if (c <= 'F')
+  {
+    return 10 + c - 'A';
+  }
+  else
+  {
+    return 10 + c - 'a';
+  }
+}
+
+/*
 //This function will write a 2 byte integer to the eeprom at the specified address and address + 1
 void EEPROMWriteInt(int p_address, int p_value)
 {
@@ -308,4 +301,4 @@ unsigned int EEPROMReadInt(int p_address)
   
   return ((lowByte << 0) & 0xFF) + ((highByte << 8) & 0xFF00);
 }
-
+*/
