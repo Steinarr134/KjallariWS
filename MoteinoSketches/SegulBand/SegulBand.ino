@@ -64,9 +64,9 @@ int Acceleration = EEPROMReadInt(Acceleration_EEPROM_Address);
 long MaxPosition;
 */
 
-int FastSpeed = 800;
-int SlowSpeed = 300;
-int Acceleration = 800;
+int FastSpeed = 1800;
+int SlowSpeed = 500;
+int Acceleration = 1500;
 long MaxPosition = 100000;
 
 const byte MotorEnablePin = 7;
@@ -206,7 +206,10 @@ void sendStatus()
 void play()
 {
   enableMotor();
-  Motor.setSpeed(SlowSpeed);
+  Motor.setMaxSpeed(SlowSpeed);
+  Serial.print("SlowSpeed");
+  Serial.print("\t");
+  Serial.println(SlowSpeed);
   Motor.moveTo(MaxPosition);
 }
 
@@ -218,21 +221,24 @@ void stop()
 void rewind()
 {
   enableMotor();
-  Motor.setSpeed(FastSpeed);
+  Motor.setMaxSpeed(FastSpeed);
   Motor.moveTo(0);
 }
 
 void fastForward()
 {
   enableMotor();
-  Motor.setSpeed(FastSpeed);
+  Motor.setMaxSpeed(FastSpeed);
+  Serial.print("FastSpeed");
+  Serial.print("\t");
+  Serial.println(FastSpeed);
   Motor.moveTo(MaxPosition);
 }
 
 void returnToZero()
 {
   enableMotor();
-  Motor.setSpeed(FastSpeed);
+  Motor.setMaxSpeed(FastSpeed);
   Motor.moveTo(0);
 }
 
