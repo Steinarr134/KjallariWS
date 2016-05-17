@@ -166,7 +166,35 @@ void loop()
       }
     }
   }
+}
 
+void checkOnRadio()
+{
+   if (radio.receiveDone())
+  {
+    if (radio.SENDERID == BaseID)
+    {
+      IncomingData = *(Payload*)radio.DATA;
+      if (radio.ACKRequested())
+      {
+        radio.sendACK();
+      }
+      Serial.print("Received: command: ");
+      Serial.println(IncomingData.Command);
+      switch (IncomingData.Command) 
+      {
+        case Status:
+          sendStatus();
+          break;
+        case Disp:
+          disp();
+          break;
+        case SetPassCode:
+          setPassCode();
+          break;
+      }
+    }
+  }
 }
 
 void disp()
