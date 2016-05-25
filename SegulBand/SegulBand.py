@@ -4,6 +4,10 @@ import atexit
 
 motor = Motor()
 
+
+# States:
+#       Begin / Entrance to room
+#
 # region Play Button
 play_button_pin = 5
 

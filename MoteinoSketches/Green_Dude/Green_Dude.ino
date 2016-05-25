@@ -47,6 +47,28 @@ boolean Register[] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,} ;
 
 byte SimaPin = 7;
 
+class TalkingPillow{
+  public:
+    bool is_present;
+    void check(Payload P);
+  private:
+    const int ReceiveTalkingPillow = 42;
+    const int LoseTalkingPillow = 43;
+};
+
+void TalkingPillow::check(Payload P)
+{
+  if (P.Command == ReceiveTalkingPillow)
+  {
+    is_present = true;
+  }
+  else if (P.Command == LoseTalkingPillow)
+  {
+    is_present = false;
+  }
+}
+
+TalkingPillow talkingPillow;
 
 
 
@@ -152,6 +174,7 @@ void loop()
       }
       Serial.print("Received: command: ");
       Serial.println(IncomingData.Command);
+      
       switch (IncomingData.Command) 
       {
         case Status:
@@ -181,6 +204,9 @@ void checkOnRadio()
       }
       Serial.print("Received: command: ");
       Serial.println(IncomingData.Command);
+
+      talkingPillow.check(IncomingData);
+      
       switch (IncomingData.Command) 
       {
         case Status:
@@ -223,7 +249,7 @@ void sendStatus()
     OutgoingData.Lights[i] = CurrentSwitchState[i];
   }
   OutgoingData.Temperature = getTemperature();
-  if (!radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen))
+  if (sendOutgoing())
     Serial.println("No ack recieved");
 }
 
@@ -240,10 +266,18 @@ void sendMessageAboutCorrect()
   {
     OutgoingData.Command = CorrectPassCode;
     Serial.println("correct");
-    if (!radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen))
+    if (sendOutgoing())
       Serial.println("No ack");
     LastSendCorrectTime = millis();
     Serial.println("message about correct sent");
+  }
+}
+
+bool sendOutgoing()
+{
+  if (talkingPillow.is_present)
+  {
+    return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen);
   }
 }
 

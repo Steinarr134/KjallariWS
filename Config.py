@@ -29,7 +29,7 @@ inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 class MyNetwork(MoteinoNetwork):
     def receive(self, sender, diction):
-        print("Somtehing was received!!!!!!")
+        print("Something was received!!!!!!")
 
 
 # mynetwork = MyNetwork('/dev/ttyAMA0')
@@ -42,7 +42,7 @@ GreenDude = mynetwork.add_device(MoteinoIDs['GreenDude'],
 GreenDude.add_translation('Command',
                           ('Status', 99),
                           ('Disp', 1101),
-                          ('ReceiveTalkingPillow', 42),
+                          ('GiveTalkingPillow', 42),
                           ('TakeAwayTalkingPillow', 43),
                           ('SetPassCode', 1102),)
 

@@ -8,6 +8,19 @@ def GreenDudeReceive(d):
 GreenDude.bind(receive=GreenDudeReceive)
 
 
+def getStatus(d):
+    status = d.send_and_receive('Status')
+    if status is None:
+        raise Exception(d.Name + " did not respond when we checked for status")
+    else:
+        return status
+
+
+def init_check_on_moteinos():
+    for d in mynetwork.devices:
+        getStatus(d)
+
+
 class TalkingPillow(object):
     def __init__(self):
         self.Holder = None
@@ -22,6 +35,7 @@ class TalkingPillow(object):
             self.Holder.send('GiveTheTalkingPillow')
             self.Holder = None
 
+talking_pillow = TalkingPillow()
 
 
 class Quest(object):
@@ -33,9 +47,9 @@ class Quest(object):
         self.NextQuest.start()
 
 
-class Elevetor(Quest):
-    def __init__(self):
-        Quest.__init__(self)
+class Elevator(Quest):
+    def __init__(self, next_quest):
+        Quest.__init__(self, next_quest)
 
 
 startInterface()
