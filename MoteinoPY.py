@@ -440,7 +440,7 @@ class Device(object):  # maybe rename this to Node?
         d['Sender'] = self
         self.Network.RadioIsBusy = False
         if not self.Network.ReceiveWithSendAndReceive:
-            self.ReceiveFunction(d)
+            self.ReceiveFunction(self, d)
         else:
             self.Network.LastReceived = d
             self.Network.ReceiveWithSendAndReceive = False
@@ -448,6 +448,7 @@ class Device(object):  # maybe rename this to Node?
     def send_and_receive(self, *args, **kwargs):
         self.Network.ReceiveWithSendAndReceive = True
         temp = id(self.Network.LastReceived)
+        kwargs['expect_response'] = True
         self.send(*args, **kwargs)
         if id(self.Network.LastReceived) != temp:
             return self.Network.LastReceived
@@ -457,7 +458,7 @@ class Device(object):  # maybe rename this to Node?
 
 class BaseMoteino(Device):
     def __init__(self, network, _id):
-        Device.__init__(self, network, _id, "byte Sender;bool AckReceived;", 'BaseMoteino')
+        Device.__init__(self, network, _id, "byte Sender;bool AckReceived;byte RSSI;", 'BaseMoteino')
 
     def send2parent(self, payload):
         d = self.Struct.decode(payload)
@@ -465,12 +466,12 @@ class BaseMoteino(Device):
             raise ValueError("Sender not in known devices")
         sender = self.Network.devices[d['Sender']]
         if d['AckReceived']:
-            logging.info("Ack received when " + str(sender.LastSent) + " was sent")
+            logging.info("Ack received when " + str(sender.LastSent) + " was sent to " + sender.Name)
             if not self.Network.ResponseExpected:
                 self.Network.RadioIsBusy = False
             self.Network.ack(sender.Name, dict(sender.LastSent))
         else:
-            logging.warning("No ack received when " + str(sender.LastSent) + " was sent")
+            logging.warning("No ack received when " + str(sender.LastSent) + " was sent to " + sender.Name)
             self.Network.RadioIsBusy = False
             self.Network.no_ack(sender, dict(sender.LastSent))
 

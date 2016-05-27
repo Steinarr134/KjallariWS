@@ -1,6 +1,6 @@
 import MoteinoPY as moteinopy
 
-mynetwork = moteinopy.MoteinoNetwork('/dev/ttyAMA0',
+mynetwork = moteinopy.MoteinoNetwork('COM4',
                                      frequency=moteinopy.RF69_433MHZ,
                                      network_id=7,
                                      encryption_key="HugiBogiHugiBogi"

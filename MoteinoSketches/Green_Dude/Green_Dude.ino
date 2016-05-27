@@ -61,10 +61,12 @@ void TalkingPillow::check(Payload P)
   if (P.Command == ReceiveTalkingPillow)
   {
     is_present = true;
+    Serial.println("TalkingPillow received");
   }
   else if (P.Command == LoseTalkingPillow)
   {
     is_present = false;
+    Serial.println("TalkingPillow lost");
   }
 }
 
@@ -163,32 +165,7 @@ void loop()
         }
         LastCheckPhoneTime = millis();
       } 
-  if (radio.receiveDone())
-  {
-    if (radio.SENDERID == BaseID)
-    {
-      IncomingData = *(Payload*)radio.DATA;
-      if (radio.ACKRequested())
-      {
-        radio.sendACK();
-      }
-      Serial.print("Received: command: ");
-      Serial.println(IncomingData.Command);
-      
-      switch (IncomingData.Command) 
-      {
-        case Status:
-          sendStatus();
-          break;
-        case Disp:
-          disp();
-          break;
-        case SetPassCode:
-          setPassCode();
-          break;
-      }
-    }
-  }
+  checkOnRadio();
 }
 
 void checkOnRadio()
@@ -242,21 +219,21 @@ void setPassCode()
 
 void sendStatus()
 {
-  Serial.println("sending statuts");
+  Serial.println("sending status");
   OutgoingData.Command = Status;
   for (byte i = 0; i<7;i++)
   {
     OutgoingData.Lights[i] = CurrentSwitchState[i];
   }
   OutgoingData.Temperature = getTemperature();
-  if (sendOutgoing())
+  if (!sendOutgoing())
     Serial.println("No ack recieved");
 }
 
 int getTemperature()
 {
   sensors.requestTemperatures();
-  delay(1);
+  delay(20);
   return sensors.getTempCByIndex(0);
 }
 
@@ -266,7 +243,7 @@ void sendMessageAboutCorrect()
   {
     OutgoingData.Command = CorrectPassCode;
     Serial.println("correct");
-    if (sendOutgoing())
+    if (!sendOutgoing())
       Serial.println("No ack");
     LastSendCorrectTime = millis();
     Serial.println("message about correct sent");
@@ -275,9 +252,13 @@ void sendMessageAboutCorrect()
 
 bool sendOutgoing()
 {
-  if (talkingPillow.is_present)
+  if (talkingPillow.is_present || (OutgoingData.Command == Status))
   {
     return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen);
+  }
+  else
+  {
+    return false;
   }
 }
 
