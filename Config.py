@@ -1,4 +1,7 @@
-from moteinopy import MoteinoNetwork
+import moteinopy
+import apscheduler
+
+scheduler = None # skilgreina seinna
 
 
 Moteinos = ['GreenDude']
@@ -27,7 +30,7 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-class MyNetwork(MoteinoNetwork):
+class MyNetwork(moteinopy.MoteinoNetwork):
     def receive(self, sender, diction):
         print("Something was received!!!!!!")
 
@@ -35,6 +38,8 @@ class MyNetwork(MoteinoNetwork):
 # mynetwork = MyNetwork('/dev/ttyAMA0')
 mynetwork = MyNetwork('COM50')
 
+def add_device(name):
+    exec name + " 
 
 GreenDude = mynetwork.add_device(MoteinoIDs['GreenDude'],
                                  MoteinoStructs['GreenDude'],
@@ -44,7 +49,16 @@ GreenDude.add_translation('Command',
                           ('Disp', 1101),
                           ('GiveTalkingPillow', 42),
                           ('TakeAwayTalkingPillow', 43),
-                          ('SetPassCode', 1102),)
+                          ('SetPasscode', 1102),
+                          ('CorrectPasscode', 1103))
+
+LockPicking = mynetwork.add_device(MoteinoIDs['LockPicking'],
+                                 MoteinoStructs['LockPicking'],
+                                 'LockPicking')
+LockPicking.add_translation('Command',
+                           ('Status', 99),
+                           ('GiveTalkingPillow', 42),
+                           ('TakeAwayTalkingPillow', 43))
 
 
 SplitFlap = mynetwork.add_device(MoteinoIDs['SplitFlap'],

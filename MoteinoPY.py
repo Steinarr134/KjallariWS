@@ -4,11 +4,6 @@ import time
 import logging
 import os
 
-if os.name == 'posix':
-    import select
-else:
-    select = None
-
 
 __author__ = 'SteinarrHrafn'
 
@@ -34,7 +29,7 @@ mynetwork.start_listening()
 mynetwork.send('TestDevice', {'Command': 123, 'Something': 456})
 """
 # set logging configuration to DEBUG
-# a python module should not do this but we are still in beta mode
+# a python module should not do this but we are still in alpha mode
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -53,7 +48,6 @@ class MySerial(object):
     def __init__(self, **kwargs):
         self.Serial = serial.Serial(**kwargs)
         self.read = self.Serial.read
-        self.readline = self.Serial.readline
         self.isOpen = self.Serial.isOpen
         self.close = self.Serial.close
 
@@ -62,6 +56,10 @@ class MySerial(object):
             self.Serial.write(s.encode('ascii'))
         else:
             self.Serial.write(s)
+    def readline(self):
+        s = self.Serial.readline()
+        return s.decode()
+            
 
 
 def _hexprints(n):
@@ -378,6 +376,7 @@ class Device(object):  # maybe rename this to Node?
         self.Network = network
         self.Name = '' if name is None else name
         self.Translations = dict()
+        self.Translations_inv = dict()
         self.ReceiveFunction = network.receive
         self.AckFunction = network.ack
         self.NoAckFunction = network.no_ack
@@ -394,20 +393,22 @@ class Device(object):  # maybe rename this to Node?
         if no_ack is not None:
             self.NoAckFunction = no_ack
 
-    def _translate(self, key, value):
-        if key in self.Translations:
+    def _translate(self, part, key):
+        if part in self.Translations:
             # print "key is in Translations"
-            if value in self.Translations[key]:
+            if key in self.Translations[part]:
                 # print "value is in Translations[key], returning: " + str(self.Translations[key][value])
-                return self.Translations[key][value]
+                return self.Translations[part][key]
         # print "no translation, just returning value: " + str(value)
-        return value
+        return key
 
     def add_translation(self, part, *args):
         if part not in self.Translations:
             self.Translations[part] = dict()
+            self.Translations_inv[part] = dict()
         for (key, value) in args:
             self.Translations[part][key] = value
+            self.Translations_inv[part][value] = key
 
     def send(self, *args, **kwargs):
         """
@@ -415,6 +416,8 @@ class Device(object):  # maybe rename this to Node?
         """
         if 'expect_response' in kwargs:
             self.Network.ResponseExpected = kwargs['expect_response']
+        else:
+            self.Network.ResponseExpected = False
         if 'max_wait' in kwargs:
             max_wait = kwargs['max_wait']
         else:
@@ -442,6 +445,13 @@ class Device(object):  # maybe rename this to Node?
         :return: None
         """
         d = self.Struct.decode(payload)
+        for (part, value) in d.items():  # translation
+            # If translations exist regarding this key
+            if part in self.Translations_inv:
+                # If a translation of this value
+                if value in self.Translations_inv[part]:
+                    d[part + "_raw"] = d[part]
+                    d[part] = self.Translations_inv[part][value]
         logging.info(str(d) + " received from " + str(self))
         d['SenderID'] = self.ID
         d['SenderName'] = self.Name
@@ -644,7 +654,7 @@ class MoteinoNetwork(object):
         while self.RadioIsBusy:
             # print "waiting..."
             counter += 1
-            time.sleep(0.01)
+            time.sleep(0.01)    
             if (time.time() - t)*1000 > max_wait:
                 break
         logging.debug("I waited for radio for " + str((time.time() - t)*1000) + " ms")
