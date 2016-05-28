@@ -1,6 +1,10 @@
 import MoteinoPY as moteinopy
 
+<<<<<<< HEAD
 mynetwork = moteinopy.MoteinoNetwork('COM5',
+=======
+mynetwork = moteinopy.MoteinoNetwork('/dev/ttyUSB0',
+>>>>>>> dbc1f49edfe2a0502a9fb566a2202a97d9249efb
                                      frequency=moteinopy.RF69_433MHZ,
                                      network_id=7,
                                      encryption_key="HugiBogiHugiBogi"

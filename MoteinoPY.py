@@ -55,6 +55,7 @@ class MySerial(object):
         self.read = self.Serial.read
         self.readline = self.Serial.readline
         self.isOpen = self.Serial.isOpen
+        self.close = self.Serial.close
 
     def write(self, s):
         if isinstance(s, unicode):
@@ -728,6 +729,7 @@ class MoteinoNetwork(object):
     def start_listening(self):  # starts a thread that listens to the serial port
         if not self._serial_listening_thread_is_active:
             self.serial_listening_thread = ListeningThread(network=self)
+            self.serial_listening_thread.setDaemon(True)
             if not self.Serial.isOpen():
                 self.Serial.open()
             self.serial_listening_thread.start()
