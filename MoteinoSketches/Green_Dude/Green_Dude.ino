@@ -30,8 +30,8 @@ byte BaseID = 1;
 // operating variables
 const int CorrectPassCode = 25;
 const int Status = 99;
-const int Disp = 122;
-const int SetPassCode = 123;
+const int Disp = 1101;
+const int SetPassCode = 1102;
 
 byte CorrectSwitchState[] = {-1, -1, -1, -1, -1, -1, -1};
 

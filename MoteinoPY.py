@@ -1,8 +1,15 @@
 import serial
 import threading
 import time
-import sys
 import logging
+import os
+
+if os.name == 'posix':
+    import select
+else:
+    select = None
+
+
 __author__ = 'SteinarrHrafn'
 
 """
@@ -32,9 +39,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 # The previous debugging method
-def dprint(s, newline=True):  # print for debugging purposes
-    if True:
-        sys.stdout.write(s + ('\n' if newline else ''))
+# def dprint(s, newline=True):  # print for debugging purposes
+#     if True:
+#         sys.stdout.write(s + ('\n' if newline else ''))
 
 try:
     unicode
@@ -442,7 +449,7 @@ class Device(object):  # maybe rename this to Node?
         if not self.Network.ReceiveWithSendAndReceive:
             self.ReceiveFunction(self, d)
         else:
-            self.Network.LastReceived = d
+            self.Network.LastReceived = dict(d)
             self.Network.ReceiveWithSendAndReceive = False
 
     def send_and_receive(self, *args, **kwargs):
@@ -522,7 +529,7 @@ class ListeningThread(threading.Thread):
             try:
                 incoming = self.Listen2.readline()
             except serial.SerialException as e:
-                logging.warning("serial exception ocuurred: " + str(e))
+                logging.warning("serial exception ocurred: " + str(e))
                 break
             incoming.rstrip('\n')  # use [:-1]?
             logging.debug("Serial port said: " + incoming)
