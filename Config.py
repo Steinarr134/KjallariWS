@@ -38,8 +38,8 @@ class MyNetwork(moteinopy.MoteinoNetwork):
 # mynetwork = MyNetwork('/dev/ttyAMA0')
 mynetwork = MyNetwork('COM50')
 
-def add_device(name):
-    exec name + " 
+#def add_device(name):
+#    exec name + " 
 
 GreenDude = mynetwork.add_device(MoteinoIDs['GreenDude'],
                                  MoteinoStructs['GreenDude'],
