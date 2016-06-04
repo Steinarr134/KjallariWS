@@ -3,7 +3,6 @@ import time
 
 import threading
 import sys
-import pyodbc
 
 import matplotlib
 matplotlib.use('TkAgg')

@@ -1,9 +1,39 @@
 from Config import *
 from HostInterface import startInterface
 
+class TalkingPillow(object):
+    def __init__(self):
+        self.Holder = None
 
+    def give(self, device):
+        assert self.Holder is None
+        if type(device) is str:
+            device = mynetwork.devices[device]
+        self.Holder = device
+        device.send('ReceiveTheTalkingPillow')
+
+    def reclaim(self):
+        if self.Holder is not None:
+            self.Holder.send('GiveTheTalkingPillow')
+            self.Holder = None
+
+talking_pillow = TalkingPillow()
+    
+
+def ElevatorReceive(d):
+    if d["Command"] == "CorrectPasscode":
+        doors.open("ElevatorCampZ")
+        aotj(doors.close("ElevatorCampZ"), seconds=2)
+        
+        talking_pillow.reclaim()
+        talking_pillow.give(LockPicking)
+        
+        
 def GreenDudeReceive(d):
-    print(d)
+    if d['Command'] == "CorrectPasscode":
+        TapeRecorder.play("GreenDudeCorrect")
+
+        talking_pillow.reclaim()
 
 GreenDude.bind(receive=GreenDudeReceive)
 
@@ -17,39 +47,16 @@ def getStatus(d):
 
 
 def init_check_on_moteinos():
-    for d in mynetwork.devices:
-        getStatus(d)
+    for device in mynetwork.devices:
+        getStatus(device)
 
 
-class TalkingPillow(object):
-    def __init__(self):
-        self.Holder = None
-
-    def give(self, device):
-        assert self.Holder is None
-        self.Holder = device
-        device.send('ReceiveTheTalkingPillow')
-
-    def reclaim(self):
-        if self.Holder is not None:
-            self.Holder.send('GiveTheTalkingPillow')
-            self.Holder = None
-
-talking_pillow = TalkingPillow()
 
 
-class Quest(object):
-    def __init__(self, next_quest):
-        self.NextQuest = next_quest
 
-    def cleanup(self):
-        talking_pillow.reclaim()
-        self.NextQuest.start()
-
-
-class Elevator(Quest):
-    def __init__(self, next_quest):
-        Quest.__init__(self, next_quest)
+class ElevatorQuest
 
 
 startInterface()
+
+sleep_forever()
