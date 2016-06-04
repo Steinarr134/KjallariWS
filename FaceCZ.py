@@ -233,19 +233,19 @@ class Task:
 
 # Populate events from database
 tasks = list()
-cnxn = pyodbc.connect(r'Driver={SQL Server};'
-                      r'Server=.\SQLEXPRESS;'
-                      r'Database=KjallariDB;'
-                      r'Trusted_Connection=yes;')
-cursor = cnxn.cursor()
-cursor.execute("SELECT [Name],[AVGDuration],[Hint],[Number] FROM [dim_Tasklist] WHERE [Number] IS NOT null ORDER BY [Number]")
-while True:
-    row = cursor.fetchone()
-    if not row:
-        break
-    else:
-        tasks.append(Task(row.Name, row.AVGDuration, row.Hint, row.Number))
-cnxn.close()
+# cnxn = pyodbc.connect(r'Driver={SQL Server};'
+#                       r'Server=.\SQLEXPRESS;'
+#                       r'Database=KjallariDB;'
+#                       r'Trusted_Connection=yes;')
+# cursor = cnxn.cursor()
+# cursor.execute("SELECT [Name],[AVGDuration],[Hint],[Number] FROM [dim_Tasklist] WHERE [Number] IS NOT null ORDER BY [Number]")
+# while True:
+#     row = cursor.fetchone()
+#     if not row:
+#         break
+#     else:
+#         tasks.append(Task(row.Name, row.AVGDuration, row.Hint, row.Number))
+# cnxn.close()
 
 stdoutLock = threading.Lock()
 def send2POPE(output):
