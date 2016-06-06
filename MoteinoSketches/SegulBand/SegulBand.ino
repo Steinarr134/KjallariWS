@@ -5,29 +5,24 @@
 /////////////////// for the temperature sensors:
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#define ONE_WIRE_BUS 2  // ÞArf að stilla rétt!
+#define ONE_WIRE_BUS 2
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
-DeviceAddress MotorSensor;
-DeviceAddress DriverSensor;  //// Þarf a' stilla líka
+DeviceAddress MotorSensor = {0x28, 0xFF, 0x41, 0xC5, 0x10, 0x14, 0x00, 0x49};
+DeviceAddress DriverSensor = {0x28, 0xFF, 0x8F, 0xE3, 0x10, 0x14, 0x00, 0xB0}; 
 DeviceAddress HousingSensor;
 
 
 typedef struct{         // Þarf að stilla
   int Command;
-  byte MoteinoTemperature;
-  byte MotorTemperature;
-  byte DriverTemperature;
-  long CurrentPosition;
-  long MaxPosition;
-  unsigned int FastSpeed;
-  unsigned int SlowSpeed;
-  unsigned int Acceleration;
+  byte MotorTemp;
+  byte DriverTemp;
+  int CurrentPosition;
   byte LightIntensity;
-  
 } Payload;
 Payload OutgoingData;
 Payload IncomingData;
+const byte datalen = sizeof(IncomingData);
 
 
 //////////// Command values
@@ -48,7 +43,8 @@ const int SendPlay = 1353;
 const int SendStop = 1354;
 
 //// Variables
-byte N[20];
+byte N[datalen];
+byte M[datalen];
 byte Counter;
 bool FirstHexDone;
 byte FirstHex;
@@ -87,7 +83,7 @@ byte ON = LOW;
 byte OFF = HIGH;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   ////// Setup Temperature sensors
   sensors.begin();
@@ -197,12 +193,26 @@ void sendStatus()
 {
   sensors.requestTemperatures();
   delay(10);
-//  OutgoingData.numbers[5] = 10*sensors.getTempC(MotorSensor);
-//  OutgoingData.numbers[6] = 10*sensors.getTempC(DriverSensor);
+  OutgoingData.MotorTemp = (byte) sensors.getTempC(MotorSensor);
+  OutgoingData.DriverTemp = (byte) sensors.getTempC(DriverSensor);
+  Serial.println(OutgoingData.MotorTemp);
+  OutgoingData.Command = Status;
+  OutgoingData.LightIntensity = 100;
+  OutgoingData.CurrentPosition = 101;
 //  OutgoingData.numbers[7] = 10*sensors.getTempC(HousingSensor);
-//  send();
+  Serial.println("sending status");
+  send();
 }
 
+void send()
+{
+  memcpy(&M, &OutgoingData, datalen);
+  for (byte i = 0; i < datalen; i++)
+  {
+    hexprint(M[i]);
+  }
+  Serial.println();
+}
 void play()
 {
   enableMotor();
