@@ -60,10 +60,10 @@ int Acceleration = EEPROMReadInt(Acceleration_EEPROM_Address);
 long MaxPosition;
 */
 
-int FastSpeed = 1800;
+int FastSpeed = 1500;
 int SlowSpeed = 500;
-int Acceleration = 1500;
-long MaxPosition = 100000;
+int Acceleration = 5000;
+long MaxPosition = 1000000;
 
 const byte MotorEnablePin = 7;
 const byte MotorStepPin = 9;
