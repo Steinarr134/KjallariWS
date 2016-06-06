@@ -1,5 +1,5 @@
 import pyodbc
-from Dictionaries import *
+from Config import *
 from Imports import *
 import Moteinos
 

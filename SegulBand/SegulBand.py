@@ -10,7 +10,6 @@ atexit.register(GPIO.cleanup)
 
 motor = Motor()
 
-
 if True:
 
     # region Play Button
