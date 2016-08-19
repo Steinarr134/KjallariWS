@@ -1,14 +1,47 @@
-//Pin connected to ST_CP of 74HC595
-int latchPin = 8;
-//Pin connected to SH_CP of 74HC595
-int clockPin = 12;
+//=========RAdio=========================================
+// for the radio
+#include <RFM69.h>    
+#include <SPI.h>
+#define NODEID        170    //unique for each node on same network   
+#define NETWORKID     7  //the same on all nodes that talk to each other
+//Match frequency to the hardware version of the radio on your Moteino (uncomment one):
+#define FREQUENCY     RF69_433MHZ
+#define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
+#define SERIAL_BAUD   9600
+RFM69 radio;
+bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
+typedef struct{
+  int Command;
+  int TimeLeft;
+  int Temperature;
+} Payload;
+Payload OutgoingData;
+Payload IncomingData;
+byte DataLen = sizeof(IncomingData);
+byte BaseID = 1;
+
+// operating variables
+const int Status = 99;
+const int BombIsDiffused = 17001;
+const int BombTotallyExploded = 17002;
+const int PleaseSendTimeInfo = 17003;
+
+//===========================================================================================
+
+
+
 ////Pin connected to DS of 74HC595
-int dataPin = 11;
+int dataPin = 3;
+//Pin connected to ST_CP of 74HC595
+int latchPin = 4;
+//Pin connected to SH_CP of 74HC595
+int clockPin = 5;
+
 
 int janei=1;
-int piezoPin = 6;
+int piezoPin = 7;
 
-const int buttonPin = 2;
+const int buttonPin = 6;
 int buttonState = 0;
 //=========Banana tengi=========================================
 int analogPin1 = 0;     // potentiometer wiper (middle terminal) connected to analog pin 3
@@ -19,38 +52,74 @@ int analogPin5 = 4;     // potentiometer wiper (middle terminal) connected to an
 
 int val1,val2,val3,val4,val5;           // variable to store the value read
 
-//gamalt
-//696 898 407 90 993 126,5
-//nytt
+//beint á móti
 // 685 882 402 93 829
-int rett1=685;
-int rett2=882;
-int rett3=402;
-int rett4=93;
-int rett5=829;
+
+//Eftirfarandi gildi segja til um hvaða samsetning niðri er rétt ___________________________________________________________________________________________________________________________________
+int rett1=89;
+int rett2=896;
+int rett3=931;
+int rett4=92;
+int rett5=882;
 //==============================================================
-unsigned long TimeLeft = 30;  // timinn sem vid faum ur pafanum
-unsigned long TimeToSplit = TimeLeft/ 10; // hofum 2 tvi tad eru adeins t led perur
+unsigned long TimeLeft;  // timinn sem vid faum ur pafanum
 unsigned long Timibyrjar, Timataka;
 
+//i er fjoldi pera sem er kveikt 'a
 int i = 10;
 int fjoldiPera = 10;
 int tempTimataka = 0;
 void setup() {
+  // ================RADIO==================
+  //VIRKAR EKKI MEÐ ARDUINO
+  radio.initialize(FREQUENCY,NODEID,NETWORKID);
+  radio.setHighPower(); //only for RFM69HW!
+  radio.encrypt(ENCRYPTKEY);
+  radio.promiscuous(promiscuousMode);
+  //========================================
+  
   //set pins to output so you can control the shift register
   Serial.begin(9600);  
   pinMode(latchPin, OUTPUT);
-  //pinMode(clockPin, OUTPUT);
-  //pinMode(dataPin, OUTPUT);
+
   
-  Timibyrjar= millis();
+}
+
+int getTimeLeftFromPope(){
+ /* OutgoingData.Command = PleaseSendTimeLeft;
+  bool success = sendData();
+  if (success){
+    while(!radio.receiveDone())
+    IncomingData = *(Payload*)radio.DATA;
+    return radio.TimeLeft;
+  }
+  else{
+    return 30;
+  }*/
+
+  Serial.flush();
+  Serial.println("what is TimeLeft?");
+  delay(100);
+  while (!Serial.available())
+  delay(50);
+  int a = Serial.parseInt();
+  Serial.print("Starting with Timeleft: ");
+  Serial.println(a);
+  delay(500);
+  return a;
 }
 
 void loop() {
   // count from 0 to 255 and display the number 
   // on the LEDs
   buttonState = digitalRead(buttonPin);
-  if(buttonState == 1)
+  //if using button:  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+  if(buttonState == 1){
+
+  //fá tíma sem er eftir frá páfa _________________________________________________________________________________________________________________________________________________
+   TimeLeft = getTimeLeftFromPope();
+    //TimeLeft=90;
+    Timibyrjar= millis();
   
   while(i>0){
   Timataka=floor((millis() - Timibyrjar)/1000);
@@ -62,31 +131,30 @@ val3 = analogRead(analogPin3);    // read the input pin
 val4 = analogRead(analogPin4);    // read the input pin
 val5 = analogRead(analogPin5);    // read the input pin
 //=====================================================
-  float bla = Timataka*100;
-  float blabla = TimeLeft*100;
-  
-  
+
   i = ceil((1 - float(Timataka)/float(TimeLeft)) * fjoldiPera) ;
   
   Serial.print(i);
   Serial.print("        ");
   Serial.print(Timataka);
-Serial.print("        ");
-  Serial.println(((bla/blabla)));
+Serial.println("        ");
   
 
   if(rett1-10< val1 && val1 <rett1+10 && val2>rett2-10 && val2<rett2+10
 && val3>rett3-10 && val3<rett3+10 && val4>rett4-10 && val4<rett4+10
 && val5>rett5-10 && val5<rett5+10 )
 {
+  // senda a pafa ad buid se ad aftengja sprengju_____________________________________________________________________________________________________________________________________________
+  tellPopeWin();
   while(true){
-  Serial.print("meistaraverk");
+  
       digitalWrite(latchPin, LOW);
 
       shiftOut(dataPin, clockPin, 1); 
       shiftOut(dataPin, clockPin, 0); 
 
       digitalWrite(latchPin, HIGH);
+
   }
   break;
 }
@@ -94,7 +162,7 @@ Serial.print("        ");
   if(Timataka % 2 == 0 ){
      if(janei==1){
       tempTimataka = Timataka;
-      // tone(piezoPin, 1000, 100);
+      
        janei=0;
      }
      if(abs(tempTimataka - Timataka)> 1){
@@ -141,26 +209,9 @@ Serial.print("        ");
   }
   while(i<1){
     Timataka=floor((millis() - Timibyrjar)/1000);
+// senda a pafa ad timinn se buinn og sprengjan springur_____________________________________________________________________________________________________________________________________________
+  tellPopeLose();
 
-      //BANANATENGI======================================
-  val1 = analogRead(analogPin1);    // read the input pin
-  val2 = analogRead(analogPin2);    // read the input pin
-val3 = analogRead(analogPin3);    // read the input pin
-val4 = analogRead(analogPin4);    // read the input pin
-val5 = analogRead(analogPin5);    // read the input pin
-//=====================================================
-
-if(rett1-10< val1 && val1 <rett1+10 && val2>rett2-10 && val2<rett2+10
-&& val3>rett3-10 && val3<rett3+10 && val4>rett4-10 && val4<rett4+10
-&& val5>rett5-10 && val5<rett5+10 )
-{
-  Serial.print("meistaraverk");
-      digitalWrite(latchPin, LOW);
-      shiftOut(dataPin, clockPin, 1); 
-      shiftOut(dataPin, clockPin, 0); 
-      digitalWrite(latchPin, HIGH);
-      break;
-}
     if(Timataka % 2 == 0 ){
       digitalWrite(latchPin, LOW);
       shiftOut(dataPin, clockPin, 14); 
@@ -175,6 +226,101 @@ if(rett1-10< val1 && val1 <rett1+10 && val2>rett2-10 && val2<rett2+10
   }  
   }
 }
+// if using button:
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//forrit sem þarf ekki að hugsa um
+//samt nauðsynleg
+
+// =====================útvarpsföll============RADIO==============================
+void checkOnRadio()
+{
+   if (radio.receiveDone())
+  {
+    if (radio.SENDERID == BaseID)
+    {
+      IncomingData = *(Payload*)radio.DATA;
+      if (radio.ACKRequested())
+      {
+        radio.sendACK();
+      }
+      //Serial.print("Received: command: ");
+      //Serial.println(IncomingData.Command);
+      switch (IncomingData.Command) 
+      {
+        case Status:
+          sendStatus();
+          break;
+
+      }
+    }
+  }
+}
+
+void sendStatus()
+{
+  //Serial.println("sending statuts");
+  OutgoingData.Command = Status;
+  OutgoingData.Temperature = getTemperature();
+  radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen);
+}
+bool sendData()
+{
+  return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen);
+}
+
+byte getTemperature()
+{
+  return 0; /// vantar
+}
+
+void tellPopeWin()
+{
+  //do something
+  //kalla a thetta thegar vid vinnum
+  Serial.println("u win");
+//  OutgoingData.Command = BombIsDiffused;
+//  sendData();
+}
+
+void tellPopeLose()
+{
+  //do something
+  //kalla a thetta thegar vid vinnum
+  Serial.println("u lose");
+//  OutgoingData.Command = BombIsDiffused;
+//  sendData();
+}
+//=====================================================================================
+
 
 void shiftOut(int myDataPin, int myClockPin, byte myDataOut) {
   // This shifts 8 bits out MSB first, 
