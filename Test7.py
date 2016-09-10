@@ -1,16 +1,4 @@
-import MoteinoPY as moteinopy
+import pygame
 
-mynetwork = moteinopy.MoteinoNetwork('COM5',
-                                     frequency=moteinopy.RF69_433MHZ,
-                                     network_id=7,
-                                     encryption_key="HugiBogiHugiBogi"
-                                     )
 
-GreenDude = mynetwork.add_device(11,  "unsigned int Command;byte Lights[7];byte Temperature;", "GreenDude")
-
-GreenDude.add_translation('Command',
-                          ('Status', 99),
-                          ('Disp', 1101),
-                          ('GiveTalkingPillow', 42),
-                          ('TakeAwayTalkingPillow', 43),
-                          ('SetPassCode', 1102),)
+"C:\Users\SteinarrHrafn\Google Drive\Kjallari William Stephenssonar\Camp Z\Lygamælir\Tape_ogg\\1_audio_WELCOME_INTRODUCTION"
