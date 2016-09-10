@@ -117,9 +117,9 @@ void loop() {
   if(buttonState == 1){
 
   //fá tíma sem er eftir frá páfa _________________________________________________________________________________________________________________________________________________
-   TimeLeft = getTimeLeftFromPope();
+  TimeLeft = getTimeLeftFromPope();
     //TimeLeft=90;
-    Timibyrjar= millis();
+  Timibyrjar= millis();
   
   while(i>0){
   Timataka=floor((millis() - Timibyrjar)/1000);
@@ -127,37 +127,37 @@ void loop() {
   //BANANATENGI======================================
   val1 = analogRead(analogPin1);    // read the input pin
   val2 = analogRead(analogPin2);    // read the input pin
-val3 = analogRead(analogPin3);    // read the input pin
-val4 = analogRead(analogPin4);    // read the input pin
-val5 = analogRead(analogPin5);    // read the input pin
-//=====================================================
+  val3 = analogRead(analogPin3);    // read the input pin
+  val4 = analogRead(analogPin4);    // read the input pin
+  val5 = analogRead(analogPin5);    // read the input pin
+  //=====================================================
 
   i = ceil((1 - float(Timataka)/float(TimeLeft)) * fjoldiPera) ;
   
   Serial.print(i);
   Serial.print("        ");
   Serial.print(Timataka);
-Serial.println("        ");
+  Serial.println("        ");
   
 
   if(rett1-10< val1 && val1 <rett1+10 && val2>rett2-10 && val2<rett2+10
-&& val3>rett3-10 && val3<rett3+10 && val4>rett4-10 && val4<rett4+10
-&& val5>rett5-10 && val5<rett5+10 )
-{
-  // senda a pafa ad buid se ad aftengja sprengju_____________________________________________________________________________________________________________________________________________
-  tellPopeWin();
-  while(true){
-  
+      && val3>rett3-10 && val3<rett3+10 && val4>rett4-10 && val4<rett4+10
+      && val5>rett5-10 && val5<rett5+10 )
+  {
+    // senda a pafa ad buid se ad aftengja sprengju_____________________________________________________________________________________________________________________________________________
+    tellPopeWin();
+    while(true)
+    {
       digitalWrite(latchPin, LOW);
 
-      shiftOut(dataPin, clockPin, 1); 
-      shiftOut(dataPin, clockPin, 0); 
+      shiftOut(dataPin, clockPin, 1);
+      shiftOut(dataPin, clockPin, 0);
 
       digitalWrite(latchPin, HIGH);
 
+    }
+    break;
   }
-  break;
-}
 
   if(Timataka % 2 == 0 ){
      if(janei==1){
