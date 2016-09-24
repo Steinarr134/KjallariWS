@@ -14,7 +14,7 @@ motor = Motor()
 mixer.init()
 m = mixer.music
 
-CurrentFile = "1_audio_WELCOME_INTRODUCTION.ogg"
+CurrentFile = "audio_files/1_audio_WELCOME_INTRODUCTION.ogg"
 m.load(CurrentFile)
 m.play()
 m.pause()
@@ -26,6 +26,7 @@ last_press = None
 last_press_time = None
 something_is_being_pressed = False
 playing_active = False
+time.sleep(1)
 motor.set_lights(35)
 
 HaveReleasedEvent = threading.Event()
@@ -39,7 +40,7 @@ class NoFinishFileThread(threading.Thread):
             time.sleep(0.5)
             if m.get_pos() < 0:
                 m.play(0, FileLength)
-                m.pause()
+                stop()
 
 noFinishFileThread = NoFinishFileThread()
 noFinishFileThread.start()
@@ -67,6 +68,8 @@ def skip(s):
 
 
 def play():
+    if abs(realpos() - FileLength) < 0.05:
+        return
     m.unpause()
     global playing_active
     playing_active = True
@@ -92,6 +95,7 @@ def forward():
     else:
         something_is_being_pressed = True
     _until_end = until_end()
+    print "until end: " + str(_until_end)
     motor.forward()
     HaveReleasedEvent.clear()
     print "waiting for release event"
@@ -99,6 +103,7 @@ def forward():
         print "Event.wait timeout occured"
         HaveReleasedEvent.set()
         skip(_until_end)
+        stop()
     else:
         print "waiting ended"
 
@@ -121,6 +126,7 @@ def rewind():
         print "Event.wait timeout occured"
         HaveReleasedEvent.set()
         skip(-_until_beginning)
+        motor.stop()
     else:
         print "waiting ended"
 
@@ -149,8 +155,7 @@ def release():
         stop()
 
 # region stop Button
-stop_button_pin = 6
-print "dsaf`2"
+stop_button_pin = 13
 
 def stop_button_press(channel):
     print "stop was pressed"
@@ -173,9 +178,8 @@ class ExecutionThread(threading.Thread):
         self.fun()
 
 # region reverse Button
-reverse_button_pin = 13
+reverse_button_pin = 6
 
-print "hernar lika"
 def reverse_button_press(channel):
     time.sleep(0.05)
     if not GPIO.input(reverse_button_pin):
@@ -198,7 +202,7 @@ GPIO.add_event_detect(reverse_button_pin,
 
 
 # region forward Button
-forward_button_pin = 19
+forward_button_pin = 5
 
 
 def forward_button_press(channel):
@@ -222,7 +226,7 @@ GPIO.add_event_detect(forward_button_pin,
 # endregion
 
 # region Play Button
-play_button_pin = 5
+play_button_pin = 19
 
 
 def play_button_press(channel):
