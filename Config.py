@@ -4,7 +4,9 @@ import apscheduler
 scheduler = None # skilgreina seinna
 
 
-Moteinos = ['GreenDude']
+Moteinos = ['GreenDude',
+            'SplitFlap',
+            'TimeBomb']
 
 
 MoteinoCommands = {
@@ -15,14 +17,23 @@ MoteinoCommands = {
 }
 
 MoteinoStructs = {
-    'GreenDude': "int Command;" + "byte Lights[7];" + "byte Temperature;",
-    'SplitFlap': "int Command;" + "char Letters[11];" + "byte Temperature;"
+    'GreenDude': "int Command;" +
+                 "byte Lights[7];" +
+                 "byte Temperature;",
+    'SplitFlap': "int Command;" +
+                 "char Letters[11];" +
+                 "byte Temperature;",
+    'TimeBomb': "int Command;" +
+                "unsigned long TimeLeft;" +
+                "int Temperature;",
+
 }
 
 MoteinoIDs = {
     'Base': 1,
     'GreenDude': 11,
     'SplitFlap': 101,
+    'TimeBomb': 170,
     'Stealth': 7,
     'TestDevice': 0
 }
@@ -38,36 +49,37 @@ class MyNetwork(moteinopy.MoteinoNetwork):
 # mynetwork = MyNetwork('/dev/ttyAMA0')
 mynetwork = MyNetwork('COM50')
 
-#def add_device(name):
-#    exec name + " 
+mynetwork.add_global_translation('Command',
+                                 ('Status', 99),
+                                 ('Reset', 98),
+                                 ('HereIsTheTalkingPillowTakeIt', 42),
+                                 ('GiveMeTheTalkinPillow', 43))
 
 GreenDude = mynetwork.add_device(MoteinoIDs['GreenDude'],
                                  MoteinoStructs['GreenDude'],
                                  'GreenDude')
 GreenDude.add_translation('Command',
-                          ('Status', 99),
                           ('Disp', 1101),
-                          ('GiveTalkingPillow', 42),
-                          ('TakeAwayTalkingPillow', 43),
                           ('SetPasscode', 1102),
                           ('CorrectPasscode', 1103))
 
 LockPicking = mynetwork.add_device(MoteinoIDs['LockPicking'],
-                                 MoteinoStructs['LockPicking'],
-                                 'LockPicking')
-LockPicking.add_translation('Command',
-                           ('Status', 99),
-                           ('GiveTalkingPillow', 42),
-                           ('TakeAwayTalkingPillow', 43))
-
+                                   MoteinoStructs['LockPicking'],
+                                   'LockPicking')
 
 SplitFlap = mynetwork.add_device(MoteinoIDs['SplitFlap'],
                                  MoteinoStructs['SplitFlap'],
                                  'SplitFlap')
 SplitFlap.add_translation('Command',
-                          ('Status', 99),
                           ('Disp', 10101),
-                          ('ClearAll', 10102))
+                          ('Clear', 10102))
+
+TimeBomb = mynetwork.add_device(MoteinoIDs['TimeBomb'],
+                                MoteinoStructs['TimeBomb'],
+                                'TimeBomb')
+TimeBomb.add_translation('Command',
+                         ('BombIsDiffused', 17001),
+                         ('BombExploded', 17002))
 
 QuestList = [
     'Elevator',
