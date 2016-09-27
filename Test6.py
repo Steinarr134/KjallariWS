@@ -1,7 +1,9 @@
 import pyodbc
-from Config import *
-from Imports import *
+
 import Moteinos
+from Imports import *
+
+from Pope.Config import *
 
 if not __name__ == "__main__":
     raise Exception("ThePope must be run as a main module, no importing")

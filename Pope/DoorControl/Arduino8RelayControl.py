@@ -5,8 +5,9 @@ CLOSED = 0
 
 
 class Door(object):
-    def __init__(self, controller):
+    def __init__(self, controller, position):
         self.Controller = controller
+        self.Position = position
         self.State = OPEN
         self.Controller.add_door(self)
 
@@ -17,10 +18,22 @@ class Door(object):
         self.Controller.close(self)
 
 
+class EmptyDoorSlot(object):
+    def __init__(self):
+        self.State = OPEN
+
+
 class DoorController(object):
     def __init__(self, port):
         self.Serial = serial.Serial(port, 115200)
-        self.Doors = []
+        self.Doors = [EmptyDoorSlot(),
+                      EmptyDoorSlot(),
+                      EmptyDoorSlot(),
+                      EmptyDoorSlot(),
+                      EmptyDoorSlot(),
+                      EmptyDoorSlot(),
+                      EmptyDoorSlot(),
+                      EmptyDoorSlot()]
 
     def _send_(self):
         s = ''
@@ -51,6 +64,9 @@ class DoorController(object):
         self._send_()
 
     def add_door(self, door):
-        if len(self.Doors) == 8:
-            raise ValueError("DoorController can only handle 8 doors")
-        self.Doors.append(door)
+        if not isinstance(door, Door):
+            raise ValueError("Expected a Door instance but got a " + str(door))
+        if not isinstance(self.Doors[door.Position], EmptyDoorSlot):
+            raise ValueError("Another door is already in that position!")
+
+        self.Doors[door.Position] = door
