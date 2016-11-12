@@ -7,13 +7,14 @@ scheduler.start()
 
 
 def run_after(func, seconds=0, minutes=0):
-    j = scheduler.add_job(func, 'date',
+    scheduler.add_job(func,
+                      'date',
                       run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
 
 
-def get_status(d):
-    status = d.send_and_receive('Status')
+def get_status(node):
+    status = node.send_and_receive('Status')
     if status is None:
-        raise Exception(d.Name + " did not respond when we checked for status")
+        raise Exception(node.Name + " did not respond when we checked for status")
     else:
         return status

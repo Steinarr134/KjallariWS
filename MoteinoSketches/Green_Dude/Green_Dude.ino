@@ -2,12 +2,12 @@
 // for the temperature sensor:
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#define ONE_WIRE_BUS 6  // ÞArf að stilla rétt!
+#define ONE_WIRE_BUS 6 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 // for the radio
-#include <RFM69.h>    
+#include <RFM69.h>
 #include <SPI.h>
 #define NODEID        11    //unique for each node on same network   
 #define NETWORKID     7  //the same on all nodes that talk to each other
@@ -17,7 +17,7 @@ DallasTemperature sensors(&oneWire);
 #define SERIAL_BAUD   9600
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
-typedef struct{
+typedef struct {
   unsigned int Command;
   byte Lights[7];
   byte Temperature;
@@ -33,7 +33,7 @@ const int Status = 99;
 const int Disp = 1101;
 const int SetPassCode = 1102;
 
-byte CorrectSwitchState[] = {-1, -1, -1, -1, -1, -1, -1};
+byte CorrectSwitchState[] = { -1, -1, -1, -1, -1, -1, -1};
 
 static byte RedLedFeadBackPos = 7;
 static byte GreenLedFeadBackPos = 15;
@@ -47,40 +47,15 @@ boolean Register[] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,} ;
 
 byte SimaPin = 7;
 
-class TalkingPillow{
-  public:
-    bool is_present;
-    void check(Payload P);
-  private:
-    const int ReceiveTalkingPillow = 42;
-    const int LoseTalkingPillow = 43;
-};
-
-void TalkingPillow::check(Payload P)
-{
-  if (P.Command == ReceiveTalkingPillow)
-  {
-    is_present = true;
-    Serial.println("TalkingPillow received");
-  }
-  else if (P.Command == LoseTalkingPillow)
-  {
-    is_present = false;
-    Serial.println("TalkingPillow lost");
-  }
-}
-
-TalkingPillow talkingPillow;
-
 
 
 void setup() {
   sensors.begin();
-  radio.initialize(FREQUENCY,NODEID,NETWORKID);
+  radio.initialize(FREQUENCY, NODEID, NETWORKID);
   radio.setHighPower(); //only for RFM69HW!
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
-  for (byte i = 0; i<7; i++)
+  for (byte i = 0; i < 7; i++)
   {
     pinMode(SwitchPin[i], INPUT);
   }
@@ -89,88 +64,88 @@ void setup() {
   pinMode(InputPin, OUTPUT);
   Serial.begin(9600);
   Serial.println("Here We GO!!");
-  for (byte i = 0; i<16; i++)
+  for (byte i = 0; i < 16; i++)
   {
     Register[i] = 0;
   }
   writeRegister();
   // put your setup code here, to run once:
-  pinMode(SimaPin,INPUT);
+  pinMode(SimaPin, INPUT);
 
 }
-byte CurrentSwitchState[] = {0,0,0,0,0,0,0};
-byte OldSwitchState[] = {0,0,0,0,0,0,0};
+byte CurrentSwitchState[] = {0, 0, 0, 0, 0, 0, 0};
+byte OldSwitchState[] = {0, 0, 0, 0, 0, 0, 0};
 unsigned long LastCheckTime = 0;
 int CheckInterval = 25;
 unsigned long LastCheckPhoneTime = 0;
 int CheckPhoneInterval = 150;
 unsigned long LastSendCorrectTime = 0;
 
-void loop() 
+void loop()
 {
-  if (millis()-LastCheckTime > CheckInterval)
+  if (millis() - LastCheckTime > CheckInterval)
   {
     checkOnSwitches();
     if (!currentAndOldAreTheSame())
     {
       //Serial.println("SomeThingChanged!");
       write2Leds();
-      for (byte i = 0; i<7; i++)
+      for (byte i = 0; i < 7; i++)
       {
-  //      Serial.print(CurrentSwitchState[i]);
-  //      Serial.print("  ");
+        //      Serial.print(CurrentSwitchState[i]);
+        //      Serial.print("  ");
         OldSwitchState[i] = CurrentSwitchState[i];
-      //Serial.println(OldSwitchState[i]);
+        //Serial.println(OldSwitchState[i]);
       }
       //Serial.println();
       //printRegister();
-     /* 
-      if (currentAndCorrectAreTheSame())
-      {
-        sendMessageAboutCorrect();
-      }*/
-      
+      /*
+        if (currentAndCorrectAreTheSame())
+        {
+         sendMessageAboutCorrect();
+        }*/
+
     }
-      
+
     LastCheckTime = millis();
   }
   if (digitalRead(SimaPin) == LOW && millis() - LastCheckPhoneTime > CheckPhoneInterval)
-      {
-        int a = Register[GreenLedFeadBackPos] + Register[RedLedFeadBackPos];
-        if (currentAndCorrectAreTheSame())
-          {
-            Register[GreenLedFeadBackPos] = 1;
-            Register[RedLedFeadBackPos] = 0;
-            sendMessageAboutCorrect();
-          } else {
-            Register[GreenLedFeadBackPos] = 0;
-            Register[RedLedFeadBackPos] = 1;
-          }
-          if (a!=1)
-          {
-            writeRegister();
-          }
-         else
-         {
-           //sendStatus();
-         }
-        LastCheckPhoneTime = millis();
-      } else if (millis()-LastCheckPhoneTime > CheckPhoneInterval+250) {
-        int a = Register[GreenLedFeadBackPos]+Register[RedLedFeadBackPos];
-        Register[GreenLedFeadBackPos] = 0;
-        Register[RedLedFeadBackPos] = 0;
-        if (a != 0)
-        {
-          writeRegister();
-        }
-        LastCheckPhoneTime = millis();
-      } 
+  {
+    int a = Register[GreenLedFeadBackPos] + Register[RedLedFeadBackPos];
+    if (currentAndCorrectAreTheSame())
+    {
+      Register[GreenLedFeadBackPos] = 1;
+      Register[RedLedFeadBackPos] = 0;
+      sendMessageAboutCorrect();
+    } else {
+      Register[GreenLedFeadBackPos] = 0;
+      Register[RedLedFeadBackPos] = 1;
+    }
+    if (a != 1)
+    {
+      writeRegister();
+    }
+    else
+    {
+      //sendStatus();
+    }
+    LastCheckPhoneTime = millis();
+  } else if (millis() - LastCheckPhoneTime > CheckPhoneInterval + 250) {
+    int a = Register[GreenLedFeadBackPos] + Register[RedLedFeadBackPos];
+    Register[GreenLedFeadBackPos] = 0;
+    Register[RedLedFeadBackPos] = 0;
+    if (a != 0)
+    {
+      writeRegister();
+    }
+    LastCheckPhoneTime = millis();
+  }
   checkOnRadio();
 }
 
 void checkOnRadio()
 {
-   if (radio.receiveDone())
+  if (radio.receiveDone())
   {
     if (radio.SENDERID == BaseID)
     {
@@ -182,9 +157,7 @@ void checkOnRadio()
       Serial.print("Received: command: ");
       Serial.println(IncomingData.Command);
 
-      talkingPillow.check(IncomingData);
-      
-      switch (IncomingData.Command) 
+      switch (IncomingData.Command)
       {
         case Status:
           sendStatus();
@@ -202,7 +175,7 @@ void checkOnRadio()
 
 void disp()
 {
-  for (byte i = 0; i<7;i++)
+  for (byte i = 0; i < 7; i++)
   {
     CurrentSwitchState[i] = IncomingData.Lights[i];
   }
@@ -211,7 +184,7 @@ void disp()
 
 void setPassCode()
 {
-  for (byte i = 0; i<7;i++)
+  for (byte i = 0; i < 7; i++)
   {
     CorrectSwitchState[i] = IncomingData.Lights[i];
   }
@@ -221,7 +194,7 @@ void sendStatus()
 {
   Serial.println("sending status");
   OutgoingData.Command = Status;
-  for (byte i = 0; i<7;i++)
+  for (byte i = 0; i < 7; i++)
   {
     OutgoingData.Lights[i] = CurrentSwitchState[i];
   }
@@ -239,7 +212,7 @@ int getTemperature()
 
 void sendMessageAboutCorrect()
 {
-  if (millis()-LastSendCorrectTime>5000)
+  if (millis() - LastSendCorrectTime > 5000)
   {
     OutgoingData.Command = CorrectPassCode;
     Serial.println("correct");
@@ -252,20 +225,13 @@ void sendMessageAboutCorrect()
 
 bool sendOutgoing()
 {
-  if (talkingPillow.is_present || (OutgoingData.Command == Status))
-  {
-    return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),DataLen);
-  }
-  else
-  {
-    return false;
-  }
+  return radio.sendWithRetry(BaseID, (const void*)(&OutgoingData), DataLen);
 }
 
 void writeRegister()
 {
   digitalWrite(LatchPin, LOW);
-  for (byte i = 0; i<16; i++)
+  for (byte i = 0; i < 16; i++)
   {
     digitalWrite(ClockPin, LOW);
     digitalWrite(InputPin, Register[i]);
@@ -276,22 +242,22 @@ void writeRegister()
 
 void printRegister()
 {
-  for (byte i= 0; i<16; i++)
+  for (byte i = 0; i < 16; i++)
   {
     Serial.print(Register[i]);
-    Serial.print("  "); 
+    Serial.print("  ");
   }
   Serial.println();
-  
-  
+
+
 }
 
 void write2Leds()
 {
-  for (byte i = 0; i<7; i++)
+  for (byte i = 0; i < 7; i++)
   {
     if (CurrentSwitchState[i] == 255)
-    
+
     {
       Register[RedLedPos[i]] = 1;
       Register[GreenLedPos[i]] = 0;
@@ -317,7 +283,7 @@ void write2Leds()
 
 boolean currentAndCorrectAreTheSame()
 {
-  for (byte i = 0; i<7; i++)
+  for (byte i = 0; i < 7; i++)
   {
     if (CurrentSwitchState[i] != CorrectSwitchState[i])
     {
@@ -330,12 +296,12 @@ boolean currentAndCorrectAreTheSame()
 boolean currentAndOldAreTheSame()
 {
   //Serial.print(" Checking: ");
-  for (byte i = 0; i<7; i++)
+  for (byte i = 0; i < 7; i++)
   {
-//    Serial.print(CurrentSwitchState[i]);
-//    Serial.print("  ");
-//    Serial.print(OldSwitchState[i]);
-//    Serial.print("  ");
+    //    Serial.print(CurrentSwitchState[i]);
+    //    Serial.print("  ");
+    //    Serial.print(OldSwitchState[i]);
+    //    Serial.print("  ");
     if (CurrentSwitchState[i] != OldSwitchState[i])
     {
       return 0;
@@ -347,7 +313,7 @@ boolean currentAndOldAreTheSame()
 void checkOnSwitches()
 {
   //Serial.print("Switches:  ");
-  for (byte i = 0; i<7; i++)
+  for (byte i = 0; i < 7; i++)
   {
     int value = analogRead(SwitchPin[i]);
     if (value < 250)
@@ -362,8 +328,8 @@ void checkOnSwitches()
     {
       CurrentSwitchState[i] = 255;
     }
-//    Serial.print(CurrentSwitchState[i]);
-//    Serial.print("  ");
+    //    Serial.print(CurrentSwitchState[i]);
+    //    Serial.print("  ");
   }
   //Serial.println();
 }

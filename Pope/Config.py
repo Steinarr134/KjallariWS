@@ -1,5 +1,6 @@
-import MoteinoPY
-
+from moteinopy import MoteinoNetwork
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 Moteinos = ['GreenDude',
             'SplitFlap',
@@ -61,42 +62,35 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-class MyNetwork(MoteinoPY.MoteinoNetwork):
-    def receive(self, sender, diction):
-        print("Something was received!!!!!!")
-
-
 # mynetwork = MyNetwork('/dev/ttyAMA0')
-mynetwork = MyNetwork('COM50')
+mynetwork = MoteinoNetwork('COM11', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
-                                 ('Reset', 98),
-                                 ('HereIsTheTalkingPillowTakeIt', 42),
-                                 ('GiveMeTheTalkinPillow', 43))
+                                 ('Reset', 98))
 
-GreenDude = mynetwork.add_device(MoteinoIDs['GreenDude'],
-                                 MoteinoStructs['GreenDude'],
-                                 'GreenDude')
+GreenDude = mynetwork.add_node(MoteinoIDs['GreenDude'],
+                               MoteinoStructs['GreenDude'],
+                               'GreenDude')
 GreenDude.add_translation('Command',
                           ('Disp', 1101),
                           ('SetPasscode', 1102),
                           ('CorrectPasscode', 1103))
 
-LockPicking = mynetwork.add_device(MoteinoIDs['LockPicking'],
-                                   MoteinoStructs['LockPicking'],
-                                   'LockPicking')
+# LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
+#                                  MoteinoStructs['LockPicking'],
+#                                  'LockPicking')
 
-SplitFlap = mynetwork.add_device(MoteinoIDs['SplitFlap'],
-                                 MoteinoStructs['SplitFlap'],
-                                 'SplitFlap')
+SplitFlap = mynetwork.add_node(MoteinoIDs['SplitFlap'],
+                               MoteinoStructs['SplitFlap'],
+                               'SplitFlap')
 SplitFlap.add_translation('Command',
                           ('Disp', 10101),
                           ('Clear', 10102))
 
-TimeBomb = mynetwork.add_device(MoteinoIDs['TimeBomb'],
-                                MoteinoStructs['TimeBomb'],
-                                'TimeBomb')
+TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
+                              MoteinoStructs['TimeBomb'],
+                              'TimeBomb')
 TimeBomb.add_translation('Command',
                          ('BombIsDiffused', 17001),
                          ('BombExploded', 17002))
