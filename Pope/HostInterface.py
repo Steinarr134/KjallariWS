@@ -1,8 +1,13 @@
 
-class GUI(object):
-    def __init__(self):
-        pass
+import Tkinter as tk
+top = tk.Tk()
+top.attributes("-fullscreen", True)
 
+SplitFlapEntry = tk.Entry(top, bd=5)
+SplitFlapEntry.place(x=50, y=100)
 
-gui = GUI()
+SplitFlapEntryButton = tk.Button(top, text="Send hint")
+SplitFlapEntryButton.place(x=230, y=100)
+
+##top.mainloop()
 

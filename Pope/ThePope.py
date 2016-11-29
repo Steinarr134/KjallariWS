@@ -1,34 +1,50 @@
-from Setup import *
-from HelperStuff import *
-from HostInterface import gui
-    
-
-def elevator_receive(d):
-    if d["Command"] == "CorrectPasscode":
-        ElevatorDoor.open()
-        run_after(ElevatorDoor.close(), seconds=2)
-
-Elevator.bind(receive=elevator_receive)
+##from Setup import *
+##from HelperStuff import *
+import HostInterface as gui
 
 
-def green_dude_receive(d):
-    if d['Command'] == "CorrectPasscode":
-        TapeRecorder.send("GreenDudeCorrect")
+def send_to_split_flap(event):
+    stuff2send = gui.SplitFlapEntry.get().strip()
+    print "I want to send this to splitflap: " + stuff2send
+    gui.SplitFlapEntry.delete(0, len(stuff2send))
+
+def keypress(event):
+    print "you pressed key:" + event.char
+
+def close_window(event):
+    gui.top.destroy()
+
+gui.top.bind("<Key>", keypress)
+gui.top.bind("<Escape>", close_window)
+gui.SplitFlapEntry.bind("<Return>", send_to_split_flap)
 
 
-GreenDude.bind(receive=green_dude_receive)
+##def elevator_receive(d):
+##    if d["Command"] == "CorrectPasscode":
+##        ElevatorDoor.open()
+##        run_after(ElevatorDoor.close(), seconds=2)
+##
+##Elevator.bind(receive=elevator_receive)
+##
+##
+##def green_dude_receive(d):
+##    if d['Command'] == "CorrectPasscode":
+##        TapeRecorder.send("GreenDudeCorrect")
+##
+##
+##GreenDude.bind(receive=green_dude_receive)
+##
+##
+##
+##def init_check_on_moteinos():
+##    for device in mynetwork.devices:
+##        get_status(device)
 
 
 
-def init_check_on_moteinos():
-    for device in mynetwork.devices:
-        get_status(device)
+gui.top.mainloop()
 
-
-
-
-
-
-startInterface()
-
-sleep_forever()
+##
+##startInterface()
+##
+##sleep_forever()

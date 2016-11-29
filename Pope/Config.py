@@ -63,7 +63,7 @@ inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
 # mynetwork = MyNetwork('/dev/ttyAMA0')
-mynetwork = MoteinoNetwork('COM11', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
