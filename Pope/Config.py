@@ -27,7 +27,8 @@ MoteinoStructs = {
 
     'Morser':
         "int Command;" +
-        "int Temperature;",
+        "int Temperature;" +
+        "byte Passcode[15]",
 
     'Stealth':
         "int Command;" +
@@ -53,7 +54,7 @@ MoteinoIDs = {
     'SplitFlap': 101,
     'TimeBomb': 170,
     'Stealth': 7,
-    'Morser': 5,
+    'Morser': 15,
     'TestDevice': 0,
     # 'GunBox': ??,
     # 'ShootingRange': ??
@@ -94,6 +95,14 @@ TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
 TimeBomb.add_translation('Command',
                          ('BombIsDiffused', 17001),
                          ('BombExploded', 17002))
+
+Morser = mynetwork.add_node(MoteinoIDs['Morser'],
+                            MoteinoStructs['Morser'],
+                            'Morser')
+Morser.add_translation('Command',
+                       ('SetPasscode', 155),
+                       ('CorrectPasscode', 151))
+
 
 # QuestList = [
 #     'Elevator',

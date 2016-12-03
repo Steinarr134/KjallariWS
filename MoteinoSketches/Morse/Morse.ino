@@ -40,10 +40,15 @@ void setup() {
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   radio.setHighPower();
   radio.encrypt(ENCRYPTKEY);
+
+  Serial.begin(115200);
+  Serial.println("HELLO");
    
 }
 
 void loop() {
+
+  //checkOnRadio();
 
   //Stuff to do when input goes from LOW to HIGH.
   if (digitalRead(inputPin) == HIGH && previousState == LOW)
@@ -63,10 +68,12 @@ void loop() {
     if (difference <= ditLength)
     {
       insertIntoArray(dit);
+      Serial.println("dit");
     }
     else
     {
       insertIntoArray(dah);
+      Serial.println("dat");
     }
     previousState = LOW;
   }
@@ -82,6 +89,7 @@ void loop() {
   if (checkWinner()) {
     //Reset the input array.
     digitalWrite(indicator,HIGH);
+    sendMessageAboutCorrect();
     displayWinner = true;
     currentLedOnTime = millis();
     resetArray();
@@ -207,6 +215,10 @@ void sendStatus()
   Serial.println("sending status");
   OutgoingData.Command = Status;
   OutgoingData.Temperature = getTemperature();
+  for (int i = 0; i < MaxArrayLength; i++)
+  {
+    OutgoingData.Passcode[i] = solution[i];
+  }
   if (!sendOutgoing())
     Serial.println("No ack recieved");
 }
