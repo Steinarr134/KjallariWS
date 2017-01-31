@@ -28,13 +28,13 @@ MoteinoStructs = {
     'Morser':
         "int Command;" +
         "int Temperature;" +
-        "byte Passcode[15]",
+        "byte Passcode[15];",
 
     'Stealth':
         "int Command;" +
-        "int Temperatures[8]" +
-        "int Tempo" +
-        "byte Lightshow[50]",
+        "int Tempo;" +
+        "byte Tripped;"
+        "byte Sequence[50];",
 
     'GunBox':
         "int Command;" +
@@ -63,8 +63,8 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
-# mynetwork = MoteinoNetwork('COM11', network_id=7, encryption_key="HugiBogiHugiBogi")
+# mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('COM3', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -103,12 +103,18 @@ Morser.add_translation('Command',
                        ('SetPasscode', 155),
                        ('CorrectPasscode', 151))
 
+Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
+                             MoteinoStructs['Stealth'],
+                             'Stealth')
+Stealth.add_translation('Command',
+                        ('SetTempo', 73),
+                        ('SetSequence', 72))
 
-# QuestList = [
-#     'Elevator',
-#     'LockPicking',
-#     'GreenDude',
-#     'WineCase',
-#     'ShootingRange'
-# ]
+
+def stealth_receive(d):
+    print "Stealth said: "
+    print d
+
+Stealth.bind(receive=stealth_receive)
+
 
