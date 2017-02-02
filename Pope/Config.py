@@ -22,8 +22,7 @@ MoteinoStructs = {
 
     'TimeBomb':
         "int Command;" +
-        "unsigned long TimeLeft;" +
-        "int Temperature;",
+        "unsigned long TimeLeft;",
 
     'Morser':
         "int Command;" +
@@ -43,8 +42,9 @@ MoteinoStructs = {
 
     'ShootingRange':
         "int Command;" +
-        "int Temperature;" +
-        "int Score;"
+        "int Time;" +
+        "int Target;" +
+        "byte Colors[5];"
 
 }
 
@@ -55,6 +55,7 @@ MoteinoIDs = {
     'TimeBomb': 170,
     'Stealth': 7,
     'Morser': 15,
+    'ShootingRange': 31,
     'TestDevice': 0,
     # 'GunBox': ??,
     # 'ShootingRange': ??
@@ -64,7 +65,7 @@ inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
 # mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
-mynetwork = MoteinoNetwork('COM3', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -89,13 +90,6 @@ SplitFlap.add_translation('Command',
                           ('Disp', 10101),
                           ('Clear', 10102))
 
-TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
-                              MoteinoStructs['TimeBomb'],
-                              'TimeBomb')
-TimeBomb.add_translation('Command',
-                         ('BombIsDiffused', 17001),
-                         ('BombExploded', 17002))
-
 Morser = mynetwork.add_node(MoteinoIDs['Morser'],
                             MoteinoStructs['Morser'],
                             'Morser')
@@ -109,6 +103,23 @@ Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
 Stealth.add_translation('Command',
                         ('SetTempo', 73),
                         ('SetSequence', 72))
+
+TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
+                              MoteinoStructs['TimeBomb'],
+                              'TimeBomb')
+TimeBomb.add_translation('Command',
+                         ("BombDiffused", 17001),
+                         ("BombExploded", 17002),
+                         ("SetExplosionTime", 17003),
+                         ("BombActivated", 17004))
+
+ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
+                                   MoteinoStructs['ShootingRange'],
+                                   "ShootingRange")
+ShootingRange.add_translation("Command",
+                              ("SetTime", 3101),
+                              ("TargetHit", 3102),
+                              ("dispColor", 3103))
 
 
 def stealth_receive(d):
