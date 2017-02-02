@@ -243,4 +243,6 @@ GPIO.add_event_detect(play_button_pin,
 
 # endregion
 
-print "Steinarr kann ad laga forrit sem virka ekki"
+print "goodbye"
+while True:
+    time.sleep(1000)

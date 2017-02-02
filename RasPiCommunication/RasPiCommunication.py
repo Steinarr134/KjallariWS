@@ -3,6 +3,7 @@ import threading
 import select
 import logging
 import os
+import time
 
 
 class WaitableEvent:
@@ -58,7 +59,11 @@ class SocketThread(threading.Thread):
             read, write, e = select.select([self.ClientCon, StopEvent], [], [])
             for r in read:
                 if r is self.ClientCon:
-                    print r
+                    incoming = r.recv(1024)
+                    if not incoming:
+                        return
+                    else:
+                        self.React(incoming)
 
 
 class SocketAcceptingThread(threading.Thread):
@@ -92,7 +97,7 @@ class KeepAliveThread(threading.Thread):
             t.join()
 
 
-def bind(react_fun, address=('localhost', 1234)):
+def bind(react_fun, address=('192.168.1.69', 1234)):
     KeepAliveThread(react_fun, address)
 
 
@@ -101,8 +106,12 @@ def stop():
 
 
 def nothing(input):
+    print "nothing..."
     print input
 
 
 if __name__ == "__main__":
-    bind(nothing, ('localhost', 1234))
+    bind(nothing)
+    time.sleep(1000000000000)
+
+print "goodbye"
