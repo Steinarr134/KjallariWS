@@ -42,20 +42,20 @@ class WaitableEvent:
         os.close(self._read_fd)
         os.close(self._write_fd)
 
-StopEvent = WaitableEvent()
-StopEvent.clear()
+
 
 
 class SocketThread(threading.Thread):
-    def __init__(self, client_con, react_fun):
+    def __init__(self, client_con, react_fun, stopevent):
         threading.Thread.__init__(self)
         self.React = react_fun
         self.ClientCon = client_con
+        self.StopEvent = stopevent
         logging.debug("SocketThread started")
         self.start()
 
     def run(self):
-        while not StopEvent.isSet():
+        while not self.StopEvent.isSet():
             read, write, e = select.select([self.ClientCon, StopEvent], [], [])
             for r in read:
                 if r is self.ClientCon:
@@ -67,10 +67,11 @@ class SocketThread(threading.Thread):
 
 
 class SocketAcceptingThread(threading.Thread):
-    def __init__(self, react_fun, address):
+    def __init__(self, react_fun, address, stopevent):
         threading.Thread.__init__(self)
         self.React = react_fun
         self.Port = address
+        self.StopEvent = stopevent
         logging.debug("SocketAcceptingThread started")
         self.start()
 
@@ -78,40 +79,50 @@ class SocketAcceptingThread(threading.Thread):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(self.Port)
         sock.listen(1)
-        while not StopEvent.isSet():
+        while not self.StopEvent.isSet():
             connection, client_address = sock.accept()
-            SocketThread(connection, self.React)
+            SocketThread(connection, self.React, self.StopEvent)
 
 
 class KeepAliveThread(threading.Thread):
-    def __init__(self, react_fun, address):
+    def __init__(self, react_fun, address, stopevent):
         threading.Thread.__init__(self)
         self.React = react_fun
         self.Port = address
+        self.StopEvent = stopevent
         logging.debug("KeepAliveThread Started")
         self.start()
 
     def run(self):
-        while not StopEvent.isSet():
-            t = SocketAcceptingThread(self.React, self.Port)
+        while not self.StopEvent.isSet():
+            t = SocketAcceptingThread(self.React, self.Port, self.StopEvent)
             t.join()
 
+class Receiver(object):
+    def __init__(self):
+        self.StopEvent = WaitableEvent()
+        self.StopEvent.clear()
 
-def bind(react_fun, address=('192.168.1.69', 1234)):
-    KeepAliveThread(react_fun, address)
+    def bind(self, react_fun, address=('192.168.1.69', 1234)):
+        KeepAliveThread(react_fun, address, self.StopEvent)
+
+    def stop(self):
+        self.StopEvent.set()
+
+class Sender(object):
+    def __init__(self):
+        self.Sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connect=self.Sock.connect
+        self.send=self.Sock.sendall
+        
 
 
-def stop():
-    StopEvent.set()
-
-
-def nothing(input):
+def _nothing(input):
     print "nothing..."
     print input
 
 
 if __name__ == "__main__":
-    bind(nothing)
+    bind(_nothing)
     time.sleep(1000000000000)
 
-print "goodbye"

@@ -4,6 +4,9 @@ import atexit
 import time
 from pygame import mixer
 import threading
+from RasPiCommunication import Receiver
+import demjson
+
 
 print "running..."
 GPIO.setmode(GPIO.BCM)
@@ -14,20 +17,23 @@ motor = Motor()
 mixer.init()
 m = mixer.music
 
-CurrentFile = "audio_files/1_audio_WELCOME_INTRODUCTION.ogg"
-m.load(CurrentFile)
-m.play()
-m.pause()
-PosOffset = 0
-FileLength = 50
-ScrollSpeed = 4
+class File(object):
+    def __init__(self):
+        self.FileName = None
+        self.PosOffset = 0
+        self.FileLength = 10
 
+f = File()
+
+
+ScrollSpeed = 4
 last_press = None
 last_press_time = None
 something_is_being_pressed = False
 playing_active = False
 time.sleep(1)
 motor.set_lights(35)
+SomethingIsLoaded = False
 
 HaveReleasedEvent = threading.Event()
 
@@ -38,8 +44,8 @@ class NoFinishFileThread(threading.Thread):
     def run(self):
         while True:
             time.sleep(0.5)
-            if m.get_pos() < 0:
-                m.play(0, FileLength)
+            if m.get_pos() < 0 and SomethingIsLoaded:
+                m.play(0, f.FileLength)
                 stop()
 
 noFinishFileThread = NoFinishFileThread()
@@ -47,28 +53,27 @@ noFinishFileThread.start()
 
 
 def realpos():
-    global PosOffset
     pos = m.get_pos()/float(1000)
-    return pos - PosOffset
+    return pos - f.PosOffset
 
 
 def until_end():
-    return FileLength - realpos()
+    return f.FileLength - realpos()
 
 
 def skip(s):
-    if s > until_end():
-        print "to much of forward!!!"
-    elif -s > realpos():
-        print "too much rewind!!!"
-    else:
-        global PosOffset
-        m.set_pos(realpos() + s)
-        PosOffset -= s
+    if SomethingIsLoaded:
+        if s > until_end():
+            print "to much of forward!!!"
+        elif -s > realpos():
+            print "too much rewind!!!"
+        else:
+            m.set_pos(realpos() + s)
+            f.PosOffset -= s
 
 
 def play():
-    if abs(realpos() - FileLength) < 0.05:
+    if abs(realpos() - f.FileLength) < 0.05:
         return
     m.unpause()
     global playing_active
@@ -243,6 +248,31 @@ GPIO.add_event_detect(play_button_pin,
 
 # endregion
 
-print "goodbye"
+def load(filename, filelength, posoffset):
+    f.FileName = filename
+    f.PosOffset = posoffset
+    f.FileLength = filelength
+    m.load(f.FileName)
+    m.play()
+    m.pause()
+    global SomethingIsLoaded
+    SomethingIsLoaded = True
+
+def handle_command(input):
+    stuff = demjson.decode(input)
+    if stuff['Command'] == "Load":
+        load(filename=stuff['filename'],
+             filelength=stuff['filelength'],
+             posoffset=stuff['posoffset'])
+        if stuff['StartPlaying']:
+            play()
+    if stuff['Command'] == "ShutDown":
+        os.system("sudo shutdown -h now")
+
+rec = Receiver()
+rec.bind(handle_command)
+
+
+
 while True:
     time.sleep(1000)
