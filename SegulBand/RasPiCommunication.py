@@ -81,6 +81,7 @@ class SocketAcceptingThread(threading.Thread):
         sock.listen(1)
         while not self.StopEvent.isSet():
             connection, client_address = sock.accept()
+            logging.debug("Connection with {} accepted".format(client_address))
             SocketThread(connection, self.React, self.StopEvent)
 
 
