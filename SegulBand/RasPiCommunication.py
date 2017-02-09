@@ -3,7 +3,6 @@ import threading
 import select
 import logging
 import os
-import time
 
 
 class WaitableEvent:
@@ -43,8 +42,6 @@ class WaitableEvent:
         os.close(self._write_fd)
 
 
-
-
 class SocketThread(threading.Thread):
     def __init__(self, client_con, react_fun, stopevent):
         threading.Thread.__init__(self)
@@ -56,7 +53,7 @@ class SocketThread(threading.Thread):
 
     def run(self):
         while not self.StopEvent.isSet():
-            read, write, e = select.select([self.ClientCon, StopEvent], [], [])
+            read, write, e = select.select([self.ClientCon, self.StopEvent], [], [])
             for r in read:
                 if r is self.ClientCon:
                     incoming = r.recv(1024)
@@ -99,6 +96,7 @@ class KeepAliveThread(threading.Thread):
             t = SocketAcceptingThread(self.React, self.Port, self.StopEvent)
             t.join()
 
+
 class Receiver(object):
     def __init__(self):
         self.StopEvent = WaitableEvent()
@@ -110,20 +108,9 @@ class Receiver(object):
     def stop(self):
         self.StopEvent.set()
 
+
 class Sender(object):
     def __init__(self):
         self.Sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect=self.Sock.connect
-        self.send=self.Sock.sendall
-        
-
-
-def _nothing(input):
-    print "nothing..."
-    print input
-
-
-if __name__ == "__main__":
-    bind(_nothing)
-    time.sleep(1000000000000)
-
+        self.connect = self.Sock.connect
+        self.send = self.Sock.sendall
