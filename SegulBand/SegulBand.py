@@ -39,6 +39,9 @@ SomethingIsLoaded = False
 
 HaveReleasedEvent = threading.Event()
 
+def file_over():
+    return abs(f.FileLength - realpos()) < 0.5 and SomethingIsLoaded
+
 class NoFinishFileThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -46,9 +49,9 @@ class NoFinishFileThread(threading.Thread):
     def run(self):
         while True:
             time.sleep(0.1)
-            if m.get_pos() < 0 and SomethingIsLoaded:
+            if file_over() and playing_active:
                 logging.debug("NoFinishThread intervening")
-                m.play(0, f.FileLength)
+                # m.play(0, f.FileLength-0.5)
                 stop()
 
 noFinishFileThread = NoFinishFileThread()
@@ -75,9 +78,7 @@ def skip(s):
 
 
 def play():
-    if not SomethingIsLoaded:
-        return
-    if abs(realpos() - f.FileLength) < 0.5:
+    if file_over():
         return
     global playing_active
     playing_active = True
@@ -94,7 +95,7 @@ def stop():
 
 
 def forward():
-    if not SomethingIsLoaded:
+    if file_over():
         return
     m.pause()
     global last_press_time
@@ -281,7 +282,7 @@ def handle_command(input):
         quit()
 
 rec = Receiver()
-rec.bind(handle_command)
+rec.bind(handle_command, ('192.168.1.92', 1234))
 
 
 def print_pos():
