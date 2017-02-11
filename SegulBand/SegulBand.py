@@ -6,6 +6,8 @@ from pygame import mixer
 import threading
 from RasPiCommunication import Receiver
 import demjson
+import os
+import logging
 
 
 print "running..."
@@ -43,14 +45,14 @@ class NoFinishFileThread(threading.Thread):
 
     def run(self):
         while True:
-            time.sleep(0.5)
+            time.sleep(0.1)
             if m.get_pos() < 0 and SomethingIsLoaded:
+                logging.debug("NoFinishThread intervening")
                 m.play(0, f.FileLength)
                 stop()
 
 noFinishFileThread = NoFinishFileThread()
 noFinishFileThread.start()
-
 
 def realpos():
     pos = m.get_pos()/float(1000)
@@ -64,20 +66,23 @@ def until_end():
 def skip(s):
     if SomethingIsLoaded:
         if s > until_end():
-            print "to much of forward!!!"
+            logging.warning("to much of forward!!!")
         elif -s > realpos():
-            print "too much rewind!!!"
+            logging.warning("too much rewind!!!")
         else:
             m.set_pos(realpos() + s)
             f.PosOffset -= s
 
 
 def play():
-    if abs(realpos() - f.FileLength) < 0.05:
+    if not SomethingIsLoaded:
         return
-    m.unpause()
+    if abs(realpos() - f.FileLength) < 0.5:
+        return
     global playing_active
     playing_active = True
+    logging.debug("play - realpos:{}".format(realpos()))
+    m.unpause()
     motor.play()
 
 
@@ -89,6 +94,8 @@ def stop():
 
 
 def forward():
+    if not SomethingIsLoaded:
+        return
     m.pause()
     global last_press_time
     last_press_time = time.time()
@@ -113,6 +120,8 @@ def forward():
         print "waiting ended"
 
 def rewind():
+    if not SomethingIsLoaded:
+        return
     m.pause()
     global last_press_time
     last_press_time = time.time()
@@ -248,10 +257,10 @@ GPIO.add_event_detect(play_button_pin,
 
 # endregion
 
-def load(filename, filelength, posoffset):
+def load(filename, filelength):
     f.FileName = filename
-    f.PosOffset = posoffset
-    f.FileLength = filelength
+    f.PosOffset = 0
+    f.FileLength = float(filelength)-0.5
     m.load(f.FileName)
     m.play()
     m.pause()
@@ -261,18 +270,28 @@ def load(filename, filelength, posoffset):
 def handle_command(input):
     stuff = demjson.decode(input)
     if stuff['Command'] == "Load":
-        load(filename=stuff['filename'],
-             filelength=stuff['filelength'],
-             posoffset=stuff['posoffset'])
+        load(filename="audio_files/" + stuff['filename'],
+             filelength=stuff['filelength'])
         if stuff['StartPlaying']:
             play()
-    if stuff['Command'] == "ShutDown":
+    elif stuff['Command'] == "ShutDown":
         os.system("sudo shutdown -h now")
+    else:
+        print stuff
+        quit()
 
 rec = Receiver()
 rec.bind(handle_command)
 
 
+def print_pos():
+    while True:
+        print "\t" + "{}\t{}\t{}".format(m.get_pos(),
+                                           f.PosOffset,
+                                           realpos())
+        time.sleep(0.5)
+
+threading.Thread(target=print_pos).start()
 
 while True:
     time.sleep(1000)

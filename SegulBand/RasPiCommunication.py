@@ -3,8 +3,19 @@ import threading
 import select
 import logging
 import os
+import time
+import atexit
 
+_cleanups = list()
 
+def cleanup():
+    for c in _cleanups:
+        c.shutdown(socket.SHUT_RDWR)
+        c.close()
+        _cleanups.pop(c)
+    logging.info("RaspiCom cleanup done")
+
+atexit.register(cleanup)
 class WaitableEvent:
     """
     Provides an abstract object that can be used to resume select loops with
@@ -74,12 +85,19 @@ class SocketAcceptingThread(threading.Thread):
 
     def run(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
         sock.bind(self.Port)
         sock.listen(1)
+        _cleanups.append(sock)
         while not self.StopEvent.isSet():
-            connection, client_address = sock.accept()
-            logging.debug("Connection with {} accepted".format(client_address))
-            SocketThread(connection, self.React, self.StopEvent)
+            try:
+                connection, client_address = sock.accept()
+                logging.debug("Connection with {} accepted".format(client_address))
+                SocketThread(connection, self.React, self.StopEvent)
+            except:
+                print "FSAHDFJASD"
+                break
+        cleanup()
 
 
 class KeepAliveThread(threading.Thread):
@@ -95,6 +113,8 @@ class KeepAliveThread(threading.Thread):
         while not self.StopEvent.isSet():
             t = SocketAcceptingThread(self.React, self.Port, self.StopEvent)
             t.join()
+            print "vesen"
+            time.sleep(10)
 
 
 class Receiver(object):
