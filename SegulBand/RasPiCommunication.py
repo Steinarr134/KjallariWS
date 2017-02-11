@@ -6,7 +6,11 @@ import os
 import time
 import atexit
 
+logging.basicConfig(level=logging.DEBUG)
+
 _cleanups = list()
+_events = list()
+
 
 def cleanup():
     for c in _cleanups:
@@ -14,8 +18,12 @@ def cleanup():
         c.close()
         _cleanups.pop(c)
     logging.info("RaspiCom cleanup done")
+    for e in _events:
+        e.set()
 
 atexit.register(cleanup)
+
+
 class WaitableEvent:
     """
     Provides an abstract object that can be used to resume select loops with
@@ -85,7 +93,7 @@ class SocketAcceptingThread(threading.Thread):
 
     def run(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(self.Port)
         sock.listen(1)
         _cleanups.append(sock)
@@ -129,37 +137,66 @@ class Receiver(object):
         self.StopEvent.set()
 
 
-
 class Sender(threading.Thread):
     def __init__(self):
+        print "bla2"
         threading.Thread.__init__(self)
         self.Sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.send = self.Sock.sendall
         self.StopEvent = WaitableEvent()
+        self.ResetEvent = WaitableEvent()
         self.Address = None
+        self.start()
+        _events.append(self.StopEvent)
+        _events.append(self.ResetEvent)
 
     def run(self):
         while not self.StopEvent.isSet():
-            if self.is_disconnected():
+            if self.is_disconnected(5):
+                logging.debug("connection disconnected, trying to reconnect...")
                 self.reconnect()
+            else:
+                logging.debug("connection seems active")
 
-    def is_disconnected(self):
-        read, write, e = select.select([self.Sock, self.StopEvent], [], [])
+    def is_disconnected(self, timeout=None):
+        logging.debug("Checking on connection...")
+        read, write, e = select.select([self.Sock,
+                                        self.StopEvent,
+                                        self.ResetEvent], [], [], timeout)
+        logging.debug("select done...{}".format(read))
         for r in read:
             if r is self.Sock:
-                incoming = r.recv(1024)
-                if not incoming:
-                    self.reconnect()
-                else:
-                    logging.warning("Something weird happening with sender?")
+                # socket sould never say anything
+                return True
+            elif r is self.ResetEvent:
+                self.ResetEvent.clear()
+        if not read:
+            try:
+                self.Sock.getpeername()
+            except socket.error as e:
+                return True
+        return False
 
     def connect(self, address):
         self.Address = address
-        self.Sock.connect(address)
+        self.ResetEvent.set()
+        self.Sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.Sock.connect(address)
+        except socket.error as e:
+            print "connection unsuccessfull: {}".format(e)
 
     def reconnect(self):
+        if self.Address is None:
+            return
+        self.Sock.close()
+        time.sleep(0.1)
         self.connect(self.Address)
 
     def disconnect(self):
         self.Sock.close()
 
+    def send(self, data):
+        self.Sock.sendall(data)
+
+    def stop(self):
+        self.StopEvent.set()
