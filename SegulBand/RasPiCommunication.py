@@ -91,12 +91,12 @@ class SocketAcceptingThread(threading.Thread):
         _cleanups.append(sock)
         while not self.StopEvent.isSet():
             try:
+                sock.settimeout(1)
                 connection, client_address = sock.accept()
                 logging.debug("Connection with {} accepted".format(client_address))
                 SocketThread(connection, self.React, self.StopEvent)
-            except:
-                print "FSAHDFJASD"
-                break
+            except socket.timeout:
+                pass
         cleanup()
 
 
@@ -129,8 +129,37 @@ class Receiver(object):
         self.StopEvent.set()
 
 
-class Sender(object):
+
+class Sender(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
         self.Sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect = self.Sock.connect
         self.send = self.Sock.sendall
+        self.StopEvent = WaitableEvent()
+        self.Address = None
+
+    def run(self):
+        while not self.StopEvent.isSet():
+            if self.is_disconnected():
+                self.reconnect()
+
+    def is_disconnected(self):
+        read, write, e = select.select([self.Sock, self.StopEvent], [], [])
+        for r in read:
+            if r is self.Sock:
+                incoming = r.recv(1024)
+                if not incoming:
+                    self.reconnect()
+                else:
+                    logging.warning("Something weird happening with sender?")
+
+    def connect(self, address):
+        self.Address = address
+        self.Sock.connect(address)
+
+    def reconnect(self):
+        self.connect(self.Address)
+
+    def disconnect(self):
+        self.Sock.close()
+
