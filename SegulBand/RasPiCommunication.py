@@ -5,6 +5,7 @@ import logging
 import os
 import time
 import atexit
+import demjson
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -101,7 +102,7 @@ class SocketAcceptingThread(threading.Thread):
             try:
                 sock.settimeout(1)
                 connection, client_address = sock.accept()
-                logging.debug("Connection with {} accepted".format(client_address))
+                logging.info("Connection with {} accepted".format(client_address))
                 SocketThread(connection, self.React, self.StopEvent)
             except socket.timeout:
                 pass
@@ -139,7 +140,6 @@ class Receiver(object):
 
 class Sender(threading.Thread):
     def __init__(self):
-        print "bla2"
         threading.Thread.__init__(self)
         self.Sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.StopEvent = WaitableEvent()
@@ -152,7 +152,7 @@ class Sender(threading.Thread):
     def run(self):
         while not self.StopEvent.isSet():
             if self.is_disconnected(5):
-                logging.debug("connection disconnected, trying to reconnect...")
+                logging.info("connection disconnected, trying to reconnect...")
                 self.reconnect()
             else:
                 logging.debug("connection seems active")
@@ -183,7 +183,7 @@ class Sender(threading.Thread):
         try:
             self.Sock.connect(address)
         except socket.error as e:
-            print "connection unsuccessfull: {}".format(e)
+            logging.warning("connection unsuccessfull: {}".format(e))
 
     def reconnect(self):
         if self.Address is None:
@@ -196,7 +196,8 @@ class Sender(threading.Thread):
         self.Sock.close()
 
     def send(self, data):
-        self.Sock.sendall(data)
+        self.Sock.sendall(demjson.encode(data))
+
 
     def stop(self):
         self.StopEvent.set()
