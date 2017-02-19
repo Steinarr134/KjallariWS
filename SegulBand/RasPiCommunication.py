@@ -5,8 +5,9 @@ import logging
 import os
 import time
 import atexit
+import demjson
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 _cleanups = list()
 _events = list()
@@ -79,7 +80,7 @@ class SocketThread(threading.Thread):
                     if not incoming:
                         return
                     else:
-                        self.React(incoming)
+                        self.React(demjson.decode(incoming))
 
 
 class SocketAcceptingThread(threading.Thread):

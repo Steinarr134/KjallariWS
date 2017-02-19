@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+import sys
+sys.stderr = open("/home/pi/logs/SegulBandErr.txt", 'w+')
 import RPi.GPIO as GPIO
 from arduino import Motor
 import atexit
@@ -9,6 +12,7 @@ import demjson
 import os
 import logging
 
+logging.basicConfig(level=logging.DEBUG)
 
 print "running..."
 GPIO.setmode(GPIO.BCM)
@@ -268,31 +272,29 @@ def load(filename, filelength):
     global SomethingIsLoaded
     SomethingIsLoaded = True
 
-def handle_command(input):
-    stuff = demjson.decode(input)
+def handle_command(stuff):
+    logging.debug("handle_command received: " + str(stuff))
     if stuff['Command'] == "Load":
-        load(filename="audio_files/" + stuff['filename'],
+        load(filename="/home/pi/KjallariWS/SegulBand/audio_files/" + stuff['filename'],
              filelength=stuff['filelength'])
         if stuff['StartPlaying']:
             play()
+    elif stuff['Command'] == "Play":
+        play()
+    elif stuff['Command'] == "Pause":
+        stop()
     elif stuff['Command'] == "ShutDown":
         os.system("sudo shutdown -h now")
+    elif stuff['Command'] == "Reboot":
+        os.system("sudo reboot")
     else:
-        print stuff
+        logging.warning("did not understand command: " + str(stuff))
         quit()
 
 rec = Receiver()
-rec.bind(handle_command, ('192.168.1.92', 1234))
+rec.bind(handle_command, ('192.168.1.101', 1234))
 
-
-def print_pos():
-    while True:
-        print "\t" + "{}\t{}\t{}".format(m.get_pos(),
-                                           f.PosOffset,
-                                           realpos())
-        time.sleep(0.5)
-
-threading.Thread(target=print_pos).start()
 
 while True:
-    time.sleep(1000)
+    time.sleep(10)
+    logging.debug(time.time())
