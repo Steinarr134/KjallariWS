@@ -72,8 +72,8 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-# mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
-mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('/dev/ttyUSB1', network_id=7, encryption_key="HugiBogiHugiBogi")
+##mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -104,12 +104,12 @@ Morser = mynetwork.add_node(MoteinoIDs['Morser'],
 Morser.add_translation('Command',
                        ('SetPasscode', 155),
                        ('CorrectPasscode', 151))
-LockPicking = mynetwork.add_node(MoteinoIds['LockPicking'],
+LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
                                  MoteinoStructs['LockPicking'],
                                  'LockPicking')
-LockPicking.add_transtlation('Command',
-                             ('SetCorrectPickOrder', 17601),
-                             ('LockWasPicked', 17602))
+LockPicking.add_translation('Command',
+                            ('SetCorrectPickOrder', 17601),
+                            ('LockWasPicked', 17602))
 
 Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
                              MoteinoStructs['Stealth'],

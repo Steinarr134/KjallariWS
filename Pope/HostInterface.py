@@ -28,9 +28,9 @@ def fix_split_flap_input(event=None):
 SplitFlapEntry.bind("<Key>", fix_split_flap_input)
 SplitFlapEntry.bind("<BackSpace>", lambda event: None)
 
-ProgressPlot = Figure(figsize=(8, 4), dpi=100)
+ProgressPlot = Figure(figsize=(8, 4), dpi=50)
 ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlot, master=top)
-ProgressPlotCanvas.get_tk_widget().place(x=1050, y=700)
+ProgressPlotCanvas.get_tk_widget().place(x=25, y=250)
 
 
 class StdoutRedirector(object):
@@ -52,22 +52,36 @@ class StdoutRedirector(object):
             self.text_space.see('end')
         self.root.after(100, self.check_on_queue)
 
-LogTextWidget = tk.Text(top, height=29, width=135)
-LogTextWidget.place(x=50, y=700)
+LogTextWidget = tk.Text(top, height=20, width=75)
+LogTextWidget.place(x=600, y=300)
 
 ##sys.stderr = StdoutRedirector(LogTextWidget, top)
 
 DoorButtonFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
-DoorButtonFrame.place(x=1050, y=100)
+DoorButtonFrame.place(x=1050, y=10)
 
 door_button_callback = None
 
-DoorNameList = ["Elevator", "Safe"]
+DoorNameList = ["Elevator", "Safe", "BookDrawer", "WineCaseolder",
+                "Stealth", "FromBomb", "FinalExit"]
 DoorButtons = list()
 for name in DoorNameList:
     b = tk.Button(DoorButtonFrame, text=name, bg='red', width=10)
     b.pack()
     DoorButtons.append(b)
+
+MissionFailFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
+MissionFailFrame.place(x=850, y=10)
+MissionFailButtons = [
+    tk.Button(MissionFailFrame, text="Elevator Escape", width=15),
+    tk.Button(MissionFailFrame, text="Start TapeRecorder", width=15),
+    tk.Button(MissionFailFrame, text="Open Safe", width=15),
+    tk.Button(MissionFailFrame, text="GreenDude Fail", width=15),
+    tk.Button(MissionFailFrame, text="Start Lie Detector", width=15),
+    tk.Button(MissionFailFrame, text="Morse Fail", width=15),
+]
+for b in MissionFailButtons:
+    b.pack()
 
 
 ClockLabel = tk.Label(top, text="0:00:00", font="Verdana 28 bold")
@@ -108,8 +122,6 @@ def nothing(event):
 
 
 
-
-print "sdflsdkfj"
 
 
 if __name__ == "__main__":

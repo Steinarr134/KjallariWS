@@ -3,12 +3,22 @@ from DoorControl import Door as _Door, DoorController as _Dctrl
 import threading
 import time
 
-DoorController = _Dctrl("/dev/ttyUSB1")
+DoorController = _Dctrl("/dev/ttyUSB0")
 ElevatorDoor = _Door(DoorController, 0)
 SafeDoor = _Door(DoorController, 1)
+BookDrawer = _Door(DoorController, 2)
+WineCaseHolderDoor = _Door(DoorController, 6)
+StealthDoor = _Door(DoorController, 3)
+FromBombDoor = _Door(DoorController, 4)
+FinalExitDoor = _Door(DoorController, 5)
 
 Doors = [ElevatorDoor,
-         SafeDoor]
+         SafeDoor,
+         BookDrawer,
+         WineCaseHolderDoor,
+         StealthDoor,
+         FromBombDoor,
+         FinalExitDoor]
 
 Send2SplitFlapLock = threading.Lock()
 
