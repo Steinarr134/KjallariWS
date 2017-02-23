@@ -4,6 +4,11 @@ import atexit
 import time
 from pygame import mixer
 import threading
+from RasPiCommunication import Receiver
+import demjson
+import os
+import logging
+
 
 print "running..."
 GPIO.setmode(GPIO.BCM)
@@ -14,22 +19,28 @@ motor = Motor()
 mixer.init()
 m = mixer.music
 
-CurrentFile = "audio_files/1_audio_WELCOME_INTRODUCTION.ogg"
-m.load(CurrentFile)
-m.play()
-m.pause()
-PosOffset = 0
-FileLength = 50
-ScrollSpeed = 4
+class File(object):
+    def __init__(self):
+        self.FileName = None
+        self.PosOffset = 0
+        self.FileLength = 10
 
+f = File()
+
+
+ScrollSpeed = 4
 last_press = None
 last_press_time = None
 something_is_being_pressed = False
 playing_active = False
 time.sleep(1)
 motor.set_lights(35)
+SomethingIsLoaded = False
 
 HaveReleasedEvent = threading.Event()
+
+def file_over():
+    return abs(f.FileLength - realpos()) < 0.5 and SomethingIsLoaded
 
 class NoFinishFileThread(threading.Thread):
     def __init__(self):
@@ -37,42 +48,42 @@ class NoFinishFileThread(threading.Thread):
 
     def run(self):
         while True:
-            time.sleep(0.5)
-            if m.get_pos() < 0:
-                m.play(0, FileLength)
+            time.sleep(0.1)
+            if file_over() and playing_active:
+                logging.debug("NoFinishThread intervening")
+                # m.play(0, f.FileLength-0.5)
                 stop()
 
 noFinishFileThread = NoFinishFileThread()
 noFinishFileThread.start()
 
-
 def realpos():
-    global PosOffset
     pos = m.get_pos()/float(1000)
-    return pos - PosOffset
+    return pos - f.PosOffset
 
 
 def until_end():
-    return FileLength - realpos()
+    return f.FileLength - realpos()
 
 
 def skip(s):
-    if s > until_end():
-        print "to much of forward!!!"
-    elif -s > realpos():
-        print "too much rewind!!!"
-    else:
-        global PosOffset
-        m.set_pos(realpos() + s)
-        PosOffset -= s
+    if SomethingIsLoaded:
+        if s > until_end():
+            logging.warning("to much of forward!!!")
+        elif -s > realpos():
+            logging.warning("too much rewind!!!")
+        else:
+            m.set_pos(realpos() + s)
+            f.PosOffset -= s
 
 
 def play():
-    if abs(realpos() - FileLength) < 0.05:
+    if file_over():
         return
-    m.unpause()
     global playing_active
     playing_active = True
+    logging.debug("play - realpos:{}".format(realpos()))
+    m.unpause()
     motor.play()
 
 
@@ -84,6 +95,8 @@ def stop():
 
 
 def forward():
+    if file_over():
+        return
     m.pause()
     global last_press_time
     last_press_time = time.time()
@@ -108,6 +121,8 @@ def forward():
         print "waiting ended"
 
 def rewind():
+    if not SomethingIsLoaded:
+        return
     m.pause()
     global last_press_time
     last_press_time = time.time()
@@ -243,4 +258,41 @@ GPIO.add_event_detect(play_button_pin,
 
 # endregion
 
-print "Steinarr kann ad laga forrit sem virka ekki"
+def load(filename, filelength):
+    f.FileName = filename
+    f.PosOffset = 0
+    f.FileLength = float(filelength)-0.5
+    m.load(f.FileName)
+    m.play()
+    m.pause()
+    global SomethingIsLoaded
+    SomethingIsLoaded = True
+
+def handle_command(input):
+    stuff = demjson.decode(input)
+    if stuff['Command'] == "Load":
+        load(filename="audio_files/" + stuff['filename'],
+             filelength=stuff['filelength'])
+        if stuff['StartPlaying']:
+            play()
+    elif stuff['Command'] == "ShutDown":
+        os.system("sudo shutdown -h now")
+    else:
+        print stuff
+        quit()
+
+rec = Receiver()
+rec.bind(handle_command, ('192.168.1.92', 1234))
+
+
+def print_pos():
+    while True:
+        print "\t" + "{}\t{}\t{}".format(m.get_pos(),
+                                           f.PosOffset,
+                                           realpos())
+        time.sleep(0.5)
+
+threading.Thread(target=print_pos).start()
+
+while True:
+    time.sleep(1000)

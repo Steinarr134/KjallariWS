@@ -23,19 +23,18 @@ MoteinoStructs = {
 
     'TimeBomb':
         "int Command;" +
-        "unsigned long TimeLeft;" +
-        "int Temperature;",
+        "unsigned long TimeLeft;",
 
     'Morser':
         "int Command;" +
         "int Temperature;" +
-        "byte Passcode[15]",
+        "byte Passcode[15];",
 
     'Stealth':
         "int Command;" +
-        "int Temperatures[8]" +
-        "int Tempo" +
-        "byte Lightshow[50]",
+        "int Tempo;" +
+        "byte Tripped;"
+        "byte Sequence[50];",
 
     'GunBox':
         "int Command;" +
@@ -44,9 +43,10 @@ MoteinoStructs = {
 
     'ShootingRange':
         "int Command;" +
-        "int Temperature;" +
-        "int Score;",
-
+        "int Time;" +
+        "int Target;" +
+        "byte Colors[5];",
+    
     'LockPicking':
         "int Command;" +
         "byte PickOrder[6];" +
@@ -62,6 +62,7 @@ MoteinoIDs = {
     'TimeBomb': 170,
     'Stealth': 7,
     'Morser': 15,
+    'ShootingRange': 31,
     'TestDevice': 0,
     'LockPicking': 176,
     # 'GunBox': ??,
@@ -71,8 +72,8 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
-# mynetwork = MoteinoNetwork('COM11', network_id=7, encryption_key="HugiBogiHugiBogi")
+# mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -97,13 +98,6 @@ SplitFlap.add_translation('Command',
                           ('Disp', 10101),
                           ('Clear', 10102))
 
-TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
-                              MoteinoStructs['TimeBomb'],
-                              'TimeBomb')
-TimeBomb.add_translation('Command',
-                         ('BombIsDiffused', 17001),
-                         ('BombExploded', 17002))
-
 Morser = mynetwork.add_node(MoteinoIDs['Morser'],
                             MoteinoStructs['Morser'],
                             'Morser')
@@ -117,12 +111,35 @@ LockPicking.add_transtlation('Command',
                              ('SetCorrectPickOrder', 17601),
                              ('LockWasPicked', 17602))
 
+Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
+                             MoteinoStructs['Stealth'],
+                             'Stealth')
+Stealth.add_translation('Command',
+                        ('SetTempo', 73),
+                        ('SetSequence', 72))
 
-# QuestList = [
-#     'Elevator',
-#     'LockPicking',
-#     'GreenDude',
-#     'WineCase',
-#     'ShootingRange'
-# ]
+TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
+                              MoteinoStructs['TimeBomb'],
+                              'TimeBomb')
+TimeBomb.add_translation('Command',
+                         ("BombDiffused", 17001),
+                         ("BombExploded", 17002),
+                         ("SetExplosionTime", 17003),
+                         ("BombActivated", 17004))
+
+ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
+                                   MoteinoStructs['ShootingRange'],
+                                   "ShootingRange")
+ShootingRange.add_translation("Command",
+                              ("SetTime", 3101),
+                              ("TargetHit", 3102),
+                              ("dispColor", 3103))
+
+
+def stealth_receive(d):
+    print "Stealth said: "
+    print d
+
+Stealth.bind(receive=stealth_receive)
+
 
