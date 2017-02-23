@@ -6,7 +6,8 @@ Moteinos = ['GreenDude',
             'SplitFlap',
             'TimeBomb',
             'Morser',
-            'Stealth']
+            'Stealth',
+            'LockPicking']
 
 
 MoteinoStructs = {
@@ -44,7 +45,13 @@ MoteinoStructs = {
     'ShootingRange':
         "int Command;" +
         "int Temperature;" +
-        "int Score;"
+        "int Score;",
+
+    'LockPicking':
+        "int Command;" +
+        "byte PickOrder[6];" +
+        "int Temperature;" +
+        "long Uptime;"
 
 }
 
@@ -56,6 +63,7 @@ MoteinoIDs = {
     'Stealth': 7,
     'Morser': 15,
     'TestDevice': 0,
+    'LockPicking': 176,
     # 'GunBox': ??,
     # 'ShootingRange': ??
 }
@@ -102,6 +110,12 @@ Morser = mynetwork.add_node(MoteinoIDs['Morser'],
 Morser.add_translation('Command',
                        ('SetPasscode', 155),
                        ('CorrectPasscode', 151))
+LockPicking = mynetwork.add_node(MoteinoIds['LockPicking'],
+                                 MoteinoStructs['LockPicking'],
+                                 'LockPicking')
+LockPicking.add_transtlation('Command',
+                             ('SetCorrectPickOrder', 17601),
+                             ('LockWasPicked', 17602))
 
 
 # QuestList = [

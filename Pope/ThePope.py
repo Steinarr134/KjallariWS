@@ -3,6 +3,36 @@
 import HostInterface as gui
 from Setup import *
 
+"""
+TODO:
+
+Set up a new logger that prints valuable and readable information to the host
+it probably needs a thread or some cool method to be able to print to LogTextWidget
+
+Complete the form about player info
+
+Control the lights
+
+Set up wifi network for pi to pi communication
+
+Set up Database
+
+Be able to abruptly stop and resume as if nothing happened
+    First clearly define a state space
+    rest will come 'EZ'
+
+    
+
+
+
+"""
+
+
+def initialize_room():
+    LockPicking.send("Reset")
+    time.sleep(1)
+    LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
+
 
 def send_to_split_flap(event):
     stuff2send = gui.SplitFlapEntry.get(1.0, gui.tk.END).strip()
@@ -33,6 +63,13 @@ def update_door_buttons(event=None):
     for door in Doors:
         pass
 
+def lockpicking_receive(d):
+    if d["Command"] == "LockWasPicked":
+        print "YEAH!!!"
+    
+
+
+
 ##def elevator_receive(d):
 ##    if d["Command"] == "CorrectPasscode":
 ##        ElevatorDoor.open()
@@ -55,8 +92,9 @@ def update_door_buttons(event=None):
 ##        get_status(device)
 
 
-
-gui.top.mainloop()
+if __name__ == "__main__":
+    initialize_room()
+    gui.top.mainloop()
 
 ##
 ##startInterface()
