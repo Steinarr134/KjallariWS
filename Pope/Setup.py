@@ -1,6 +1,8 @@
-from Config import mynetwork, GreenDude, SplitFlap, Morser, TimeBomb
+from Config import mynetwork, GreenDude, SplitFlap, \
+     Morser, TimeBomb, LockPicking, Elevator, TapeRecorder
 from DoorControl import Door as _Door, DoorController as _Dctrl
 import threading
+import logging
 import time
 
 DoorController = _Dctrl("/dev/ttyUSB0")

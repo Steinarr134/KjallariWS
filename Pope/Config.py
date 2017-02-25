@@ -2,6 +2,19 @@ from moteinopy import MoteinoNetwork
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+from RasPiCommunication import Sender
+##sender = Sender()
+
+class NetworkDevice(object):
+    def __init__(self):
+        pass
+
+    def send(self, text):
+        logging.debug("Sending: {}".format(text))
+
+TapeRecorder = NetworkDevice()
+
+
 Moteinos = ['GreenDude',
             'SplitFlap',
             'TimeBomb',
@@ -109,7 +122,8 @@ LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
                                  'LockPicking')
 LockPicking.add_translation('Command',
                             ('SetCorrectPickOrder', 17601),
-                            ('LockWasPicked', 17602))
+                            ('LockWasPicked', 17602)
+                            ('OpenYourself', 17603))
 
 Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
                              MoteinoStructs['Stealth'],
@@ -134,6 +148,11 @@ ShootingRange.add_translation("Command",
                               ("SetTime", 3101),
                               ("TargetHit", 3102),
                               ("dispColor", 3103))
+
+Elevator = mynetwork.add_node(100, "int Command;", "Elevator")
+Elevator.add_translation("Command",
+                         ("SolveYourself", 123),
+                         ("Solved", 1234))
 
 
 def stealth_receive(d):

@@ -3,7 +3,19 @@
 import HostInterface as gui
 from Setup import *
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
 import time
+
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+
+def run_after(func, seconds=0, minutes=0):
+    scheduler.add_job(func,
+                      'date',
+                      run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
+
 
 """
 TODO:
@@ -15,7 +27,7 @@ Complete the form about player info
 
 Control the lights
 
-Set up wifi network for pi to pi communication -- Done, need testing
+Set up wifi network for pi to pi communication -- needs more work :/
 
 Set up Database
 
@@ -37,9 +49,10 @@ Takkar sem thurfa ad vera til:
     Opna Vinkassann
     
     
-
-
 """
+
+
+
 
 
 def initialize_room():
@@ -64,6 +77,7 @@ def door_button_callback(event=None):
     if door.is_open():
         door.close()
         button.configure(bg='green')
+##        gui.hn.put(
     else:
         door.open()
         button.configure(bg='red')
@@ -76,9 +90,12 @@ def mission_fail_callback(event=None):
     button = event.widget
     b_text = button.config("text")[-1]
     if b_text == "Elevator Escape":
-        print "Open Elevator"
-    elif b_text == "StartTapeRecorder":
-        pass
+        #Elevator.send("SolveYourself")
+        ElevatorEscaped()
+    elif b_text == "Start TapeRecorder":
+        StartTapeRecorderIntroMessage()
+    elif b_text == "Open Safe":
+        LockPicking.send("OpenYourself")
     else:
         print "Don't know what happened but b_text was: " + b_text
 for b in gui.MissionFailButtons:
@@ -86,24 +103,27 @@ for b in gui.MissionFailButtons:
 
 
 
-def lockpicking_receive(d):
-    if d["Command"] == "LockWasPicked":
-        print "YEAH!!!"
+
     
 def ElevatorEscaped():
-    run_after(StartTapeRecorderIntroMessage, minutes=2)
-
+    run_after(StartTapeRecorderIntroMessage, seconds=20)
+    gui.ClockHasStarted = True
+    gui.ClockStartTime = time.time()
+    gui.notify("Elevator Successfully Escaped")
+    logging.debug("starting clock")
+        
 
 TapeRecorderIntroMessageStarted = False
 def StartTapeRecorderIntroMessage(timeout=False):
+    global TapeRecorderIntroMessageStarted
     if not TapeRecorderIntroMessageStarted:
         TapeRecorderIntroMessageStarted = True
         TapeRecorder.send("Start intro?")
+        gui.notify("TapeRecorder Intro Message Started")
 
 def GreenDudeCompleted():
     TapeRecorder.send("start next?")
     
-
 def LieDetectorActivated():
     TapeRecorder.send("next message?")
 
@@ -129,18 +149,20 @@ def BombDiffused():
 
 
 def elevator_receive(d):
-    if d["Command"] == "CorrectPasscode":
-        ElevatorDoor.open()
-        run_after(ElevatorDoor.close(), seconds=2)
-
+    if d["Command"] == "Solved":
+        ElevatorEscaped()
 ##Elevator.bind(receive=elevator_receive)
+
+
+def lockpicking_receive(d):
+    if d["Command"] == "LockWasPicked":
+        notify("Safe successfully opened")
+LockPicking.bind(receive=lockpicking_receive)
 
 
 def green_dude_receive(d):
     if d['Command'] == "CorrectPasscode":
         TapeRecorder.send("GreenDudeCorrect")
-
-
 GreenDude.bind(receive=green_dude_receive)
 
 

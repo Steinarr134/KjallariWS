@@ -5,15 +5,33 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import sys
 import Queue
-InitWindow = tk.Tk()
+import time
+
 top = tk.Tk()
 top.attributes("-fullscreen", True)
+top.withdraw()
+
+# Init Window
+InitWindow = tk.Tk()
+#InitWindow.withdraw()
+AboutPlayersEntry = tk.Text(InitWindow, bd=5, width=20, height=5, font="Verdana16")
+AboutPlayersEntry.pack()
+AboutPlayersSubmitButton = tk.Button(InitWindow, text="Submit")
+AboutPlayersSubmitButton.pack()
+def exit_init_window(event=None):
+    # send info too database
+    InitWindow.destroy()
+    top.deiconify()
+AboutPlayersSubmitButton.bind("<Button-1>", exit_init_window)
 
 SplitFlapEntry = tk.Text(top, bd=5, width=20, height=5, font="Verdana 16")
 SplitFlapEntry.place(x=50, y=100)
 
 SplitFlapEntryButton = tk.Button(top, text="Send hint")
 SplitFlapEntryButton.place(x=230, y=100)
+
+
+
 
 def fix_split_flap_input(event=None):
 ##    print "'" + event.char + "'"
@@ -33,27 +51,18 @@ ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlot, master=top)
 ProgressPlotCanvas.get_tk_widget().place(x=25, y=250)
 
 
-class StdoutRedirector(object):
-    def __init__(self,text_widget, root):
-        self.text_space = text_widget
-        self.Q = Queue.Queue()
-        self.root = root
-        self.root.after(100, self.check_on_queue)
-
-    def write(self, string):
-        print "something put into Q"
-        self.Q.put(string)
-
-    def check_on_queue(self, event=None):
-        print "checking on Q"
-        if not self.Q.empty():
-            string = self.Q.get()
-            self.text_space.insert('end', string)
-            self.text_space.see('end')
-        self.root.after(100, self.check_on_queue)
-
 LogTextWidget = tk.Text(top, height=20, width=75)
 LogTextWidget.place(x=600, y=300)
+LogTextWidget.insert('end', " System starting...")
+LogTextWidget['state'] = 'disabled'
+
+def notify(text):
+    text = "\n " + get_clock_text_now() + " - " + text
+    LogTextWidget['state'] = 'normal'
+    LogTextWidget.insert('end', text)
+    LogTextWidget.see(tk.END)
+    LogTextWidget['state'] = 'disabled'
+
 
 ##sys.stderr = StdoutRedirector(LogTextWidget, top)
 
@@ -62,7 +71,7 @@ DoorButtonFrame.place(x=1050, y=10)
 
 door_button_callback = None
 
-DoorNameList = ["Elevator", "Safe", "BookDrawer", "WineCaseolder",
+DoorNameList = ["Elevator", "Safe", "BookDrawer", "WineCaseHolder",
                 "Stealth", "FromBomb", "FinalExit"]
 DoorButtons = list()
 for name in DoorNameList:
@@ -96,17 +105,22 @@ def clock_make_text(sec):
     return "%d:%02d:%02d" % (h,m,sec)
 
 
+def get_clock_text_now():
+    displaytime = round(time.time() - ClockStartTime)
+    return clock_make_text(displaytime)
+
+
 def update_clock(event=None):
     if ClockHasStarted:
-        displaytime = round(time.time() - ClockStartTime)
-        self.title_Timer.configure(text = clock_make_text(displaytime))
-        top.after(1000, update_clock)
+        ClockLabel.configure(text=get_clock_text_now())
+    top.after(999, update_clock)
 
 top.after(1000, update_clock)
 
 
 def keypress(event):
-    print "you pressed key:" + event.char
+##    notify("you pressed key:" + event.char)
+    return
 
 
 def close_window(event):
