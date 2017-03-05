@@ -28,7 +28,7 @@ byte DataLen = 10;
 byte BaseID = 1;
 
 // operating variables
-const int CorrectPassCode = 25;
+const int CorrectPassCode = 1103;
 const int Status = 99;
 const int Disp = 1101;
 const int SetPassCode = 1102;
