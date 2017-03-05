@@ -64,7 +64,14 @@ MoteinoStructs = {
         "int Command;" +
         "byte PickOrder[6];" +
         "int Temperature;" +
-        "long Uptime;"
+        "long Uptime;",
+
+    'Elevator':
+        "int Command;"
+        "byte ActiveDoor;"
+        "byte PassCode1[4];"
+        "byte PassCode2[4];"
+        "unsigned long Uptime;"
 
 }
 
@@ -78,6 +85,7 @@ MoteinoIDs = {
     'ShootingRange': 31,
     'TestDevice': 0,
     'LockPicking': 176,
+    'Elevator': 5,
     # 'GunBox': ??,
     # 'ShootingRange': ??
 }
@@ -85,8 +93,8 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-mynetwork = MoteinoNetwork('/dev/ttyUSB1', network_id=7, encryption_key="HugiBogiHugiBogi")
-##mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
+# mynetwork = MoteinoNetwork('/dev/ttyUSB1', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -99,10 +107,6 @@ GreenDude.add_translation('Command',
                           ('Disp', 1101),
                           ('SetPasscode', 1102),
                           ('CorrectPasscode', 1103))
-
-# LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
-#                                  MoteinoStructs['LockPicking'],
-#                                  'LockPicking')
 
 SplitFlap = mynetwork.add_node(MoteinoIDs['SplitFlap'],
                                MoteinoStructs['SplitFlap'],
@@ -117,6 +121,7 @@ Morser = mynetwork.add_node(MoteinoIDs['Morser'],
 Morser.add_translation('Command',
                        ('SetPasscode', 155),
                        ('CorrectPasscode', 151))
+
 LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
                                  MoteinoStructs['LockPicking'],
                                  'LockPicking')
@@ -149,10 +154,16 @@ ShootingRange.add_translation("Command",
                               ("TargetHit", 3102),
                               ("dispColor", 3103))
 
-Elevator = mynetwork.add_node(100, "int Command;", "Elevator")
+Elevator = mynetwork.add_node(MoteinoIDs['Elevator'],
+                              MoteinoStructs['Elevator'],
+                              "Elevator")
 Elevator.add_translation("Command",
-                         ("SolveYourself", 123),
-                         ("Solved", 1234))
+                         ('SetPassCode', 501),
+                         ('SolveDoor1', 503),
+                         ('SolveDoor2', 504),
+                         ('OpenDoors', 505),
+                         ('SetActiveDoor', 506),
+                         ('Solved', 507))
 
 
 def stealth_receive(d):
