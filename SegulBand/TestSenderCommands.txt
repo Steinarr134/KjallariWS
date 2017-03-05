@@ -7,4 +7,4 @@ from RasPiCommunication import Sender
 import demjson
 a = {'Command': 'Load', 'filename': "1.ogg", 'StartPlaying':True, 'filelength':50}
 sender = Sender()
-sender.connect(('192.168.1.92', 1234))
+sender.connect(('192.168.1.101', 1234))
