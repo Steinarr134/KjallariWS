@@ -122,7 +122,7 @@ LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
                                  'LockPicking')
 LockPicking.add_translation('Command',
                             ('SetCorrectPickOrder', 17601),
-                            ('LockWasPicked', 17602)
+                            ('LockWasPicked', 17602),
                             ('OpenYourself', 17603))
 
 Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
