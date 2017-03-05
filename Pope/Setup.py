@@ -1,12 +1,21 @@
 from Config import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, TapeRecorder
-from DoorControl import Door as _Door, DoorController as _Dctrl
+from DoorControl import Door as _Door, DoorController as _Dctrl, \
+     RemoteDoor as _RemoteDoor
 import threading
 import logging
 import time
 
+def elevator_door_send_fun(what):
+    if what == "open":
+        Elevator.send("OpenDoors", ActiveDoor=1)
+    elif what == "close":
+        print "Elevator door closes automatically in a few seconds"
+    else:
+        print "WTF do you mean by '{}' in elevator_door_send_fun".format(what)
+
 DoorController = _Dctrl("/dev/ttyUSB0")
-ElevatorDoor = _Door(DoorController, 0)
+ElevatorDoor = _RemoteDoor(elevator_door_send_fun, 5)
 SafeDoor = _Door(DoorController, 1)
 BookDrawer = _Door(DoorController, 2)
 WineCaseHolderDoor = _Door(DoorController, 6)

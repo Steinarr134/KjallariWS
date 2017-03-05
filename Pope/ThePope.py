@@ -71,20 +71,30 @@ def send_to_split_flap(event):
 gui.SplitFlapEntryButton.bind("<Button-1>", send_to_split_flap)
 
 
+def update_door_button_colors(recall=True):
+    for i in range(len(gui.DoorNameList)):
+        if Doors[i].is_open():
+            gui.DoorButtons[i].configure(bg='green')
+        else:
+            gui.DoorButtons[i].configure(bg='red')
+    if recall:
+        gui.top.after(500, update_door_button_colors)
 def door_button_callback(event=None):
     button = event.widget
     door = Doors[gui.DoorNameList.index(button.config("text")[-1])]
     if door.is_open():
         door.close()
-        button.configure(bg='green')
-##        gui.hn.put(
     else:
         door.open()
-        button.configure(bg='red')
-        
+    update_door_button_colors(recall=False)
 
 for b in gui.DoorButtons:
     b.bind("<Button-1>", door_button_callback)
+
+update_door_button_colors(recall=True)
+
+
+    
 
 def mission_fail_callback(event=None):
     button = event.widget
@@ -151,7 +161,7 @@ def BombDiffused():
 def elevator_receive(d):
     if d["Command"] == "Solved":
         ElevatorEscaped()
-##Elevator.bind(receive=elevator_receive)
+Elevator.bind(receive=elevator_receive)
 
 
 def lockpicking_receive(d):
@@ -163,6 +173,8 @@ LockPicking.bind(receive=lockpicking_receive)
 def green_dude_receive(d):
     if d['Command'] == "CorrectPasscode":
         TapeRecorder.send("GreenDudeCorrect")
+        time.sleep(1)
+        BookDrawerDoor.open()
 GreenDude.bind(receive=green_dude_receive)
 
 

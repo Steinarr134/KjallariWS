@@ -3,14 +3,14 @@ import serial
 OPEN = 1
 CLOSED = 0
 
-
+    
 class Door(object):
     OPEN = 1
     CLOSED = 0
     def __init__(self, controller, position):
         self.Controller = controller
         self.Position = position
-        self.State = OPEN
+        self.State = CLOSED
         self.Controller.add_door(self)
 
     def is_open(self):

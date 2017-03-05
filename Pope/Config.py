@@ -10,7 +10,7 @@ class NetworkDevice(object):
         pass
 
     def send(self, text):
-        logging.debug("Sending: {}".format(text))
+        logging.debug("NetworkDevice(TapeRecorder?) Sending: {}".format(text))
 
 TapeRecorder = NetworkDevice()
 
@@ -93,8 +93,8 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-# mynetwork = MoteinoNetwork('/dev/ttyUSB1', network_id=7, encryption_key="HugiBogiHugiBogi")
-mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('/dev/ttyUSB1', network_id=7, encryption_key="HugiBogiHugiBogi")
+# mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),

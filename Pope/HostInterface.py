@@ -83,8 +83,8 @@ MissionFailFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
 MissionFailFrame.place(x=850, y=10)
 MissionFailButtons = [
     tk.Button(MissionFailFrame, text="Elevator Escape", width=15),
-    tk.Button(MissionFailFrame, text="Start TapeRecorder", width=15),
     tk.Button(MissionFailFrame, text="Open Safe", width=15),
+    tk.Button(MissionFailFrame, text="Start TapeRecorder", width=15),
     tk.Button(MissionFailFrame, text="GreenDude Fail", width=15),
     tk.Button(MissionFailFrame, text="Start Lie Detector", width=15),
     tk.Button(MissionFailFrame, text="Morse Fail", width=15),
