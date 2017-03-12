@@ -151,7 +151,7 @@ class Sender(threading.Thread):
 
     def run(self):
         while not self.StopEvent.isSet():
-            if self.is_disconnected(5):
+            if self.is_disconnected():
                 logging.info("connection disconnected, trying to reconnect...")
                 self.reconnect()
             else:
