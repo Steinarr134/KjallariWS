@@ -5,6 +5,7 @@ from DoorControl import Door as _Door, DoorController as _Dctrl, \
 import threading
 import logging
 import time
+import demjson
 
 def elevator_door_send_fun(what):
     if what == "open":

@@ -12,7 +12,8 @@ class NetworkDevice(object):
     def send(self, text):
         logging.debug("NetworkDevice(TapeRecorder?) Sending: {}".format(text))
 
-TapeRecorder = NetworkDevice()
+TapeRecorder = Sender()
+TapeRecorder.connect(('192.168.1.101', 1234))
 
 
 Moteinos = ['GreenDude',

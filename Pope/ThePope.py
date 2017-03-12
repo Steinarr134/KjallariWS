@@ -1,5 +1,3 @@
-##from Setup import *
-##from HelperStuff import *
 import HostInterface as gui
 from Setup import *
 
@@ -128,7 +126,8 @@ def StartTapeRecorderIntroMessage(timeout=False):
     global TapeRecorderIntroMessageStarted
     if not TapeRecorderIntroMessageStarted:
         TapeRecorderIntroMessageStarted = True
-        TapeRecorder.send("Start intro?")
+        TapeRecorder.send({'Command': 'Load', 'filaname':"1.ogg",
+                           'StartPlaying':True, 'filelength':50})
         gui.notify("TapeRecorder Intro Message Started")
 
 def GreenDudeCompleted():
