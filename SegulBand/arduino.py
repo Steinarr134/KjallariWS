@@ -2,6 +2,7 @@ import serial
 from moteinopy import Struct
 from threading import Lock, Thread
 import time
+import logging
 
 ##class readingThread(Thread):
 ##    def __init__(self, listen2):
@@ -13,9 +14,10 @@ import time
 ##            print incoming
 ##
 class Motor(object):
-    def __init__(self):
-        self.Serial = serial.Serial('/dev/ttyUSB0', baudrate=115200/2)
-        time.sleep(1)
+    def __init__(self, port='/dev/ttyUSB0'):
+        self.Serial = serial.Serial(port, baudrate=38400)
+        logging.debug("waiting for wakeup sign...")
+        logging.debug(self.Serial.readline())
         self.SerialLock = Lock()
         self.Struct = Struct("int Command;"
                              "byte MotorTemp;"
@@ -34,9 +36,13 @@ class Motor(object):
 ##        self.bla.start()
 
     def _send_command(self, command):
-        with self.SerialLock:
-            self.Serial.write(self.Struct.encode({'Command': command}) + '\n')
+        self._write(self.Struct.encode({'Command': command}) + '\n')
 
+    def _write(self, msg):
+        with self.SerialLock:
+            logging.debug("sending '{}' to serial port".format(msg))
+            self.Serial.write(msg+"\n")
+    
     def play(self):
         self._send_command(self.Play)
 
@@ -58,7 +64,6 @@ class Motor(object):
         return self.Struct.decode(incoming)
 
     def set_lights(self, intensity):
-        with self.SerialLock:
-            self.Serial.write(self.Struct.encode({'Command': self.SetLights,
+        self._write(self.Struct.encode({'Command': self.SetLights,
                                                   'LightIntensity': intensity})
-                              +'\n')
+                                       +'\n')
