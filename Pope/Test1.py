@@ -1,25 +1,21 @@
-from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime
-import time
 
-scheduler = BackgroundScheduler()
-scheduler.start()
+class A(object):
+    def __init__(self, s):
+        self.stuff = s
 
-def foo():
-    print "sdflkjsflkj"
-
-def bar():
-    print "bar"
+    def p(self):
+        print "blablabla and also: " + str(self.stuff)
 
 
-def run_after(func, seconds=0, minutes=0):
-    j = scheduler.add_job(func, 'date',
-                      run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
+
+a = A("test")
+
+a.p()
 
 
-J = scheduler.add_job(bar, 'interval', seconds=3)
+def p2(self):
+    print "i've changed my mind about " + str(self.stuff)
 
-run_after(foo, seconds=2)
-print "Sdfaaaaaa"
-a = datetime.date.fromtimestamp(time.time() + 10)
-time.sleep(1000)
+a.p = p2
+
+a.p()
