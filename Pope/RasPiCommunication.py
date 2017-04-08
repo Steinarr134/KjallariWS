@@ -6,6 +6,7 @@ import os
 import time
 import atexit
 import demjson
+import pickle
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -196,7 +197,7 @@ class Sender(threading.Thread):
         self.Sock.close()
 
     def send(self, data):
-        self.Sock.sendall(demjson.encode(data))
+        self.Sock.sendall(pickle.dumps(data))
 
 
     def stop(self):

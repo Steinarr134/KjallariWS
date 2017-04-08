@@ -126,25 +126,26 @@ def StartTapeRecorderIntroMessage(timeout=False):
     global TapeRecorderIntroMessageStarted
     if not TapeRecorderIntroMessageStarted:
         TapeRecorderIntroMessageStarted = True
-        TapeRecorder.send({'Command': 'Load', 'filaname':"1.ogg",
+        TapeRecorder.send(
+            {'Command': 'Load', 'filename':"1.ogg",
                            'StartPlaying':True, 'filelength':50})
         gui.notify("TapeRecorder Intro Message Started")
 
 def GreenDudeCompleted():
-    TapeRecorder.send("start next?")
+    TapeRecorder.send("start next??")
     
 def LieDetectorActivated():
-    TapeRecorder.send("next message?")
+    TapeRecorder.send("next message??")
 
 def LieDetectorCompleted():
-    TapeRecorder.send("sdfkj2")
+    TapeRecorder.send("sdfkj2??")
     WineCaseHolderDoor.open()
 
 def ShootingRangeCompleted():
     pass # ??
 
 def MorseCompleted():
-    TapeRecorder.send("FDSS")
+    TapeRecorder.send("FDSS??")
     StealthDoor.open()
 
 def StealthCompleted():
