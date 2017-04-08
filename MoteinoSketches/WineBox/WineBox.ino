@@ -5,11 +5,11 @@ Accelerometer accel;
 // for the radio
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        10    //unique for each node on same network
+#define NODEID        24    //unique for each node on same network
 #define NETWORKID     1  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
-#define ENCRYPTKEY    "0123456789abcdef" //exactly the same 16 characters/bytes on all nodes!
+#define ENCRYPTKEY    "HugiBogi" //exactly the same 16 characters/bytes on all nodes!
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
@@ -20,8 +20,12 @@ bool promiscuousMode = false; //set to 'true' to sniff all packets on the same n
 // since multiple structs to single nodes hasn't been implemented into moteinopy.
 typedef struct{
   int Command;
-  byte Numbers[8];
-  long Uptime;
+  unsigned long Uptime;
+  int BatteryStatus
+  int X;
+  int Y;
+  int Z;
+  int Time2Solve;
 } Payload;
 
 // Two instances of payload:
@@ -31,12 +35,16 @@ byte BaseID = 1;
 
 // Command values:
 const int Status = 99;
-const int Demo1 = 23;
+const int Reset = 98;
+const int OpenYourself = 2401;
+const int IWasSolved = 2402;
+const int SetTime2Solve = 2403
 
 
+unsigned long locked_until_time = 0;
 
 int LED = 9;
-long Time2Solve = 15000;
+long Time2Solve = 3000;
 
 boolean can_be_solved = true;
 
@@ -108,7 +116,17 @@ void stopOpeningLid()
 void problemSolved()
 {
  Serial.println("SOLVED"); 
- digitalWrite(Sesam,HIGH);
+ OutgoingData.Command = IWasSolved;
+ sendOutgoingData()
+ if (millis() > locked_until_time)
+ {
+  open_lid();
+ }
+}
+
+void open_lid()
+{
+ digitalWrite(Sesam, HIGH);
  stop_opening_time = millis();
  stop_opening_flag = true;
  can_be_solved = false;
@@ -147,23 +165,17 @@ void checkOnRadio()
     {
       case Status:
         sendStatus();
+        locked_until_time = millis() + 3600000
         break;
       case Reset:
         arm volatile (" jmp 0");
         break;
       case SetTime2Solve:
-
-        
+        Time2Solve = IncomingData.Time2Solve;
         break;
       case Open:
-        
+        open_lid();
         break;
-      case :
-        
-        break;
-      case Reset:
-        
-        
       default:
         Serial.print("Received unkown Command: ");
         Serial.println(IncomingData.Command);
@@ -174,13 +186,12 @@ void checkOnRadio()
 
 void sendStatus()
 {
-  OutgoingData.Command = Status;
-  for (int i = 0; i < 8; i++)
-  {
-    OutgoingData.Numbers[i] = i*i;
-  }
+  OutgoingData.Time2Solve = Time2Solve;
+  OutgoingData.X = (int)(accel.readAX()*100);
+  OutgoingData.Y = (int)(accel.readAY()*100);
+  OutgoingData.Z = (int)(accel.readAZ()*100);
+  OutgoingData.BatteryStatus = analogRead(BatteryPin);
   OutgoingData.Uptime = millis();
-
   sendOutgoingData();
 }
 
