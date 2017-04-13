@@ -1,4 +1,5 @@
 import Tkinter as tk
+import tkMessageBox
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -19,7 +20,7 @@ AboutPlayersEntry.pack()
 AboutPlayersSubmitButton = tk.Button(InitWindow, text="Submit")
 AboutPlayersSubmitButton.pack()
 def exit_init_window(event=None):
-    # send info too database
+    # send info to database
     InitWindow.destroy()
     top.deiconify()
 AboutPlayersSubmitButton.bind("<Button-1>", exit_init_window)
@@ -63,8 +64,6 @@ def notify(text):
     LogTextWidget.see(tk.END)
     LogTextWidget['state'] = 'disabled'
 
-
-##sys.stderr = StdoutRedirector(LogTextWidget, top)
 
 DoorButtonFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
 DoorButtonFrame.place(x=1050, y=10)
@@ -124,7 +123,12 @@ def keypress(event):
 
 
 def close_window(event):
-    top.destroy()
+    result = tkMessageBox.askquestion("Exit", "Are you sure you want to exit?", icon='warning')
+    if result == 'yes':
+        top.destroy()
+    else:
+        pass
+
 
 top.bind("<Key>", keypress)
 top.bind("<Escape>", close_window)
@@ -140,7 +144,4 @@ def nothing(event):
 
 if __name__ == "__main__":
     top.mainloop()
-    print "kkkkkkkk"
-
-
-
+    print "Running interface as main"
