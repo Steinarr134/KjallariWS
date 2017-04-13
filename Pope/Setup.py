@@ -1,11 +1,13 @@
 from Config import mynetwork, GreenDude, SplitFlap, \
-     Morser, TimeBomb, LockPicking, Elevator, TapeRecorder
+     Morser, TimeBomb, LockPicking, Elevator, TapeRecorder, WineBoxHolder, \
+     WineBox
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
 import logging
 import time
 import pickle
+import HostInterface as gui
 
 def elevator_door_send_fun(what):
     if what == "open":
@@ -16,18 +18,22 @@ def elevator_door_send_fun(what):
         print "WTF do you mean by '{}' in elevator_door_send_fun".format(what)
 
 DoorController = _Dctrl("/dev/ttyUSB0")
-ElevatorDoor = _RemoteDoor(elevator_door_send_fun, 5)
+ElevatorDoor = _RemoteDoor(Elevator)
 SafeDoor = _Door(DoorController, 1)
 BookDrawer = _Door(DoorController, 2)
-WineCaseHolderDoor = _Door(DoorController, 6)
+WineCaseHolderDoor = _RemoteDoor(WineBoxHolder)
+WineCaseDoor = _RemoteDoor(WineBox)
 StealthDoor = _Door(DoorController, 3)
 FromBombDoor = _Door(DoorController, 4)
 FinalExitDoor = _Door(DoorController, 5)
+
+
 
 Doors = [ElevatorDoor,
          SafeDoor,
          BookDrawer,
          WineCaseHolderDoor,
+         WineCaseDoor,
          StealthDoor,
          FromBombDoor,
          FinalExitDoor]
@@ -41,13 +47,18 @@ class Send2SplitFlapThread(threading.Thread):
         self.start()
 
     def run(self):
-        time.sleep(10)
         with Send2SplitFlapLock:
             parts = self.Stuff2Send.split('\n')
             for part in parts:
                 part = part.strip()
                 part += " "*(11 - len(part))
                 SplitFlap.send("Disp", part)
+                gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format(part))
                 time.sleep(5)
             SplitFlap.send("Clear")
-            
+            gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
+                
+def no_ack_fun(d):
+    print d
+
+mynetwork.bind_all(no_ack=no_ack_fun)

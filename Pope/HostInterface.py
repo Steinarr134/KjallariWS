@@ -28,9 +28,12 @@ SplitFlapEntry = tk.Text(top, bd=5, width=20, height=5, font="Verdana 16")
 SplitFlapEntry.place(x=50, y=100)
 
 SplitFlapEntryButton = tk.Button(top, text="Send hint")
-SplitFlapEntryButton.place(x=230, y=100)
+SplitFlapEntryButton.place(x=325, y=150)
 
-
+SplitFlapDisplayLabel = tk.Label(top,
+                                 text="Now displaying: '           '",
+                                 font="Verdana 12 bold")
+SplitFlapDisplayLabel.place(x=50, y=250)
 
 
 def fix_split_flap_input(event=None):
@@ -48,7 +51,7 @@ SplitFlapEntry.bind("<BackSpace>", lambda event: None)
 
 ProgressPlot = Figure(figsize=(8, 4), dpi=50)
 ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlot, master=top)
-ProgressPlotCanvas.get_tk_widget().place(x=25, y=250)
+ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
 
 
 LogTextWidget = tk.Text(top, height=20, width=75)
@@ -72,7 +75,7 @@ DoorButtonFrame.place(x=1050, y=10)
 door_button_callback = None
 
 DoorNameList = ["Elevator", "Safe", "BookDrawer", "WineCaseHolder",
-                "Stealth", "FromBomb", "FinalExit"]
+                "WineCase", "Stealth", "FromBomb", "FinalExit"]
 DoorButtons = list()
 for name in DoorNameList:
     b = tk.Button(DoorButtonFrame, text=name, bg='red', width=10)

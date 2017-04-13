@@ -1,4 +1,3 @@
-import HostInterface as gui
 from Setup import *
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -18,8 +17,6 @@ def run_after(func, seconds=0, minutes=0):
 """
 TODO:
 
-Set up a new logger that prints valuable and readable information to the host
-it probably needs a thread or some cool method to be able to print to LogTextWidget
 
 Complete the form about player info
 
@@ -77,6 +74,7 @@ def update_door_button_colors(recall=True):
             gui.DoorButtons[i].configure(bg='red')
     if recall:
         gui.top.after(500, update_door_button_colors)
+
 def door_button_callback(event=None):
     button = event.widget
     door = Doors[gui.DoorNameList.index(button.config("text")[-1])]
@@ -90,15 +88,13 @@ for b in gui.DoorButtons:
     b.bind("<Button-1>", door_button_callback)
 
 update_door_button_colors(recall=True)
-
-
     
 
 def mission_fail_callback(event=None):
     button = event.widget
     b_text = button.config("text")[-1]
     if b_text == "Elevator Escape":
-        #Elevator.send("SolveYourself")
+        Elevator.send("SolveDoor1")
         ElevatorEscaped()
     elif b_text == "Start TapeRecorder":
         StartTapeRecorderIntroMessage()
@@ -114,6 +110,7 @@ for b in gui.MissionFailButtons:
 
     
 def ElevatorEscaped():
+    # passcodes are 4132 and 1341
     run_after(StartTapeRecorderIntroMessage, seconds=20)
     gui.ClockHasStarted = True
     gui.ClockStartTime = time.time()

@@ -72,7 +72,20 @@ MoteinoStructs = {
         "byte ActiveDoor;"
         "byte PassCode1[4];"
         "byte PassCode2[4];"
+        "unsigned long Uptime;",
+
+    'WineBoxHolder':
+        "int Command;"
+        "long Uptime;",
+
+    'WineBox':
+        "int Command;"
         "unsigned long Uptime;"
+        "int BatteryStatus;"
+        "int X;"
+        "int Y;"
+        "int Z;"
+        "int Time2Solve;",
 
 }
 
@@ -87,6 +100,8 @@ MoteinoIDs = {
     'TestDevice': 0,
     'LockPicking': 176,
     'Elevator': 5,
+    'WineBoxHolder': 36,
+    'WineBox': 24,
     # 'GunBox': ??,
     # 'ShootingRange': ??
 }
@@ -165,6 +180,21 @@ Elevator.add_translation("Command",
                          ('OpenDoors', 505),
                          ('SetActiveDoor', 506),
                          ('Solved', 507))
+
+
+WineBoxHolder = mynetwork.add_node(MoteinoIDs['WineBoxHolder'],
+                                   MoteinoStructs['WineBoxHolder'],
+                                   "WineBoxHolder")
+WineBoxHolder.add_translation("Command", ("open", 3601), ("close", 0))
+
+
+WineBox = mynetwork.add_node(MoteinoIDs['WineBox'],
+                             MoteinoStructs['WineBox'],
+                             'WineBox')
+WineBox.add_translation("Command",
+                        ("open", 2401),
+                        ("IWasSolved", 2402),
+                        ("SetTime2Solve", 2403))
 
 
 def stealth_receive(d):
