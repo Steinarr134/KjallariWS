@@ -114,7 +114,6 @@ def mission_fail_callback(event=None):
     if b_text == "Elevator Escape":
         result = gui.tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
-            Elevator.send("SolveDoor1")
             ElevatorEscaped(fail=True)
     elif b_text == "Start TapeRecorder":
         result = gui.tkMessageBox.askquestion("TapeRecorder", "Are you sure want to skip this mission?", icon='warning')
@@ -123,7 +122,6 @@ def mission_fail_callback(event=None):
     elif b_text == "Open Safe":
         result = gui.tkMessageBox.askquestion("OpenSafe", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
-            LockPicking.send("OpenYourself")
             LockPickingCompleted(fail=True)
     else:
         print "Don't know what happened but b_text was: " + b_text
@@ -136,6 +134,7 @@ for b in gui.MissionFailButtons:
     
 def ElevatorEscaped(fail=False):
     # passcodes are 4132 and 1341
+    Elevator.send("SolveDoor1")
     run_after(StartTapeRecorderIntroMessage, seconds=20)
     gui.ClockHasStarted = True
     gui.ClockStartTime = time.time()
@@ -147,6 +146,7 @@ def ElevatorEscaped(fail=False):
     logging.debug("starting clock")
         
 def LockPickingCompleted(fail=False):
+    LockPicking.send("OpenYourself")
     if fail:
         gui.notify("LockPicking failed, opened manually", fail=True)
     else:
