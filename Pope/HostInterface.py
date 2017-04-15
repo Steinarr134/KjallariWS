@@ -129,8 +129,6 @@ def close_window(event):
     result = tkMessageBox.askquestion("Exit", "Are you sure you want to exit?", icon='warning')
     if result == 'yes':
         top.destroy()
-    else:
-        pass
 
 
 top.bind("<Key>", keypress)

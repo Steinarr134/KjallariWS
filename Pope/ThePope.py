@@ -94,12 +94,18 @@ def mission_fail_callback(event=None):
     button = event.widget
     b_text = button.config("text")[-1]
     if b_text == "Elevator Escape":
-        Elevator.send("SolveDoor1")
-        ElevatorEscaped()
+        result = tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
+        if result == 'yes':
+            Elevator.send("SolveDoor1")
+            ElevatorEscaped()
     elif b_text == "Start TapeRecorder":
-        StartTapeRecorderIntroMessage()
+        result = tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
+        if result == 'yes':
+            StartTapeRecorderIntroMessage()
     elif b_text == "Open Safe":
-        LockPicking.send("OpenYourself")
+        result = tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
+        if result == 'yes':
+            LockPicking.send("OpenYourself")
     else:
         print "Don't know what happened but b_text was: " + b_text
 for b in gui.MissionFailButtons:
