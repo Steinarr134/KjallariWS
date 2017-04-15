@@ -55,17 +55,31 @@ ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlot, master=top)
 ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
 
 
-LogTextWidget = tk.Text(top, height=20, width=75)
+LogTextWidget = tk.Text(top, height=20, width=75, font="helvetica 10")
 LogTextWidget.place(x=600, y=300)
 LogTextWidget.insert('end', " System starting...")
 LogTextWidget['state'] = 'disabled'
 
-def notify(text, color='black'):
-    text = "\n " + get_clock_text_now() + " - " + text
+LogTextWidget.tag_configure("warning", foreground="#ff0000", font="helvetica 10 bold")
+LogTextWidget.tag_configure("solved", foreground="#259020", font="helvetica 10 bold")
+
+
+def notify(text, warning=False, solved=False):
+    text = "\n " + get_clock_text_now() + " -\t" + text
     LogTextWidget['state'] = 'normal'
     LogTextWidget.insert('end', text)
     LogTextWidget.see(tk.END)
+    if warning:
+        line = str(int(LogTextWidget.index("end")[0])-1)
+        LogTextWidget.insert(line+".12", "WARNING ")
+        LogTextWidget.tag_add("warning", line+".12", line+".20")
+    if solved:
+        line = str(int(LogTextWidget.index("end")[0])-1)
+        LogTextWidget.insert(line+".12", "SOLVED: ")
+        LogTextWidget.tag_add("solved", line+".12", line+".19")
     LogTextWidget['state'] = 'disabled'
+
+
 
 
 DoorButtonFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
@@ -108,6 +122,8 @@ def clock_make_text(sec):
 
 
 def get_clock_text_now():
+    if ClockStartTime is None:
+        return "00:00:00"
     displaytime = round(time.time() - ClockStartTime)
     return clock_make_text(displaytime)
 
