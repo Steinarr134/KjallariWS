@@ -62,21 +62,26 @@ LogTextWidget['state'] = 'disabled'
 
 LogTextWidget.tag_configure("warning", foreground="#ff0000", font="helvetica 10 bold")
 LogTextWidget.tag_configure("solved", foreground="#259020", font="helvetica 10 bold")
+LogTextWidget.tag_configure("fail", foreground="#ff9900", font="helvetica 10 bold")
 
 
-def notify(text, warning=False, solved=False):
+def notify(text, warning=False, solved=False, fail=False):
     text = "\n " + get_clock_text_now() + " -\t" + text
     LogTextWidget['state'] = 'normal'
     LogTextWidget.insert('end', text)
     LogTextWidget.see(tk.END)
     if warning:
         line = str(int(LogTextWidget.index("end")[0])-1)
-        LogTextWidget.insert(line+".12", "WARNING ")
-        LogTextWidget.tag_add("warning", line+".12", line+".20")
+        LogTextWidget.insert(line+".11", "WARNING ")
+        LogTextWidget.tag_add("warning", line+".11", line+".19")
     if solved:
         line = str(int(LogTextWidget.index("end")[0])-1)
-        LogTextWidget.insert(line+".12", "SOLVED: ")
-        LogTextWidget.tag_add("solved", line+".12", line+".19")
+        LogTextWidget.insert(line+".11", "SOLVED: ")
+        LogTextWidget.tag_add("solved", line+".11", line+".18")
+    if fail:
+        line = str(int(LogTextWidget.index("end")[0])-1)
+        LogTextWidget.insert(line+".9", "FAIL: ")
+        LogTextWidget.tag_add("solved", line+".9", line+".16")
     LogTextWidget['state'] = 'disabled'
 
 

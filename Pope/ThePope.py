@@ -51,9 +51,26 @@ Takkar sem thurfa ad vera til:
 
 
 def initialize_room():
-##    LockPicking.send("Reset")
-    time.sleep(1)
-##    LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
+    d = Elevator.send_and_receive("Status")
+    if d is None:
+        print "No status received"
+    else:
+        print d
+
+    d = WineBox.send_and_receive("Status")
+    if d is None:
+        print "No status received"
+    else:
+        print d 
+    
+    d = LockPicking.send_and_receive("Status")
+    if d is None:
+        print "No status received"
+    else:
+        print d
+    LockPicking.send("Reset")
+    LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
+
 
 
 def send_to_split_flap(event):
@@ -77,6 +94,7 @@ def update_door_button_colors(recall=True):
 
 def door_button_callback(event=None):
     button = event.widget
+    
     door = Doors[gui.DoorNameList.index(button.config("text")[-1])]
     if door.is_open():
         door.close()
@@ -94,18 +112,19 @@ def mission_fail_callback(event=None):
     button = event.widget
     b_text = button.config("text")[-1]
     if b_text == "Elevator Escape":
-        result = tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
+        result = gui.tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             Elevator.send("SolveDoor1")
-            ElevatorEscaped()
+            ElevatorEscaped(fail=True)
     elif b_text == "Start TapeRecorder":
-        result = tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
+        result = gui.tkMessageBox.askquestion("TapeRecorder", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
-            StartTapeRecorderIntroMessage()
+            StartTapeRecorderIntroMessage(fail=True)
     elif b_text == "Open Safe":
-        result = tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
+        result = gui.tkMessageBox.askquestion("OpenSafe", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             LockPicking.send("OpenYourself")
+            LockPickingCompleted(fail=True)
     else:
         print "Don't know what happened but b_text was: " + b_text
 for b in gui.MissionFailButtons:
@@ -115,17 +134,27 @@ for b in gui.MissionFailButtons:
 
 
     
-def ElevatorEscaped():
+def ElevatorEscaped(fail=False):
     # passcodes are 4132 and 1341
     run_after(StartTapeRecorderIntroMessage, seconds=20)
     gui.ClockHasStarted = True
     gui.ClockStartTime = time.time()
-    gui.notify("Elevator Successfully Escaped")
+    if fail:
+        gui.notify("Elevator failed, opened manually", fail=True)
+    else:
+        gui.notify("Elevator Successfully Escaped", solved=True)
+    gui.MissionFailButtons[0].config(state=gui.tk.DISABLED)
     logging.debug("starting clock")
         
+def LockPickingCompleted(fail=False):
+    if fail:
+        gui.notify("LockPicking failed, opened manually", fail=True)
+    else:
+        gui.notify("LockPicking Successfully Completed", solved=True)
+    gui.MissionFailButtons[1].config(state=gui.tk.DISABLED)
 
 TapeRecorderIntroMessageStarted = False
-def StartTapeRecorderIntroMessage(timeout=False):
+def StartTapeRecorderIntroMessage(timeout=False, fail=False):
     global TapeRecorderIntroMessageStarted
     if not TapeRecorderIntroMessageStarted:
         TapeRecorderIntroMessageStarted = True
@@ -134,24 +163,24 @@ def StartTapeRecorderIntroMessage(timeout=False):
                            'StartPlaying':True, 'filelength':50})
         gui.notify("TapeRecorder Intro Message Started")
 
-def GreenDudeCompleted():
+def GreenDudeCompleted(fail=False):
     TapeRecorder.send("start next??")
     
 def LieDetectorActivated():
     TapeRecorder.send("next message??")
 
-def LieDetectorCompleted():
+def LieDetectorCompleted(fail=False):
     TapeRecorder.send("sdfkj2??")
     WineCaseHolderDoor.open()
 
 def ShootingRangeCompleted():
     pass # ??
 
-def MorseCompleted():
+def MorseCompleted(fail=False):
     TapeRecorder.send("FDSS??")
     StealthDoor.open()
 
-def StealthCompleted():
+def StealthCompleted(fail=False):
     pass #??
 
 def BombActivated():
