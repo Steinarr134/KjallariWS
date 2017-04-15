@@ -15,7 +15,6 @@ class NetworkDevice(object):
 TapeRecorder = Sender()
 TapeRecorder.connect(('192.168.1.101', 1234))
 
-
 Moteinos = ['GreenDude',
             'SplitFlap',
             'TimeBomb',

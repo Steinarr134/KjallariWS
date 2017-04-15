@@ -6,7 +6,7 @@ Accelerometer accel;
 #include <RFM69.h>
 #include <SPI.h>
 #define NODEID        24    //unique for each node on same network
-#define NETWORKID     1  //the same on all nodes that talk to each other
+#define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogi" //exactly the same 16 characters/bytes on all nodes!
@@ -21,7 +21,7 @@ bool promiscuousMode = false; //set to 'true' to sniff all packets on the same n
 typedef struct{
   int Command;
   unsigned long Uptime;
-  int BatteryStatus
+  int BatteryStatus;
   int X;
   int Y;
   int Z;
@@ -38,7 +38,7 @@ const int Status = 99;
 const int Reset = 98;
 const int OpenYourself = 2401;
 const int IWasSolved = 2402;
-const int SetTime2Solve = 2403
+const int SetTime2Solve = 2403;
 
 
 unsigned long locked_until_time = 0;
@@ -48,7 +48,8 @@ long Time2Solve = 3000;
 
 boolean can_be_solved = true;
 
-byte Sesam = 3;
+byte Sesam = 4;
+byte BatteryPin = A2;
 
 void setup() {
   // put your setup code here, to run once:
@@ -117,7 +118,7 @@ void problemSolved()
 {
  Serial.println("SOLVED"); 
  OutgoingData.Command = IWasSolved;
- sendOutgoingData()
+ sendOutgoingData();
  if (millis() > locked_until_time)
  {
   open_lid();
@@ -165,15 +166,15 @@ void checkOnRadio()
     {
       case Status:
         sendStatus();
-        locked_until_time = millis() + 3600000
+        locked_until_time = millis() + 3600000;
         break;
       case Reset:
-        arm volatile (" jmp 0");
+        asm volatile (" jmp 0");
         break;
       case SetTime2Solve:
         Time2Solve = IncomingData.Time2Solve;
         break;
-      case Open:
+      case OpenYourself:
         open_lid();
         break;
       default:
