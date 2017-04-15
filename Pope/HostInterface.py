@@ -60,7 +60,7 @@ LogTextWidget.place(x=600, y=300)
 LogTextWidget.insert('end', " System starting...")
 LogTextWidget['state'] = 'disabled'
 
-def notify(text):
+def notify(text, color='black'):
     text = "\n " + get_clock_text_now() + " - " + text
     LogTextWidget['state'] = 'normal'
     LogTextWidget.insert('end', text)
