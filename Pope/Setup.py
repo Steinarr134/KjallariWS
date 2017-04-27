@@ -1,5 +1,5 @@
 from Config import mynetwork, GreenDude, SplitFlap, \
-     Morser, TimeBomb, LockPicking, Elevator, TapeRecorder, WineBoxHolder, \
+     Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
      WineBox
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
@@ -8,6 +8,19 @@ import logging
 import time
 import pickle
 import HostInterface as gui
+
+from RasPiCommunication import Sender
+##sender = Sender()
+
+class NetworkDevice(object):
+    def __init__(self):
+        pass
+
+    def send(self, text):
+        logging.debug("NetworkDevice(TapeRecorder?) Sending: {}".format(text))
+
+TapeRecorder = Sender()
+TapeRecorder.connect(('192.168.1.101', 1234))
 
 def elevator_door_send_fun(what):
     if what == "open":
