@@ -85,8 +85,6 @@ def notify(text, warning=False, solved=False, fail=False):
     LogTextWidget['state'] = 'disabled'
 
 
-
-
 DoorButtonFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
 DoorButtonFrame.place(x=1050, y=10)
 

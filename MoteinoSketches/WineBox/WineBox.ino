@@ -68,16 +68,20 @@ void setup() {
     radio.setHighPower(); //only for RFM69HW!
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
+
+  Serial.println("Hello, let's get started");
 }
 
 
 
-byte isUpsideDown()
+bool isUpsideDown()
 {
   float z = accel.readAZ();
+  //Serial.println(z);
   if (z > 8)
   {
     can_be_solved = true;
+    //Serial.print("sdfsf");
   }
   return (z < -8);
 }
@@ -88,12 +92,15 @@ void checkOnSensor()
 {
   if (millis() - last_check_time > 20)
   {
+    last_check_time = millis();
     if (!isUpsideDown())
     {
       last_time_not_upside_down = millis();
     }
     else if (can_be_solved && (millis() - last_time_not_upside_down > Time2Solve))
     {
+      //Serial.print("canbesolved was; ");
+      //Serial.println(can_be_solved);
       problemSolved();
     }
   }
@@ -119,6 +126,7 @@ void problemSolved()
  Serial.println("SOLVED"); 
  OutgoingData.Command = IWasSolved;
  sendOutgoingData();
+ can_be_solved = false;
  if (millis() > locked_until_time)
  {
   open_lid();
@@ -130,7 +138,6 @@ void open_lid()
  digitalWrite(Sesam, HIGH);
  stop_opening_time = millis();
  stop_opening_flag = true;
- can_be_solved = false;
 }
 
 
