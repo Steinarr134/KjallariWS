@@ -73,6 +73,9 @@ MoteinoStructs = {
         "int Z;"
         "int Time2Solve;",
 
+    'TvPi':
+        "int Command;"
+        "char s[10];",
 }
 
 MoteinoIDs = {
@@ -88,6 +91,7 @@ MoteinoIDs = {
     'Elevator': 5,
     'WineBoxHolder': 36,
     'WineBox': 24,
+    'TvPi': 41,
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -179,6 +183,12 @@ WineBox.add_translation("Command",
                         ("open", 2401),
                         ("IWasSolved", 2402),
                         ("SetTime2Solve", 2403))
+
+TvPi = mynetwork.add_node(MoteinoIDs['TvPi'],
+                          MoteinoStructs['TvPi'],
+                          'TvPi')
+TvPi.add_translation("Command",
+                     ("PlayFile", 4101))
 
 
 def stealth_receive(d):
