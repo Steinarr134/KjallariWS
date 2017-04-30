@@ -2,8 +2,6 @@ from moteinopy import MoteinoNetwork
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-
-
 Moteinos = ['GreenDude',
             'SplitFlap',
             'TimeBomb',
@@ -90,15 +88,13 @@ MoteinoIDs = {
     'Elevator': 5,
     'WineBoxHolder': 36,
     'WineBox': 24,
-    # 'GunBox': ??,
-    # 'ShootingRange': ??
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
-mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
-# mynetwork = MoteinoNetwork('COM4', network_id=7, encryption_key="HugiBogiHugiBogi")
+# mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('COM3', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
