@@ -145,7 +145,8 @@ Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
                              'Stealth')
 Stealth.add_translation('Command',
                         ('SetTempo', 73),
-                        ('SetSequence', 72))
+                        ('SetSequence', 72),
+                        ("Triggered", 71))
 
 TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
                               MoteinoStructs['TimeBomb'],
@@ -205,6 +206,9 @@ TapeRecorder.add_translation("Command",
 def stealth_receive(d):
     print "Stealth said: "
     print d
+    if d['Command'] == "Triggered":
+        print "Triggered!"
+        Siren
 
 Stealth.bind(receive=stealth_receive)
 
