@@ -30,6 +30,7 @@ def elevator_door_send_fun(what):
     else:
         print "WTF do you mean by '{}' in elevator_door_send_fun".format(what)
 
+logging.debug("Initializing door control")
 DoorController = _Dctrl("/dev/ttyUSB0")
 ElevatorDoor = _RemoteDoor(Elevator)
 SafeDoor = _Door(DoorController, 1)
@@ -40,8 +41,6 @@ StealthDoor = _Door(DoorController, 3)
 FromBombDoor = _Door(DoorController, 4)
 FinalExitDoor = _Door(DoorController, 5)
 
-
-
 Doors = [ElevatorDoor,
          SafeDoor,
          BookDrawer,
@@ -50,6 +49,8 @@ Doors = [ElevatorDoor,
          StealthDoor,
          FromBombDoor,
          FinalExitDoor]
+
+logging.debug("Doors Initialized")
 
 Send2SplitFlapLock = threading.Lock()
 
