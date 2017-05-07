@@ -154,6 +154,7 @@ void checkOnSerial()
     { // if the line is over
       //Serial.println(SerialCounter);
       //for (int i = 0; i<SerialCounter; i++)
+      
       //{
       //  Serial.print(SerialBuffer[i]);
       //  Serial.print(" ");
