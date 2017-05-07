@@ -9,18 +9,6 @@ import time
 import pickle
 import HostInterface as gui
 
-from RasPiCommunication import Sender
-##sender = Sender()
-
-class NetworkDevice(object):
-    def __init__(self):
-        pass
-
-    def send(self, text):
-        logging.debug("NetworkDevice(TapeRecorder?) Sending: {}".format(text))
-
-TapeRecorder = Sender()
-TapeRecorder.connect(('192.168.1.101', 1234))
 
 def elevator_door_send_fun(what):
     if what == "open":
@@ -32,7 +20,8 @@ def elevator_door_send_fun(what):
 
 logging.debug("Initializing door control")
 DoorController = _Dctrl("/dev/ttyUSB0")
-ElevatorDoor = _RemoteDoor(Elevator)
+ElevatorDoor = _RemoteDoor(Elevator, send_fun=elevator_door_send_fun,
+                           auto_close=True)
 SafeDoor = _Door(DoorController, 1)
 BookDrawer = _Door(DoorController, 2)
 WineCaseHolderDoor = _RemoteDoor(WineBoxHolder)
@@ -75,4 +64,4 @@ class Send2SplitFlapThread(threading.Thread):
 def no_ack_fun(d):
     gui.notify("sdfsdf")
 
-mynetwork.bind_all(no_ack=no_ack_fun)
+mynetwork.bind_default(no_ack=no_ack_fun)

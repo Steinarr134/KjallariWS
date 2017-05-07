@@ -76,10 +76,10 @@ MoteinoStructs = {
     'TvPi':
         "int Command;"
         "char s[10];",
-
-    'Sirens':
+    
+    'TapeRecorder':
         "int Command;"
-        "long Uptime;"
+        "char s[10];",
 }
 
 MoteinoIDs = {
@@ -96,7 +96,8 @@ MoteinoIDs = {
     'WineBoxHolder': 36,
     'WineBox': 24,
     'TvPi': 41,
-    'Sirens': 37
+    'TapeRecorder': 42,
+    
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -195,14 +196,11 @@ TvPi = mynetwork.add_node(MoteinoIDs['TvPi'],
 TvPi.add_translation("Command",
                      ("PlayFile", 4101))
 
-Sirens = mynetwork.add_node(MoteinoIDs['Sirens'],
-                            MoteinoStructs['Sirens'],
-                            'Sirens')
-Sirens.add_translation("Command",
-                       ("TogglePin1", 3701),
-                       ("TogglePin2", 3702))
-
-
+TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],
+                                  MoteinoStructs['TapeRecorder'],
+                                  'TapeRecorder')
+TapeRecorder.add_translation("Command",
+                             ("PlayFile", 4201))
 
 def stealth_receive(d):
     print "Stealth said: "
