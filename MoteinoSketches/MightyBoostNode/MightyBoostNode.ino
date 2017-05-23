@@ -1,6 +1,6 @@
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        41    //unique for each node on same network
+#define NODEID        42    //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
@@ -35,6 +35,7 @@ byte RequestShutDownPin = 6;
 byte BootOkPin = A0;
 byte Output5VPin = 4;
 byte BatteryPin = A7;
+byte ButtonPin = 3;
 
 void setup()
 { // Setup runs once
@@ -93,10 +94,14 @@ void checkOnBattery()
 {
   if (millis() - LastBatteryCheckTime > 20)
   {
-    LastBatteryCheckTime = millis();
     float b = measureBattery();
     if (b > 4.3)
     {
+      if (digitalRead(ButtonPin))
+      {
+        shutDownPi();
+      }
+      LastBatteryCheckTime = millis();
       LastTimeExternalPower = millis();
       if (millis() - LastTimeNoExternalPower > 3000)
       {
