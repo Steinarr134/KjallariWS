@@ -1,6 +1,6 @@
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        42    //unique for each node on same network
+#define NODEID        43    //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
@@ -17,7 +17,7 @@ byte SerialBuffer[63];
 
 typedef struct {
   byte sender;
-  byte send2;
+    byte send2;
   byte rssi;
 } RadioStruct;
 

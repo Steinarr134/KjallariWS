@@ -83,7 +83,9 @@ MoteinoStructs = {
     
     'TapeRecorder':
         "int Command;"
-        "char s[10];",
+        "char s[10];"
+        "int Filelength;"
+        "int LightValue;",
 }
 
 MoteinoIDs = {
@@ -102,14 +104,13 @@ MoteinoIDs = {
     'Sirens': 37,
     'TvPi': 41,
     'TapeRecorder': 42,
-    
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 
 # mynetwork = MoteinoNetwork('/dev/ttyUSB1', network_id=7, encryption_key="HugiBogiHugiBogi")
-mynetwork = MoteinoNetwork('COM7', network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork = MoteinoNetwork('COM10', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -206,7 +207,13 @@ TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],
                                   MoteinoStructs['TapeRecorder'],
                                   'TapeRecorder')
 TapeRecorder.add_translation("Command",
-                             ("PlayFile", 4201))
+                             ("Play", 4201),
+                             ("Pause", 4202),
+                             ("ShutDown", 4203),
+                             ("Reboot", 4204),
+                             ("Setlights", 4205),
+                             ("Load", 4206),
+                             ("Status", 99))
 
 Sirens = mynetwork.add_node(MoteinoIDs['Sirens'],
                             MoteinoStructs['Sirens'],
