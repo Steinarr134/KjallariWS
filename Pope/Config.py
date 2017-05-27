@@ -73,13 +73,19 @@ MoteinoStructs = {
         "int Z;"
         "int Time2Solve;",
 
+    'Sirens':
+        "int Command;"
+        "long Uptime",
+
     'TvPi':
         "int Command;"
         "char s[10];",
     
     'TapeRecorder':
         "int Command;"
-        "char s[10];",
+        "char s[10];"
+        "int Filelength;"
+        "int LightValue;",
 }
 
 MoteinoIDs = {
@@ -95,9 +101,9 @@ MoteinoIDs = {
     'Elevator': 5,
     'WineBoxHolder': 36,
     'WineBox': 24,
+    'Sirens': 37,
     'TvPi': 41,
     'TapeRecorder': 42,
-    
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -105,6 +111,7 @@ inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
 # mynetwork = MoteinoNetwork('COM3', network_id=7, encryption_key="HugiBogiHugiBogi")
+
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -145,7 +152,8 @@ Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
                              'Stealth')
 Stealth.add_translation('Command',
                         ('SetTempo', 73),
-                        ('SetSequence', 72))
+                        ('SetSequence', 72),
+                        ("Triggered", 71))
 
 TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
                               MoteinoStructs['TimeBomb'],
@@ -200,11 +208,32 @@ TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],
                                   MoteinoStructs['TapeRecorder'],
                                   'TapeRecorder')
 TapeRecorder.add_translation("Command",
-                             ("PlayFile", 4201))
+                             ("Play", 4201),
+                             ("Pause", 4202),
+                             ("ShutDown", 4203),
+                             ("Reboot", 4204),
+                             ("Setlights", 4205),
+                             ("Load", 4206),
+                             ("Status", 99))
+
+Sirens = mynetwork.add_node(MoteinoIDs['Sirens'],
+                            MoteinoStructs['Sirens'],
+                            'Sirens')
+Sirens.add_translation("Command",
+                       ("TogglePin1", 3701),
+                       ("TogglePin2", 3702),
+                       ("SetPin1High", 3703),
+                       ("SetPin1Low", 3704),
+                       ("SetPin2High", 3705),
+                       ("SetPin2Low", 3706))
+
 
 def stealth_receive(d):
     print "Stealth said: "
     print d
+    if d['Command'] == "Triggered":
+        print "Triggered!"
+        Sirens.send("SetPin1High")
 
 Stealth.bind(receive=stealth_receive)
 

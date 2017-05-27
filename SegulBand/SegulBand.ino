@@ -132,6 +132,7 @@ void checkOnSerial(){
       IncomingData = *(Payload*)N;
       react();
       Counter = 0;
+      FirstHexDone = 0;
     }
     else
     {
