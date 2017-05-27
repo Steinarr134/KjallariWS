@@ -228,13 +228,4 @@ Sirens.add_translation("Command",
                        ("SetPin2Low", 3706))
 
 
-def stealth_receive(d):
-    print "Stealth said: "
-    print d
-    if d['Command'] == "Triggered":
-        print "Triggered!"
-        Sirens.send("SetPin1High")
-
-Stealth.bind(receive=stealth_receive)
-
 
