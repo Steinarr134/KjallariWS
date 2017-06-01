@@ -68,9 +68,11 @@ def initialize_room():
         print "No status received"
     else:
         print d
+
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
+    Elevator.send("SetActiveDoor", 1)
 
 
 def send_to_split_flap(event):

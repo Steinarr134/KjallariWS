@@ -26,8 +26,8 @@ if __name__ == '__main__':
             t = int(bla.strip())
         except:
             if bla == "quit":
-                mynetwork.stop()
-                quit()
+                mynetwork.shut_down()
+                break
             elif bla == "test":
                 SplitFlap.send("Clear")
                 time.sleep(0.5)
