@@ -1,6 +1,7 @@
 from moteinopy import MoteinoNetwork
 import logging
 logging.basicConfig(level=logging.DEBUG)
+import sys
 
 Moteinos = ['GreenDude',
             'SplitFlap',
@@ -108,10 +109,10 @@ MoteinoIDs = {
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
-
-mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
-# mynetwork = MoteinoNetwork('COM3', network_id=7, encryption_key="HugiBogiHugiBogi")
-
+if "win" in sys.platform:
+    mynetwork = MoteinoNetwork('COM10', network_id=7, encryption_key="HugiBogiHugiBogi")
+else:
+    mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -179,7 +180,6 @@ Elevator.add_translation("Command",
                          ('SetPassCode', 501),
                          ('SolveDoor1', 503),
                          ('SolveDoor2', 504),
-                         ('OpenDoors', 505),
                          ('SetActiveDoor', 506),
                          ('Solved', 507))
 
@@ -226,6 +226,4 @@ Sirens.add_translation("Command",
                        ("SetPin1Low", 3704),
                        ("SetPin2High", 3705),
                        ("SetPin2Low", 3706))
-
-
 

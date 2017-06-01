@@ -81,7 +81,7 @@ byte ON = LOW;
 byte OFF = HIGH;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(76800);
 
   ////// Setup Temperature sensors
   sensors.begin();
