@@ -1,6 +1,6 @@
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        1    //unique for each node on same network
+#define NODEID        43    //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
@@ -175,6 +175,7 @@ void checkOnSerial()
         sendTheStuff();
       }
       SerialCounter = 0;
+      FirstHexDone = false;
     }
     else if (incoming == 'X')
     {
