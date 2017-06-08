@@ -110,7 +110,8 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 if "win" in sys.platform:
-    mynetwork = MoteinoNetwork('COM10', network_id=7, encryption_key="HugiBogiHugiBogi")
+    port = raw_input("what port?")
+    mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 else:
     mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
 
@@ -226,4 +227,6 @@ Sirens.add_translation("Command",
                        ("SetPin1Low", 3704),
                        ("SetPin2High", 3705),
                        ("SetPin2Low", 3706))
+
+
 
