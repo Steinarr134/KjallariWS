@@ -14,11 +14,54 @@ top.withdraw()
 
 # Init Window
 InitWindow = tk.Tk()
+InitWindow.resizable(width=False, height=False)
+InitWindow.geometry("{}x{}".format(300, 200))
 #InitWindow.withdraw()
-AboutPlayersEntry = tk.Text(InitWindow, bd=5, width=20, height=5, font="Verdana16")
-AboutPlayersEntry.pack()
+NumberOfPlayersFrame = tk.Frame(InitWindow)
+NumberOfPlayersFrame.pack(side=tk.TOP)
+NumberOfPlayersLabel = tk.Label(NumberOfPlayersFrame, text="Number Of Players: ")
+NumberOfPlayersLabel.pack(side=tk.LEFT)
+NumberOfPlayersEntry = tk.Entry(NumberOfPlayersFrame, bd=1, width=5)
+NumberOfPlayersEntry.pack(side=tk.RIGHT)
+NumberOfPlayersEntry.focus()
+
+AgeRangeFrame = tk.Frame(InitWindow)
+AgeRangeFrame.pack(side=tk.TOP)
+AgeRangeLabel1 = tk.Label(AgeRangeFrame, text="Age Range (cirka):  From")
+AgeRangeEntry1 = tk.Entry(AgeRangeFrame, bd=1, width=5)
+AgeRangeLabel2 = tk.Label(AgeRangeFrame, text=" to ")
+AgeRangeEntry2 = tk.Entry(AgeRangeFrame, bd=1, width=5)
+AgeRangeLabel1.pack(side=tk.LEFT)
+AgeRangeEntry1.pack(side=tk.LEFT)
+AgeRangeLabel2.pack(side=tk.LEFT)
+AgeRangeEntry2.pack(side=tk.LEFT)
+
+NationalityOptions = ["Iceland", "Europe", "North America", "Other"]
+NationalityFrame = tk.Frame(InitWindow)
+NationalityFrame.pack(side=tk.TOP)
+NationalityLabel = tk.Label(NationalityFrame, text="Mostly from ")
+Nationality = tk.StringVar(InitWindow)
+Nationality.set(NationalityOptions[0])
+NationaliityOptionMenu = tk.OptionMenu(NationalityFrame, Nationality, *NationalityOptions)
+NationaliityOptionMenu.configure(takefocus=True)
+
+NationalityLabel.pack(side=tk.LEFT)
+NationaliityOptionMenu.pack(side=tk.LEFT)
+
+GenderOptions = ["Males", "Females", "Both/Other"]
+GenderFrame = tk.Frame(InitWindow)
+GenderFrame.pack(side=tk.TOP)
+GenderLabel = tk.Label(GenderFrame, text="Gender: ")
+Gender = tk.StringVar(InitWindow)
+Gender.set(GenderOptions[0])
+GenderOptionMenu = tk.OptionMenu(GenderFrame, Gender, *GenderOptions)
+GenderOptionMenu.configure(takefocus=True)
+GenderLabel.pack(side=tk.LEFT)
+GenderOptionMenu.pack(side=tk.LEFT)
+
+
 AboutPlayersSubmitButton = tk.Button(InitWindow, text="Submit")
-AboutPlayersSubmitButton.pack()
+AboutPlayersSubmitButton.pack(side=tk.BOTTOM)
 def exit_init_window(event=None):
     # send info to database
     InitWindow.destroy()
