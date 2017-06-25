@@ -73,11 +73,12 @@ def initialize_room():
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
     Elevator.send("SetActiveDoor", 1)
+    TapeRecorder.send("Status")
 
 
 def send_to_split_flap(event):
     stuff2send = gui.SplitFlapEntry.get(1.0, gui.tk.END).strip()
-##    print "I want to send this to splitflap: " + stuff2send
+    print "I want to send this to splitflap: " + stuff2send
     Send2SplitFlapThread(str(stuff2send))
     gui.SplitFlapEntry.delete(0., float(len(stuff2send)))
 
@@ -136,10 +137,12 @@ for b in gui.MissionFailButtons:
     
 def ElevatorEscaped(fail=False):
     # passcodes are 4132 and 1341
-    Elevator.send("SolveDoor1")
+    print "ELevator Escape running"
+    ElevatorDoor.open()
     run_after(StartTapeRecorderIntroMessage, seconds=20)
     gui.ClockHasStarted = True
     gui.ClockStartTime = time.time()
+    run_after(ElevatorDoor.close, seconds=15)
     if fail:
         gui.notify("Elevator failed, opened manually", fail=True)
     else:
@@ -155,18 +158,21 @@ def LockPickingCompleted(fail=False):
         gui.notify("LockPicking Successfully Completed", solved=True)
     gui.MissionFailButtons[1].config(state=gui.tk.DISABLED)
 
+def PLayLockPickingHint(fail=False):
+    TapeRecorder.send(Command='Load', s="3.ogg"+ "\0"*5, filelength=50)
+    
 TapeRecorderIntroMessageStarted = False
 def StartTapeRecorderIntroMessage(timeout=False, fail=False):
     global TapeRecorderIntroMessageStarted
     if not TapeRecorderIntroMessageStarted:
         TapeRecorderIntroMessageStarted = True
-        TapeRecorder.send(
-            {'Command': 'Load', 'filename':"1.ogg",
-                           'StartPlaying':True, 'filelength':50})
+        TapeRecorder.send(Command='Load', s="1.ogg"+ "\0"*5, filelength=50)
         gui.notify("TapeRecorder Intro Message Started")
+        run_after(PLayLockPickingHint, seconds=5+50)
+
 
 def GreenDudeCompleted(fail=False):
-    TapeRecorder.send("start next??")
+    TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=40)
     
 def LieDetectorActivated():
     TapeRecorder.send("next message??")
@@ -193,8 +199,11 @@ def BombDiffused():
 
 
 def elevator_receive(d):
-    if d["Command"] == "Solved":
+    if d["Command"] == "SolveDoor1":
         ElevatorEscaped()
+
+    else:
+        print "elevator receive: " + str(d)
 Elevator.bind(receive=elevator_receive)
 
 
@@ -206,9 +215,7 @@ LockPicking.bind(receive=lockpicking_receive)
 
 def green_dude_receive(d):
     if d['Command'] == "CorrectPasscode":
-        TapeRecorder.send("GreenDudeCorrect")
-        time.sleep(1)
-        BookDrawerDoor.open()
+        GreenDudeCompleted()
 GreenDude.bind(receive=green_dude_receive)
 
 

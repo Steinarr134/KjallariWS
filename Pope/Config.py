@@ -1,7 +1,8 @@
-from moteinopy import MoteinoNetwork
+from moteinopy import MoteinoNetwork, look_for_base
 import logging
 logging.basicConfig(level=logging.DEBUG)
 import sys
+import os
 
 Moteinos = ['GreenDude',
             'SplitFlap',
@@ -110,9 +111,19 @@ MoteinoIDs = {
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
 
 if "win" in sys.platform:
-    mynetwork = MoteinoNetwork('COM10', network_id=7, encryption_key="HugiBogiHugiBogi")
+    port = "Com10"
 else:
-    mynetwork = MoteinoNetwork('/dev/ttyUSB0', network_id=7, encryption_key="HugiBogiHugiBogi")
+    ports = os.popen("ls /dev/ttyUSB*").read()
+    if ports:
+        for p in ports.split('\n'):
+            ret, reason = look_for_base("/dev/ttyUSB0")
+            if not ret:
+                print reason
+            else:
+                port = p
+                break
+        
+mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),

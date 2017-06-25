@@ -1,12 +1,12 @@
 import serial
 
-OPEN = 1
-CLOSED = 0
+OPEN = 0
+CLOSED = 1
 
     
 class Door(object):
-    OPEN = 1
-    CLOSED = 0
+    OPEN = 0
+    CLOSED = 1
     def __init__(self, controller, position):
         self.Controller = controller
         self.Position = position
@@ -53,9 +53,11 @@ class DoorController(object):
         self._send_()
 
     def open(self, door):
+        print "opening door"
         self._set_(door, OPEN)
 
     def close(self, door):
+        print "closing door"
         self._set_(door, CLOSED)
 
     def open_all(self):

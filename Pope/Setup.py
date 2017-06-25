@@ -1,6 +1,6 @@
 from Config import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
-     WineBox
+     WineBox, TapeRecorder
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
@@ -19,9 +19,8 @@ def elevator_door_send_fun(what):
         print "WTF do you mean by '{}' in elevator_door_send_fun".format(what)
 
 logging.debug("Initializing door control")
-DoorController = _Dctrl("/dev/ttyUSB0")
-ElevatorDoor = _RemoteDoor(Elevator, send_fun=elevator_door_send_fun,
-                           auto_close=True)
+DoorController = _Dctrl("/dev/ttyUSB1")
+ElevatorDoor = _Door(DoorController, 0)
 SafeDoor = _Door(DoorController, 1)
 BookDrawer = _Door(DoorController, 2)
 WineCaseHolderDoor = _RemoteDoor(WineBoxHolder)
@@ -65,3 +64,5 @@ def no_ack_fun(d):
     gui.notify("sdfsdf")
 
 mynetwork.bind_default(no_ack=no_ack_fun)
+time.sleep(2)
+ElevatorDoor.close()
