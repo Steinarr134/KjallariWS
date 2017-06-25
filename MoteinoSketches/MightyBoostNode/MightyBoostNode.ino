@@ -1,6 +1,6 @@
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        42    //unique for each node on same network
+#define NODEID        41   //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
@@ -17,7 +17,7 @@ byte SerialBuffer[63];
 
 typedef struct {
   byte sender;
-    byte send2;
+  byte send2;
   byte rssi;
 } RadioStruct;
 
@@ -39,7 +39,7 @@ byte ButtonPin = 3;
 
 void setup()
 { // Setup runs once
-  Serial.begin(38400);
+  Serial.begin(115200);
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   if (HIGH_POWER)
     radio.setHighPower(); //only for RFM69HW!
@@ -86,6 +86,14 @@ void loop()
   checkOnBattery();
 }
 
+void delayWradio(long m)
+{
+  unsigned long tstart = millis();
+  while (millis() < tstart + m)
+  {
+    checkOnRadio();
+  }
+}
 
 unsigned long LastBatteryCheckTime = 0;
 unsigned long LastTimeExternalPower = 0;
@@ -105,7 +113,8 @@ void checkOnBattery()
       LastTimeExternalPower = millis();
       if (millis() - LastTimeNoExternalPower > 3000)
       {
-        startUpPi();
+        if (!startUpPi();)
+          startUpPi();
       }
     }
     else
@@ -119,10 +128,22 @@ void checkOnBattery()
   }
 }
 
-void startUpPi()
+boolean startUpPi()
 {
   digitalWrite(RequestShutDownPin, LOW);
   digitalWrite(Output5VPin, HIGH);
+  unsigned long tstart = millis();
+  while (true)
+  {
+    checkOnRadio();
+    if (millis() < tstart + 30000 and !bootOK())
+    {
+      digitalWrite(Output5VPin, LOW);
+      delayWradio(1000);
+      return false
+    }
+  }
+  return true
 }
 
 boolean bootOK()
@@ -175,6 +196,7 @@ void checkOnSerial()
         sendTheStuff();
       }
       SerialCounter = 0;
+      FirstHexDone = false;
     }
     else if (incoming == 'X')
     {
