@@ -39,7 +39,7 @@ const int SetPin2Low = 3706;
 byte Pin1 = 6;
 byte Pin2 = 7;
 
-byte State[2];
+byte State[2] = {0};
 byte Pins[] = {Pin1, Pin2};
 
 void setup() {
@@ -55,6 +55,8 @@ void setup() {
 
   pinMode(Pin1, OUTPUT);
   pinMode(Pin2, OUTPUT);
+  digitalWrite(Pin1, LOW);
+  digitalWrite(Pin2, LOW);
   pinMode(9, OUTPUT);
 
 
@@ -67,10 +69,10 @@ void setup() {
 
   for (int i=0; i<10; i++)
   {
-    Serial.println("SDFSDF");
+    Serial.println(i);
     digitalWrite(9, HIGH);
     delay(100);
-    digitalWrite(9, LOW);
+    digitalWrite(9, LOW); 
     delay(100);
   }
   Serial.println("Started");
@@ -93,11 +95,12 @@ void loop()
 void Toggle(byte pin)
 {
   State[pin] = !State[pin];
-  digitalWrite(Pins[pin], State[pin]);
   Serial.print("Flipping pin: ");
   Serial.print(Pins[pin]);
   Serial.print(" to ");
   Serial.println(State[pin]);
+  delay(100);
+  digitalWrite(Pins[pin], State[pin]);
 }
 
 void checkOnRadio()
@@ -105,17 +108,21 @@ void checkOnRadio()
     // if nothing was received then we'll return immediately
    if (radio.receiveDone())
   {
+    Serial.println("Something received");
+    delay(200);
     // receive the data into IncomingData
     IncomingData = *(Payload*)radio.DATA;
 
     // send ack if requested
     if (radio.ACKRequested())
     {
+      Serial.println("sending ack");
+      delay(200);
       radio.sendACK();
     }
     // useful for debugging:
-//    Serial.print("Received: command: ");
-//    Serial.println(IncomingData.Command);
+    Serial.print("Received: command: ");
+    Serial.println(IncomingData.Command);
 
     switch (IncomingData.Command)
     {
@@ -123,6 +130,8 @@ void checkOnRadio()
         sendStatus();
         break;
       case Reset:
+        Serial.println("Restarting from sketch");
+        delay(100);
         asm volatile (" jmp 0");
         break;
       case TogglePin1:
@@ -147,6 +156,11 @@ void checkOnRadio()
         Serial.print("Received unkown Command: ");
         Serial.println(IncomingData.Command);
     }
+  }
+  else
+  {
+    Serial.println("nothing received");
+    delay(100);
   }
 }
 

@@ -240,4 +240,12 @@ Sirens.add_translation("Command",
                        ("SetPin2Low", 3706))
 
 
+def StealthRec(d):
+    if d['Command'] == 'Triggered':
+        print "Slave {} Triggered".format(d['Tripped'])
+        Sirens.send("TogglePin1")
+    else:
+        print "Stealth said: " + str(d)
+
+Stealth.bind(receive=StealthRec)
 
