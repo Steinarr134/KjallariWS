@@ -106,6 +106,8 @@ MoteinoIDs = {
     'Sirens': 37,
     'TvPi': 41,
     'TapeRecorder': 42,
+    'LiePi1': 51,
+    'LiePi2': 52,
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}

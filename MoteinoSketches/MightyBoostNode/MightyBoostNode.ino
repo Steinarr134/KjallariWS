@@ -18,7 +18,7 @@
 
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        41   //unique for each node on same network
+#define NODEID        52   //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
@@ -71,7 +71,7 @@ void debug(char *s)
 
 void setup()
 { // Setup runs once
-  Serial.begin(115200);
+  Serial.begin(38400);
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   if (HIGH_POWER)
     radio.setHighPower(); //only for RFM69HW!
