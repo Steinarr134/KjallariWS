@@ -25,7 +25,10 @@ MoteinoStructs = {
 
     'TimeBomb':
         "int Command;" +
-        "unsigned long TimeLeft;",
+        "unsigned long TimeLeft;"
+        "int SmokeTime;"
+        "boolean SmokeOn;"
+        "boolean buzzerOn;",
 
     'Morser':
         "int Command;" +
@@ -177,7 +180,8 @@ TimeBomb.add_translation('Command',
                          ("BombDiffused", 17001),
                          ("BombExploded", 17002),
                          ("SetExplosionTime", 17003),
-                         ("BombActivated", 17004))
+                         ("BombActivated", 17004),
+                         ("SetOptions", 17005))
 
 ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
                                    MoteinoStructs['ShootingRange'],

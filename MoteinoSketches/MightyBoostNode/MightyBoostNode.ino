@@ -18,11 +18,12 @@
 
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        52   //unique for each node on same network
+#define NODEID        1   //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
+#define BAUDRATE      115200
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
@@ -71,7 +72,7 @@ void debug(char *s)
 
 void setup()
 { // Setup runs once
-  Serial.begin(38400);
+  Serial.begin(BAUDRATE);
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   if (HIGH_POWER)
     radio.setHighPower(); //only for RFM69HW!
