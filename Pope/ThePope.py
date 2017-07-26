@@ -1,5 +1,4 @@
 from Setup import *
-
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import time
@@ -47,9 +46,6 @@ Takkar sem thurfa ad vera til:
 """
 
 
-
-
-
 def initialize_room():
     d = Elevator.send_and_receive("Status")
     if d is None:
@@ -95,6 +91,7 @@ def update_door_button_colors(recall=True):
     if recall:
         gui.top.after(500, update_door_button_colors)
 
+
 def door_button_callback(event=None):
     button = event.widget
     
@@ -133,8 +130,6 @@ for b in gui.MissionFailButtons:
 
 
 
-
-    
 def ElevatorEscaped(fail=False):
     # passcodes are 4132 and 1341
     print "ELevator Escape running"
@@ -149,7 +144,8 @@ def ElevatorEscaped(fail=False):
         gui.notify("Elevator Successfully Escaped", solved=True)
     gui.MissionFailButtons[0].config(state=gui.tk.DISABLED)
     logging.debug("starting clock")
-        
+
+
 def LockPickingCompleted(fail=False):
     LockPicking.send("OpenYourself")
     if fail:
@@ -158,9 +154,11 @@ def LockPickingCompleted(fail=False):
         gui.notify("LockPicking Successfully Completed", solved=True)
     gui.MissionFailButtons[1].config(state=gui.tk.DISABLED)
 
+
 def PLayLockPickingHint(fail=False):
     TapeRecorder.send(Command='Load', s="3.ogg"+ "\0"*5, filelength=50)
-    
+
+
 TapeRecorderIntroMessageStarted = False
 def StartTapeRecorderIntroMessage(timeout=False, fail=False):
     global TapeRecorderIntroMessageStarted
@@ -173,26 +171,33 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
 
 def GreenDudeCompleted(fail=False):
     TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=40)
-    
+
+
 def LieDetectorActivated():
     TapeRecorder.send("next message??")
+
 
 def LieDetectorCompleted(fail=False):
     TapeRecorder.send("sdfkj2??")
     WineCaseHolderDoor.open()
 
+
 def ShootingRangeCompleted():
     pass # ??
+
 
 def MorseCompleted(fail=False):
     TapeRecorder.send("FDSS??")
     StealthDoor.open()
 
+
 def StealthCompleted(fail=False):
     pass #??
 
+
 def BombActivated():
     pass
+
 
 def BombDiffused():
     pass
@@ -209,7 +214,7 @@ Elevator.bind(receive=elevator_receive)
 
 def lockpicking_receive(d):
     if d["Command"] == "LockWasPicked":
-        notify("Safe successfully opened")
+        gui.notify("Safe successfully opened")
 LockPicking.bind(receive=lockpicking_receive)
 
 
@@ -219,9 +224,16 @@ def green_dude_receive(d):
 GreenDude.bind(receive=green_dude_receive)
 
 
-def init_check_on_moteinos():
-    for device in mynetwork.devices:
-        get_status(device)
+def display_status(device):
+    print moteino_status(device)
+
+
+for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
+    DeviceSubmenu.add_command(label="Get Status", command=lambda: display_status(Device))
+
+gui.ActionMenu.add_command(label="Check All Device Status")  # vantar command=sdafsaf
+gui.ActionMenu.add_command(label="Reset Room")
+gui.ActionMenu.add_command(label="New Group")
 
 
 if __name__ == "__main__":

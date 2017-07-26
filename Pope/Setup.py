@@ -1,13 +1,13 @@
-from Config import mynetwork, GreenDude, SplitFlap, \
+from MoteinoConfig import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
-     WineBox, TapeRecorder
+     WineBox, TapeRecorder, moteino_status
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
 import logging
 import time
-import pickle
 import HostInterface as gui
+from Config import *
 
 
 def elevator_door_send_fun(what):

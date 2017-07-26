@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 logging.basicConfig(level=logging.DEBUG)
-from Config import *
+from MoteinoConfig import *
 import time
 
 
