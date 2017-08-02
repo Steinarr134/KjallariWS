@@ -17,7 +17,14 @@ def run_after(func, seconds=0, minutes=0):
 TODO:
 
 
-Complete the form about player info
+Laga forrit a lockpicking, koma i veg fyrir ad hann sendi aftur og aftur
+og passa ad hann sleppi pinnunum svo ad their haldi ekki afram ad hitna
+
+Spola taperecorder til baka thegar herbergid initializast
+
+Laga GreenDude, lata hann sende lykilord med status
+
+Fara yfir lengd a fileum fyrir taperecorder
 
 Control the lights
 
@@ -45,31 +52,36 @@ Takkar sem thurfa ad vera til:
     
 """
 
+def save_current_group_results_before_exiting():
+    pass
 
-def initialize_room():
-    d = Elevator.send_and_receive("Status")
-    if d is None:
-        print "No status received"
-    else:
-        print d
+def new_group():
+    result = gui.tkMessageBox.askquestion("Start new group?",
+                                          "Do you want to start a new group?",
+                                          icon='warning')
+    if result == 'yes':
+        save_current_group_results_before_exiting()
+        gui.player_info(initialize_room)
 
-    d = WineBox.send_and_receive("Status")
-    if d is None:
-        print "No status received"
-    else:
-        print d 
-    
-    d = LockPicking.send_and_receive("Status")
-    if d is None:
-        print "No status received"
-    else:
-        print d
-
+def initialize_room(player_info={}):
+    """
+    This function should set everything up
+    That includes resetting any variables
+    """
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
     Elevator.send("SetActiveDoor", 1)
-    TapeRecorder.send("Status")
+
+    display_status_all_devices()
+
+    # gui.notify("Test warning", warning=True)
+    # gui.notify("Test solved", solved=True)
+    # gui.notify("Test Fail", fail=True)
+    
+def display_status_all_devices():
+    for device in Devices:
+        display_status(device)
 
 
 def send_to_split_flap(event):
@@ -110,6 +122,8 @@ update_door_button_colors(recall=True)
 
 def mission_fail_callback(event=None):
     button = event.widget
+    if button.config("state")[-1] == "disabled":
+        return
     b_text = button.config("text")[-1]
     if b_text == "Elevator Escape":
         result = gui.tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
@@ -132,6 +146,10 @@ for b in gui.MissionFailButtons:
 
 def ElevatorEscaped(fail=False):
     # passcodes are 4132 and 1341
+
+    # Escaping Elevator starts the room.
+    # clock starts now and intro message from TapeRecorder
+    # should start in a bit
     print "ELevator Escape running"
     ElevatorDoor.open()
     run_after(StartTapeRecorderIntroMessage, seconds=20)
@@ -143,6 +161,7 @@ def ElevatorEscaped(fail=False):
     else:
         gui.notify("Elevator Successfully Escaped", solved=True)
     gui.MissionFailButtons[0].config(state=gui.tk.DISABLED)
+    gui.MissionFailButtons[1].config(state=gui.tk.NORMAL)
     logging.debug("starting clock")
 
 
@@ -225,19 +244,21 @@ GreenDude.bind(receive=green_dude_receive)
 
 
 def display_status(device):
-    print moteino_status(device)
+    print("display status", device)
+    gui.notify(moteino_status(device))
 
 
 for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
-    DeviceSubmenu.add_command(label="Get Status", command=lambda: display_status(Device))
+    DeviceSubmenu.add_command(label="Get Status for {}".format(Device), command=lambda Device=Device: display_status(Device))
+    print Device
 
-gui.ActionMenu.add_command(label="Check All Device Status")  # vantar command=sdafsaf
-gui.ActionMenu.add_command(label="Reset Room")
-gui.ActionMenu.add_command(label="New Group")
+gui.ActionMenu.add_command(label="Check All Device Status", command=display_status_all_devices)  # vantar command=sdafsaf
+# gui.ActionMenu.add_command(label="Reset Room")
+gui.ActionMenu.add_command(label="New Group", command=new_group)
 
 
 if __name__ == "__main__":
-    initialize_room()
+    run_after(initialize_room, seconds=1)
     gui.top.mainloop()
 
 ##

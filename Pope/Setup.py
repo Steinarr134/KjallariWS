@@ -61,7 +61,10 @@ class Send2SplitFlapThread(threading.Thread):
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
                 
 def no_ack_fun(d):
-    gui.notify("sdfsdf")
+    print d
+    gui.notify("Oh, no! {} didn't hear us"
+               "".format(d['Sender'].Name),
+               warning=True)
 
 mynetwork.bind_default(no_ack=no_ack_fun)
 time.sleep(2)

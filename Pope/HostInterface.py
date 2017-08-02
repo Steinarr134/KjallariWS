@@ -70,19 +70,18 @@ def player_info(exit_button_callback):
     GenderOptionMenu.configure(takefocus=True)
     GenderLabel.pack(side=tk.LEFT)
     GenderOptionMenu.pack(side=tk.LEFT)
-    
-    AboutPlayersSubmitButton = tk.Button(window, text="Submit")
-    AboutPlayersSubmitButton.pack(side=tk.BOTTOM)
 
     # closes this window and calls the exit_button_callback passing player info
     def exit_init_window(event=None):
         window.destroy()
-        top.deiconify()
+        # top.deiconify()
         ret_player_info = {"NofPlayers": 3,
                            "more info": "some info"}
         exit_button_callback(ret_player_info)
 
-    AboutPlayersSubmitButton.bind("<Button-1>", exit_init_window)
+    AboutPlayersSubmitButton = tk.Button(window, text="Submit", command=exit_init_window)
+    AboutPlayersSubmitButton.pack(side=tk.BOTTOM)
+
 
 
 # Menu
@@ -100,7 +99,6 @@ Menu.add_cascade(label="Devices", menu=DeviceMenu)
 for device in Devices:
     submenu = tk.Menu(DeviceMenu, tearoff=False)
     DeviceMenu.add_cascade(label=device, menu=submenu)
-    # submenu.add_command(label="CheckStatus")
     DeviceSubmenus.append(submenu)
 
 
@@ -137,7 +135,7 @@ ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
 
 # Log Text
 LogTextWidget = tk.Text(top, height=20, width=75, font="helvetica 10")
-LogTextWidget.place(x=600, y=300)
+LogTextWidget.place(x=550, y=225)
 LogTextWidget.insert('end', " System starting...")
 LogTextWidget['state'] = 'disabled'
 LogTextWidget.tag_configure("warning", foreground="#ff0000", font="helvetica 10 bold")
@@ -151,17 +149,17 @@ def notify(text, warning=False, solved=False, fail=False):
     LogTextWidget.insert('end', text)
     LogTextWidget.see(tk.END)
     if warning:
-        line = str(int(LogTextWidget.index("end")[0])-1)
-        LogTextWidget.insert(line+".11", "WARNING ")
-        LogTextWidget.tag_add("warning", line+".11", line+".19")
+        line = str(int(LogTextWidget.index("end").split('.')[0])-1)
+        LogTextWidget.insert(line+".10", "WARNING: ")
+        LogTextWidget.tag_add("warning", line+".10", line+".19")
     if solved:
         line = str(int(LogTextWidget.index("end")[0])-1)
-        LogTextWidget.insert(line+".11", "SOLVED: ")
-        LogTextWidget.tag_add("solved", line+".11", line+".18")
+        LogTextWidget.insert(line+".10", "SOLVED: ")
+        LogTextWidget.tag_add("solved", line+".10", line+".18")
     if fail:
         line = str(int(LogTextWidget.index("end")[0])-1)
-        LogTextWidget.insert(line+".9", "FAIL: ")
-        LogTextWidget.tag_add("solved", line+".9", line+".16")
+        LogTextWidget.insert(line+".10", "FAIL: ")
+        LogTextWidget.tag_add("fail", line+".9", line+".16")
     LogTextWidget['state'] = 'disabled'
 
 
@@ -184,16 +182,15 @@ for name in DoorNameList:
 MissionFailFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
 MissionFailFrame.place(x=850, y=10)
 MissionFailButtons = [
-    tk.Button(MissionFailFrame, text="Elevator Escape", width=15),
-    tk.Button(MissionFailFrame, text="Open Safe", width=15),
-    tk.Button(MissionFailFrame, text="Start TapeRecorder", width=15),
-    tk.Button(MissionFailFrame, text="GreenDude Fail", width=15),
-    tk.Button(MissionFailFrame, text="Start Lie Detector", width=15),
-    tk.Button(MissionFailFrame, text="Morse Fail", width=15),
+    tk.Button(MissionFailFrame, text="Elevator Escape", width=15, state=tk.NORMAL),
+    tk.Button(MissionFailFrame, text="Start TapeRecorder", width=15, state=tk.DISABLED),
+    tk.Button(MissionFailFrame, text="Open Safe", width=15, state=tk.DISABLED),
+    tk.Button(MissionFailFrame, text="GreenDude Fail", width=15, state=tk.DISABLED),
+    tk.Button(MissionFailFrame, text="Start Lie Detector", width=15, state=tk.DISABLED),
+    tk.Button(MissionFailFrame, text="Morse Fail", width=15, state=tk.DISABLED),
 ]
 for b in MissionFailButtons:
     b.pack()
-    b.config(state=tk.DISABLED)
 
 
 # Clock
@@ -206,7 +203,7 @@ ClockStartTime = None
 def clock_make_text(sec):
     m,sec = divmod(sec,60)
     h,m = divmod(m,60)
-    return "%d:%02d:%02d" % (h,m,sec)
+    return "%02d:%02d:%02d" % (h,m,sec)
 
 
 def get_clock_text_now():

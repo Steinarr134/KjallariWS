@@ -139,6 +139,7 @@ else:
                 break
         
 mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork.default_max_wait = 1000
 
 mynetwork.add_global_translation('Command',
                                  ('Status', 99),
@@ -264,15 +265,37 @@ def StealthRec(d):
 
 def moteino_status(device):
     d = mynetwork.send_and_receive(device, Command="Status")
+    print d
     if not d:
         return "No response from {}".format(device)
+    ret = ""
 
     if device == "Elevator":
-        return "Elevator up and running, passcode is: {}".format(d['Passcode'])
+        ret += "Elevator up and running, passcode is: {}".format(d['PassCode1'])
 
     elif device == "GreenDude":
+        passcode = str(d['Lights']).replace('255', 'Red').replace('0', 'White').replace('1', 'Green')
+        
+        ret += "GreenDude is up and running, currently showing: {}".format(passcode)
+    elif device == "SplitFlap":
+        letters = d['Letters'].replace('\x00', ' ') # sendir ekki til baka hvad hann er ad birta
+        ret += "SplitFlap is up and running"
+    elif device == "ShootingRange":
+        lights = str(d['Colors']).replace('-1', "Red").replace('0', 'off').replace('1', 'Green')
+        ret += "ShootingRange is up and running, current colors: {}".format(lights)
+    elif device == "LockPicking":
+        pickorder = str(d['PickOrder'])
+        ret += "LockPicking is up and running, current pick order: {}".format(pickorder)
+    else:
+        ret += device + " is up and running"
 
-        return "GreenDude is up and running, Passcode is: "
+
+    ret += str(d)
+
+    # if 'RSSI' in d:
+    #     ret += "   RSSI: {}".format(d['RSSI'])
+        
+    return ret
 
 Stealth.bind(receive=StealthRec)
 
