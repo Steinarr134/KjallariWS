@@ -75,9 +75,11 @@ void loop()
 
   if (IsLockPicked())
   {
-    ResetPins();
     OpenDoor();
     SendInfoAboutLockPick();
+    delay(1000);
+    ResetPins();
+    delay(5000);
   }
 }
 
