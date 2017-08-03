@@ -1,5 +1,5 @@
 import Tkinter as tk
-import tkMessageBox
+from tkMessageBox import askquestion
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -24,7 +24,7 @@ To Do in this skjal
 
 
 # Init Window
-def player_info(exit_button_callback):
+def player_info(exit_button_callback, info={}):
     window = tk.Tk()
     window.resizable(width=False, height=False)
     window.geometry("{}x{}".format(300, 200))
@@ -228,7 +228,7 @@ def keypress(event):
 
 
 def close_window(event):
-    result = tkMessageBox.askquestion("Exit", "Are you sure you want to exit?", icon='warning')
+    result = askquestion("Exit", "Are you sure you want to exit?", icon='warning')
     if result == 'yes':
         top.destroy()
 

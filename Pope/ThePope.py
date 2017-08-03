@@ -12,6 +12,7 @@ def run_after(func, seconds=0, minutes=0):
                       'date',
                       run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
 
+CurrentPlayerInfo = {}
 
 """
 TODO:
@@ -19,16 +20,20 @@ TODO:
 
 Laga forrit a lockpicking, koma i veg fyrir ad hann sendi aftur og aftur
 og passa ad hann sleppi pinnunum svo ad their haldi ekki afram ad hitna
+- buid ad laga forritis, a eftir ad uploada thvi
 
 Spola taperecorder til baka thegar herbergid initializast
-
-Laga GreenDude, lata hann sende lykilord med status
-
+Baeta vid styringuf fyrir taperecorder i pafanum,
+haegt ad loada hvada file sem er og haegt ad yta a play/pause
 Fara yfir lengd a fileum fyrir taperecorder
+
+Laga GreenDude, lata hann senda lykilord med status
+- buid ad laga forritid, a eftir ad uploada thvi
+
+
 
 Control the lights
 
-Set up wifi network for pi to pi communication -- needs more work :/
 
 Set up Database
 
@@ -52,22 +57,29 @@ Takkar sem thurfa ad vera til:
     
 """
 
-def save_current_group_results_before_exiting():
+def save_group_info(player_info={}):
+    print "save_group_info() wants to save:{} but need programming".format(player_info)
     pass
 
 def new_group():
-    result = gui.tkMessageBox.askquestion("Start new group?",
-                                          "Do you want to start a new group?",
-                                          icon='warning')
+    result = gui.askquestion("Start new group?",
+                             "Do you want to start a new group?",
+                             icon='warning')
     if result == 'yes':
-        save_current_group_results_before_exiting()
+        # make sure everything about the previous group has been saved
         gui.player_info(initialize_room)
+
+def edit_group_info():
+    gui.player_info(save_group_info, CurrentPlayerInfo)
 
 def initialize_room(player_info={}):
     """
     This function should set everything up
     That includes resetting any variables
     """
+    player_info['room initialization time'] = time.time()
+    save_group_info(player_info)
+    
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
@@ -126,15 +138,15 @@ def mission_fail_callback(event=None):
         return
     b_text = button.config("text")[-1]
     if b_text == "Elevator Escape":
-        result = gui.tkMessageBox.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
+        result = gui.askquestion("Elevator", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             ElevatorEscaped(fail=True)
     elif b_text == "Start TapeRecorder":
-        result = gui.tkMessageBox.askquestion("TapeRecorder", "Are you sure want to skip this mission?", icon='warning')
+        result = gui.askquestion("TapeRecorder", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             StartTapeRecorderIntroMessage(fail=True)
     elif b_text == "Open Safe":
-        result = gui.tkMessageBox.askquestion("OpenSafe", "Are you sure want to skip this mission?", icon='warning')
+        result = gui.askquestion("OpenSafe", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             LockPickingCompleted(fail=True)
     else:
@@ -255,6 +267,7 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
 gui.ActionMenu.add_command(label="Check All Device Status", command=display_status_all_devices)  # vantar command=sdafsaf
 # gui.ActionMenu.add_command(label="Reset Room")
 gui.ActionMenu.add_command(label="New Group", command=new_group)
+gui.ActionMenu.add_command(label="Edit Group info", command=edit_group_info)
 
 
 if __name__ == "__main__":
