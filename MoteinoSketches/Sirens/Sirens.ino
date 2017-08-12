@@ -18,6 +18,7 @@ byte LED = 9;
 // since multiple structs to single nodes hasn't been implemented into moteinopy.
 typedef struct{
   int Command;
+  int Milliseconds;
   long Uptime;
 } Payload;
 
@@ -66,7 +67,8 @@ void setup() {
 //  digitalWrite(Pin2, HIGH);
 //  delay(250);
 //  digitalWrite(Pin2, LOW);
-
+  Toggle(0, 2000);
+  Toggle(1, 2000);
   for (int i=0; i<10; i++)
   {
     Serial.println(i);
@@ -92,15 +94,22 @@ void loop()
   checkOnRadio();
 }
 
-void Toggle(byte pin)
+void _Toggle(byte pin)
 {
   State[pin] = !State[pin];
-  Serial.print("Flipping pin: ");
+  /*Serial.print("Flipping pin: ");
   Serial.print(Pins[pin]);
   Serial.print(" to ");
   Serial.println(State[pin]);
-  delay(100);
+  delay(100);*/
   digitalWrite(Pins[pin], State[pin]);
+}
+
+void Toggle(byte pin, int t)
+{
+  _Toggle(pin);
+  delay(t);
+  _Toggle(pin);
 }
 
 void checkOnRadio()
@@ -135,10 +144,10 @@ void checkOnRadio()
         asm volatile (" jmp 0");
         break;
       case TogglePin1:
-        Toggle(0);
+        Toggle(0, IncomingData.Milliseconds);
         break;
       case TogglePin2:
-        Toggle(1);
+        Toggle(1, IncomingData.Milliseconds);
         break;
       case SetPin1High:
         digitalWrite(Pins[0], HIGH);
@@ -156,11 +165,6 @@ void checkOnRadio()
         Serial.print("Received unkown Command: ");
         Serial.println(IncomingData.Command);
     }
-  }
-  else
-  {
-    Serial.println("nothing received");
-    delay(100);
   }
 }
 
