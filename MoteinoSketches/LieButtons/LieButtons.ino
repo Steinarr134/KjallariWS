@@ -11,15 +11,17 @@ RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
 
+const byte PassCodeLength = 4;
+byte PassCode[] = {6, 3, 6, 4};
+
 // Here we define our struct.
 // The radio always sends 64 bytes of data. The RFM69 library uses 3 bytes as a header
 // so that leaves us with 61 bytes. You'll have to fit every peaca of info into 61 bytes
 // since multiple structs to single nodes hasn't been implemented into moteinopy.
 typedef struct{
   int Command;
-  byte Lights[8];
-  long Uptime;
-  
+  byte PassCode[PassCodeLength];
+  byte Ligths[7];
 } Payload;
 
 // Two instances of payload:
@@ -29,11 +31,14 @@ byte BaseID = 1;
 
 // Command values:
 const int Status = 99;
-const int Disp = 5101;
+const int CorrectPassCode = 5101;
+const int ChangePassCode = 5102;
+const int Disp = 5103;
 
 
-byte Lights[] = {3, 4, 5, 6, 7, 9, A0};
-byte Buttons[] = {A1, A2, A3, A4, A5, A6, A7};
+
+byte Lights[] = {A0, 9, 7, 6, 5, 4, 3};
+byte Buttons[] = {A7, A6, A5, A4, A3, A2, A1};
 const byte N = 7;
 byte ON = LOW;
 byte OFF = HIGH;
@@ -63,6 +68,9 @@ void setup() {
   }
 }
 
+
+byte ButtonPresses[] = {-1, -1, -1, -1};
+
 void loop()
 {
   checkOnButtons();
@@ -74,7 +82,15 @@ void loop()
     {
       Serial.print("Button ");
       Serial.print(i);
-      Serial.println(" pressed");
+      Serial.print(" pressed, ButtonPresses=");
+      for (int i= 0; i<4; i++)
+      {
+        Serial.print(ButtonPresses[i]);
+        Serial.print(", ");
+      }
+      Serial.println();
+      acceptButtonPress(i);
+      checkIfCorrectPassCode();
       Pressed[i] = false;
     }
     //Serial.print(analogRead(Buttons[i]));
@@ -83,6 +99,28 @@ void loop()
   //Serial.println();
 }
 
+void checkIfCorrectPassCode()
+{
+  for (int i=0; i<PassCodeLength; i++)
+  {
+    if ((PassCode[i]-1) != ButtonPresses[i])
+    {
+      return;
+    }
+  }
+  Serial.println("Correct!, informing Pope");
+  OutgoingData.Command = CorrectPassCode;
+  sendOutgoingData();
+}
+
+void acceptButtonPress(byte button)
+{
+  for (int i = 0; i<(PassCodeLength-1); i++)
+  {
+    ButtonPresses[i] = ButtonPresses[i+1];
+  }
+  ButtonPresses[PassCodeLength-1] = button;
+}
 
 byte laststate[N] = {OUT};
 unsigned lastbuttontime = 0;
@@ -96,6 +134,7 @@ void checkOnButtons()
     for (int i = 0; i< N; i++)
     {
       byte state = (analogRead(Buttons[i]) > 1000);
+      digitalWrite(Lights[i], state);
       if (state == laststate[i])
       {
         if (state == IN)
@@ -158,7 +197,10 @@ void disp()
 void sendStatus()
 {
   OutgoingData.Command = Status;
-  OutgoingData.Uptime = millis();
+  for (int i=0; i<PassCodeLength; i++)
+  {
+    OutgoingData.PassCode[i] = PassCode[i];
+  }
 
   sendOutgoingData();
 }
