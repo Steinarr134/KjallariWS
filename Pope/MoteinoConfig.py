@@ -100,12 +100,17 @@ MoteinoStructs = {
         "char s[10];"
         "int Filelength;"
         "int LightValue;",
+
+    'LieButtons':
+        "int Command;"
+        "byte PassCode[4]"
+        "byte Lights[7]",
 }
 
 MoteinoIDs = {
     'Base': 1,
     'GreenDude': 11,
-    'SplitFlap': 101,
+    'SplitFlap': 101, 
     'TimeBomb': 170,
     'Stealth': 7,
     'Morser': 15,
