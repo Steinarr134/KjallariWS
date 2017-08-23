@@ -37,7 +37,7 @@ const int SetPin1Low = 3704;
 const int SetPin2High = 3705;
 const int SetPin2Low = 3706;
 
-byte Pin1 = 6;
+byte Pin1 = 9;
 byte Pin2 = 7;
 
 byte State[2] = {0};
@@ -58,7 +58,6 @@ void setup() {
   pinMode(Pin2, OUTPUT);
   digitalWrite(Pin1, LOW);
   digitalWrite(Pin2, LOW);
-  pinMode(9, OUTPUT);
 
 
 //  digitalWrite(Pin1, HIGH);
@@ -69,14 +68,6 @@ void setup() {
 //  digitalWrite(Pin2, LOW);
   Toggle(0, 2000);
   Toggle(1, 2000);
-  for (int i=0; i<10; i++)
-  {
-    Serial.println(i);
-    digitalWrite(9, HIGH);
-    delay(100);
-    digitalWrite(9, LOW); 
-    delay(100);
-  }
   Serial.println("Started");
 
 }
