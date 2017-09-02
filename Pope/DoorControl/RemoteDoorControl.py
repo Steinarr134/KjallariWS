@@ -37,7 +37,8 @@ class RemoteDoor(object):
     def open(self):
         self.State = OPEN
         self.send_fun("open")
-        CloseLaterThread(self, self.AutoCloseTime)
+        if self.AutoClose:
+            CloseLaterThread(self, self.AutoCloseTime)
 
     def close(self):
         self.State = CLOSED

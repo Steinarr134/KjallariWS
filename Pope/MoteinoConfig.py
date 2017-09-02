@@ -103,8 +103,8 @@ MoteinoStructs = {
 
     'LieButtons':
         "int Command;"
-        "byte PassCode[4]"
-        "byte Lights[7]",
+        "byte PassCode[4];"
+        "byte Lights[7];",
 }
 
 MoteinoIDs = {
@@ -123,8 +123,7 @@ MoteinoIDs = {
     'Sirens': 37,
     'TvPi': 41,
     'TapeRecorder': 42,
-    'LiePi1': 51,
-    'LiePi2': 52,
+    'LieButtons': 51,
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -178,7 +177,9 @@ LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
 LockPicking.add_translation('Command',
                             ('SetCorrectPickOrder', 17601),
                             ('LockWasPicked', 17602),
-                            ('OpenYourself', 17603))
+                            ('OpenYourself', 17603),
+                            ('open', 17603),
+                            ('close', 0))
 
 Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
                              MoteinoStructs['Stealth'],
@@ -260,6 +261,13 @@ Sirens.add_translation("Command",
                        ("SetPin2High", 3705),
                        ("SetPin2Low", 3706))
 
+LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
+                                MoteinoStructs['LieButtons'],
+                                'LieButtons')
+LieButtons.add_translation("Command",
+                           ("CorrectPassCode", 5101),
+                           ("ChangePassCode", 5102),
+                           ("Disp", 5103))
 
 def StealthRec(d):
     if d['Command'] == 'Triggered':
@@ -295,7 +303,7 @@ def moteino_status(device):
         ret += device + " is up and running"
 
 
-    ret += str(d)
+    # ret += str(d)
 
     # if 'RSSI' in d:
     #     ret += "   RSSI: {}".format(d['RSSI'])

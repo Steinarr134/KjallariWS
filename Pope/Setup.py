@@ -1,6 +1,6 @@
 from MoteinoConfig import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
-     WineBox, TapeRecorder, moteino_status
+     WineBox, TapeRecorder, LieButtons, moteino_status
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
@@ -21,7 +21,7 @@ def elevator_door_send_fun(what):
 logging.debug("Initializing door control")
 DoorController = _Dctrl("/dev/ttyUSB1")
 ElevatorDoor = _Door(DoorController, 0)
-SafeDoor = _Door(DoorController, 1)
+SafeDoor = _RemoteDoor(LockPicking, auto_close=False)
 BookDrawer = _Door(DoorController, 2)
 WineCaseHolderDoor = _RemoteDoor(WineBoxHolder)
 WineCaseDoor = _RemoteDoor(WineBox)

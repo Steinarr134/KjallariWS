@@ -83,7 +83,11 @@ def initialize_room(player_info={}):
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
+    TimeBomb.send("Reset")
+
     Elevator.send("SetActiveDoor", 1)
+
+    TapeRecorder.send("Reset")
 
     display_status_all_devices()
 
@@ -101,6 +105,7 @@ def send_to_split_flap(event):
     print "I want to send this to splitflap: " + stuff2send
     Send2SplitFlapThread(str(stuff2send))
     gui.SplitFlapEntry.delete(0., float(len(stuff2send)))
+    gui.notify( "'" + stuff2send.replace('\n', ' / ') + "' sent to SplitFlap", fail=True)
 
 #gui.SplitFlapEntry.bind("<Return>", send_to_split_flap)
 gui.SplitFlapEntryButton.bind("<Button-1>", send_to_split_flap)
@@ -118,12 +123,14 @@ def update_door_button_colors(recall=True):
 
 def door_button_callback(event=None):
     button = event.widget
-    
-    door = Doors[gui.DoorNameList.index(button.config("text")[-1])]
+    doorname = button.config("text")[-1]
+    door = Doors[gui.DoorNameList.index(doorname)]
     if door.is_open():
         door.close()
+        gui.notify("Closing " + doorname)
     else:
         door.open()
+        gui.notify("Opening " + doorname)
     update_door_button_colors(recall=False)
 
 for b in gui.DoorButtons:
@@ -149,6 +156,10 @@ def mission_fail_callback(event=None):
         result = gui.askquestion("OpenSafe", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             LockPickingCompleted(fail=True)
+    elif b_text == "GreenDude Fail":
+        result = gui.askquestion("GreenDude", "Are you sure want to skip this mission?", icon='warning')
+        if result == 'yes':
+            GreenDudeCompleted(fail=True)
     else:
         print "Don't know what happened but b_text was: " + b_text
 for b in gui.MissionFailButtons:
@@ -165,25 +176,24 @@ def ElevatorEscaped(fail=False):
     print "ELevator Escape running"
     ElevatorDoor.open()
     run_after(StartTapeRecorderIntroMessage, seconds=20)
-    gui.ClockHasStarted = True
     gui.ClockStartTime = time.time()
+    gui.ClockHasStarted = True
+    logging.debug("starting clock")
     run_after(ElevatorDoor.close, seconds=15)
     if fail:
         gui.notify("Elevator failed, opened manually", fail=True)
     else:
         gui.notify("Elevator Successfully Escaped", solved=True)
-    gui.MissionFailButtons[0].config(state=gui.tk.DISABLED)
-    gui.MissionFailButtons[1].config(state=gui.tk.NORMAL)
-    logging.debug("starting clock")
+    nextFailButton()
 
 
 def LockPickingCompleted(fail=False):
-    LockPicking.send("OpenYourself")
     if fail:
         gui.notify("LockPicking failed, opened manually", fail=True)
+        LockPicking.send("OpenYourself")
     else:
         gui.notify("LockPicking Successfully Completed", solved=True)
-    gui.MissionFailButtons[1].config(state=gui.tk.DISABLED)
+    nextFailButton()
 
 
 def PLayLockPickingHint(fail=False):
@@ -198,10 +208,13 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
         TapeRecorder.send(Command='Load', s="1.ogg"+ "\0"*5, filelength=50)
         gui.notify("TapeRecorder Intro Message Started")
         run_after(PLayLockPickingHint, seconds=5+50)
+        nextFailButton()
 
 
 def GreenDudeCompleted(fail=False):
+    gui.notify("GreenDude Correct Passcode entered", fail=fail)
     TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=40)
+    nextFailButton()
 
 
 def LieDetectorActivated():
@@ -237,7 +250,6 @@ def BombDiffused():
 def elevator_receive(d):
     if d["Command"] == "SolveDoor1":
         ElevatorEscaped()
-
     else:
         print "elevator receive: " + str(d)
 Elevator.bind(receive=elevator_receive)
@@ -245,8 +257,14 @@ Elevator.bind(receive=elevator_receive)
 
 def lockpicking_receive(d):
     if d["Command"] == "LockWasPicked":
-        gui.notify("Safe successfully opened")
+        LockPickingCompleted()
 LockPicking.bind(receive=lockpicking_receive)
+
+
+def liebuttons_receive(d):
+    if d['Command'] == "CorrectPassCode":
+        LieDetectorActivated()
+LieButtons.bind(receive=liebuttons_receive)
 
 
 def green_dude_receive(d):
@@ -254,10 +272,28 @@ def green_dude_receive(d):
         GreenDudeCompleted()
 GreenDude.bind(receive=green_dude_receive)
 
+currentFailButton = 0
+def nextFailButton(button=None):
+    if button is not None:
+        raise NotImplementedError
+    global currentFailButton
+    gui.MissionFailButtons[currentFailButton].config(state=gui.tk.DISABLED)
+    currentFailButton +=1
+    gui.MissionFailButtons[currentFailButton].config(state=gui.tk.NORMAL)
+
 
 def display_status(device):
     print("display status", device)
-    gui.notify(moteino_status(device))
+    status = moteino_status(device)
+    if status[:11] == "No response":
+        color = 'red'
+    else:
+        color = 'green'
+        
+    for i in range(len(gui.DeviceSubmenus)):
+        if gui.DeviceMenu.entrycget(i, 'label') == device:
+            gui.DeviceMenu.entryconfig(i, background=color)
+    gui.notify(status)
 
 
 for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):

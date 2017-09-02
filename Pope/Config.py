@@ -11,7 +11,8 @@ Devices = [
     'WineBox',
     'Sirens',
     'TvPi',
-    'TapeRecorder'
+    'TapeRecorder',
+    'LieButtons'
 ]
 
 DeviceSubmenus = []

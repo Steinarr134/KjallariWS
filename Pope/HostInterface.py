@@ -152,12 +152,14 @@ def notify(text, warning=False, solved=False, fail=False):
         line = str(int(LogTextWidget.index("end").split('.')[0])-1)
         LogTextWidget.insert(line+".10", "WARNING: ")
         LogTextWidget.tag_add("warning", line+".10", line+".19")
+        #print("notify: {}, tag=solved".format(line))
     if solved:
-        line = str(int(LogTextWidget.index("end")[0])-1)
+        line = str(int(LogTextWidget.index("end").split('.')[0])-1)
         LogTextWidget.insert(line+".10", "SOLVED: ")
         LogTextWidget.tag_add("solved", line+".10", line+".18")
+        #print("notify: {}, tag=solved".format(line))
     if fail:
-        line = str(int(LogTextWidget.index("end")[0])-1)
+        line = str(int(LogTextWidget.index("end").split('.')[0])-1)
         LogTextWidget.insert(line+".10", "FAIL: ")
         LogTextWidget.tag_add("fail", line+".9", line+".16")
     LogTextWidget['state'] = 'disabled'
