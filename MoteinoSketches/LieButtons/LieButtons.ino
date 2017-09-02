@@ -2,8 +2,8 @@
 // for the radio
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        7    //unique for each node on same network
-#define NETWORKID     51  //the same on all nodes that talk to each other
+#define NODEID        51    //unique for each node on same network
+#define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
@@ -21,7 +21,7 @@ byte PassCode[] = {6, 3, 6, 4};
 typedef struct{
   int Command;
   byte PassCode[PassCodeLength];
-  byte Ligths[7];
+  byte Lights[7];
 } Payload;
 
 // Two instances of payload:
@@ -46,6 +46,7 @@ byte IN = LOW;
 byte OUT = HIGH;
 
 byte Pressed[N] = {false};
+bool dispOn = false;
 
 void setup() {
   // initiate Serial port:
@@ -60,6 +61,9 @@ void setup() {
 
 
   ////////////////// put your code here
+
+  OutgoingData.Command = 100;
+  sendOutgoingData();
 
   for (int i = 0; i< N; i++)
   {
@@ -92,6 +96,7 @@ void loop()
       acceptButtonPress(i);
       checkIfCorrectPassCode();
       Pressed[i] = false;
+      dispOn = false;
     }
     //Serial.print(analogRead(Buttons[i]));
     //Serial.print('\t');
@@ -134,7 +139,10 @@ void checkOnButtons()
     for (int i = 0; i< N; i++)
     {
       byte state = (analogRead(Buttons[i]) > 1000);
-      digitalWrite(Lights[i], state);
+      if (!dispOn)
+      {
+        digitalWrite(Lights[i], state);
+      }
       if (state == laststate[i])
       {
         if (state == IN)
@@ -170,8 +178,8 @@ void checkOnRadio()
       radio.sendACK();
     }
     // useful for debugging:
-//    Serial.print("Received: command: ");
-//    Serial.println(IncomingData.Command);
+    Serial.print("Received: command: ");
+    Serial.println(IncomingData.Command);
 
     switch (IncomingData.Command)
     {
@@ -181,6 +189,11 @@ void checkOnRadio()
       case Disp:
         disp();
         break;
+      case ChangePassCode:
+        for (int i=0; i<PassCodeLength; i++)
+        {
+          PassCode[i] = IncomingData.PassCode[i];
+        }
       default:
         Serial.print("Received unkown Command: ");
         Serial.println(IncomingData.Command);
@@ -191,7 +204,11 @@ void checkOnRadio()
 
 void disp()
 {
-  Serial.println("demo1");
+  dispOn = true;
+  for (int i = 0; i<7; i++)
+  {
+    digitalWrite(Lights[i], IncomingData.Lights[i]);
+  }
 }
 
 void sendStatus()

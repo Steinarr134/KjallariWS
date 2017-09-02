@@ -18,7 +18,7 @@
 
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        1   //unique for each node on same network
+#define NODEID        52   //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
@@ -63,6 +63,7 @@ byte dtabs = 0;
 
 void debug(char *s)
 {
+  return;
   for (int i = 0; i<dtabs; i++)
   {
     Serial.print('\t');
