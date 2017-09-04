@@ -22,6 +22,18 @@ To Do in this skjal
 
 """
 
+FailButtonNames = [
+    "Elevator Escape",
+    "Start TapeRecorder",
+    "Open Safe",
+    "GreenDude Fail",
+    "Start Lie Detector",
+    "Lie Detector Fail",
+    "Shooting Range Fail",
+    "Morse Fail",
+    "Stealth Fail",
+]
+
 
 # Init Window
 def player_info(exit_button_callback, info={}):
@@ -183,16 +195,11 @@ for name in DoorNameList:
 # Mission Failures
 MissionFailFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
 MissionFailFrame.place(x=850, y=10)
-MissionFailButtons = [
-    tk.Button(MissionFailFrame, text="Elevator Escape", width=15, state=tk.NORMAL),
-    tk.Button(MissionFailFrame, text="Start TapeRecorder", width=15, state=tk.DISABLED),
-    tk.Button(MissionFailFrame, text="Open Safe", width=15, state=tk.DISABLED),
-    tk.Button(MissionFailFrame, text="GreenDude Fail", width=15, state=tk.DISABLED),
-    tk.Button(MissionFailFrame, text="Start Lie Detector", width=15, state=tk.DISABLED),
-    tk.Button(MissionFailFrame, text="Morse Fail", width=15, state=tk.DISABLED),
-]
-for b in MissionFailButtons:
+MissionFailButtons = []
+for bname in FailButtonNames:
+    b = tk.Button(MissionFailFrame, text=bname, width=15, state=tk.NORMAL)
     b.pack()
+    MissionFailButtons.append(b)
 
 
 # Clock

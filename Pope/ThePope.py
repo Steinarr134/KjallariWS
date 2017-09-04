@@ -79,6 +79,9 @@ def initialize_room(player_info={}):
     """
     player_info['room initialization time'] = time.time()
     save_group_info(player_info)
+
+    
+    ElevatorDoor.close()
     
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
@@ -173,7 +176,9 @@ def ElevatorEscaped(fail=False):
     # Escaping Elevator starts the room.
     # clock starts now and intro message from TapeRecorder
     # should start in a bit
-    print "ELevator Escape running"
+
+    progressor.log("Elevator")
+    
     ElevatorDoor.open()
     run_after(StartTapeRecorderIntroMessage, seconds=20)
     gui.ClockStartTime = time.time()
@@ -197,11 +202,14 @@ def LockPickingCompleted(fail=False):
 
 
 def PLayLockPickingHint(fail=False):
-    TapeRecorder.send(Command='Load', s="3.ogg"+ "\0"*5, filelength=50)
+    TapeRecorder.send(Command='Load', s="3.ogg"+ "\0"*5, filelength=16)
 
 
 TapeRecorderIntroMessageStarted = False
 def StartTapeRecorderIntroMessage(timeout=False, fail=False):
+
+    progressor.log("TapeRecorder")
+    
     global TapeRecorderIntroMessageStarted
     if not TapeRecorderIntroMessageStarted:
         TapeRecorderIntroMessageStarted = True
@@ -212,18 +220,23 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
 
 
 def GreenDudeCompleted(fail=False):
-    gui.notify("GreenDude Correct Passcode entered", fail=fail)
-    TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=40)
+    progressor.log("GreenDude")
+    
+    gui.notify("GreenDude Correct Passcode entered", fail=fail, solved= not fail)
+    TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=21)
     nextFailButton()
 
 
-def LieDetectorActivated():
-    TapeRecorder.send("next message??")
-
+def LieDetectorActivated(fail=False):
+    gui.notify("Lie Detector Activated", fail=fail, solved= not fail)
+    TapeRecorder.send(Command='Load', s="6.ogg"+ "\0"*5, filelength=37)
+    nextFailButton()
+    
 
 def LieDetectorCompleted(fail=False):
-    TapeRecorder.send("sdfkj2??")
-    WineCaseHolderDoor.open()
+    gui.notify("Lie Detector Completed", fail=fail, solved= not fail)
+    TapeRecorder.send(Command='Load', s="7.ogg"+ "\0"*5, filelength=38)
+    nextFailButton()
 
 
 def ShootingRangeCompleted():

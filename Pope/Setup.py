@@ -67,5 +67,41 @@ def no_ack_fun(d):
                warning=True)
 
 mynetwork.bind_default(no_ack=no_ack_fun)
-time.sleep(2)
-ElevatorDoor.close()
+
+
+class Progressor(object):
+    def __init__(self):
+        self.Checkpoints = [
+            "Nothing",
+            "Elevator",
+            "TapeRecorder",
+            "LockPicking",
+            "GreenDude",
+            "LieDetector",
+            "WineBox",
+            "ShootingRange",
+            "Morser",
+        ]
+        self.progress = 0
+
+        self.ProgressTimes = []
+
+    def current_cp(self):
+        return self.CheckPoints[self.progress]
+    
+    def log(self, checkpoint):
+        print "###########  Progressor  " + checkpoint
+        temp = True
+        if self.Checkpoints[self,progress+1] != checkpoint:
+            temp = gui.askquestion("Advencement to fast! \n" +
+                                   "Players sem to have skipped something, " +
+                                   "Should progress be overwritten?")
+
+        if temp:
+            self.progress +=1
+            self.ProgressTimes.append(time.time())
+
+
+
+progressor = Progressor()
+        
