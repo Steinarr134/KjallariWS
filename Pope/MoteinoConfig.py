@@ -36,8 +36,8 @@ MoteinoStructs = {
         "int Command;" +
         "unsigned long TimeLeft;"
         "int SmokeTime;"
-        "boolean SmokeOn;"
-        "boolean buzzerOn;",
+        "bool SmokeOn;"
+        "bool buzzerOn;",
 
     'Morser':
         "int Command;" +
@@ -59,7 +59,8 @@ MoteinoStructs = {
         "int Command;" +
         "int Time;" +
         "int Target;" +
-        "byte Colors[5];",
+        "byte Colors[5];" +
+        "int Sequence[5];",
     
     'LockPicking':
         "int Command;" +
@@ -202,10 +203,19 @@ TimeBomb.add_translation('Command',
 ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
                                    MoteinoStructs['ShootingRange'],
                                    "ShootingRange")
+
+# Shooting Range target numbers:
+#   2   4
+#     3
+#   1   0
 ShootingRange.add_translation("Command",
-                              ("SetTime", 3101),
-                              ("TargetHit", 3102),
-                              ("dispColor", 3103))
+                              ("SetTime", 3101),  # Not used anymore
+                              ("TargetHit", 3102),  # gets sent when user hits correct target
+                              ("DispColors", 3103),  # To use for whatever
+                              ("WrongTarget", 3104),  # Gets sent when user hits incorrect target
+                              ("MissionComplete", 3105),  #Will be sent when users win the game
+                              ("NewSequence", 3106),  # to use to change sequence
+                              ("PuzzleFinished", 3107))  #
 
 Elevator = mynetwork.add_node(MoteinoIDs['Elevator'],
                               MoteinoStructs['Elevator'],
