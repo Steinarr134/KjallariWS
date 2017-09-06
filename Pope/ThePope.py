@@ -220,11 +220,11 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
 
 
 def GreenDudeCompleted(fail=False):
-    progressor.log("GreenDude")
-    
-    gui.notify("GreenDude Correct Passcode entered", fail=fail, solved= not fail)
-    TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=21)
-    nextFailButton()
+    if progressor.log("GreenDude"):
+        
+        gui.notify("GreenDude Correct Passcode entered", fail=fail, solved= not fail)
+        TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=21)
+        nextFailButtonailButton()
 
 
 def LieDetectorActivated(fail=False):
@@ -281,7 +281,9 @@ LieButtons.bind(receive=liebuttons_receive)
 
 
 def green_dude_receive(d):
+    print "GreenDude Receive"
     if d['Command'] == "CorrectPasscode":
+        print "CorrectPassCode"
         GreenDudeCompleted()
 GreenDude.bind(receive=green_dude_receive)
 
@@ -323,7 +325,4 @@ if __name__ == "__main__":
     run_after(initialize_room, seconds=1)
     gui.top.mainloop()
 
-##
-##startInterface()
-##
-##sleep_forever()
+

@@ -92,14 +92,15 @@ class Progressor(object):
     def log(self, checkpoint):
         print "###########  Progressor  " + checkpoint
         temp = True
-        if self.Checkpoints[self,progress+1] != checkpoint:
-            temp = gui.askquestion("Advencement to fast! \n" +
+        if self.Checkpoints[self.progress+1] != checkpoint:
+            temp = gui.askquestion("Advencement to fast!", 
                                    "Players sem to have skipped something, " +
                                    "Should progress be overwritten?")
 
         if temp:
             self.progress +=1
             self.ProgressTimes.append(time.time())
+        return temp
 
 
 

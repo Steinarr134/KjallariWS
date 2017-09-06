@@ -1,7 +1,9 @@
+
+import sys
+sys.path.append("/home/pi/moteinopy")
 from moteinopy import MoteinoNetwork, look_for_base
 import logging
 logging.basicConfig(level=logging.DEBUG)
-import sys
 import os
 
 """
