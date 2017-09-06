@@ -155,6 +155,28 @@ LogTextWidget.tag_configure("solved", foreground="#259020", font="helvetica 10 b
 LogTextWidget.tag_configure("fail", foreground="#ff9900", font="helvetica 10 bold")
 
 
+# Shooting Range
+# ShootingFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
+# ShootingFrame.place(x=100, y=500)
+# b1 = tk.Button()
+
+ShootingCanvas = tk.Canvas(top, height=200, width=200, bg='blue')
+ShootingCanvas.place(x=550, y=10)
+ShootingPositions = [
+    (5, 5, 65, 65),
+    (5, 135, 65, 195),
+    (135, 5, 195, 65),
+    (135, 135, 195, 195),
+    (70, 70, 130, 130)
+]
+ShootingCircles = []
+for position in ShootingPositions:
+    ShootingCircles.append(ShootingCanvas.create_oval(*position, fill='red'))
+# c2 = ShootingCanvas.create_oval()
+
+
+
+
 def notify(text, warning=False, solved=False, fail=False):
     text = "\n " + get_clock_text_now() + " -\t" + text
     LogTextWidget['state'] = 'normal'
@@ -232,7 +254,7 @@ top.after(1000, update_clock)
 
 # Handle Keyboard input
 def keypress(event):
-##    notify("you pressed key:" + event.char)
+    # notify("you pressed key:" + event.char)
     return
 
 
