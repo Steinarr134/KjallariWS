@@ -91,6 +91,7 @@ def initialize_room(player_info={}):
     Elevator.send("SetActiveDoor", 1)
 
     TapeRecorder.send("Reset")
+    #taperecorder load 1 and pauses
 
     display_status_all_devices()
 
@@ -140,7 +141,16 @@ for b in gui.DoorButtons:
     b.bind("<Button-1>", door_button_callback)
 
 update_door_button_colors(recall=True)
-    
+
+def tape_recorder_buttons_callback(event=None):
+    button = event.widget
+    b_text = button.config("text")[-1]
+    gui.notify("Tape Recorder: Host pressed " + b_text)
+    TapeRecorder.send(b_text)
+
+gui.TapeRecorderPlayButton.bind("<Button-1>", tape_recorder_buttons_callback)
+gui.TapeRecorderPauseButton.bind("<Button-1>", tape_recorder_buttons_callback)
+
 
 def mission_fail_callback(event=None):
     button = event.widget
@@ -177,19 +187,19 @@ def ElevatorEscaped(fail=False):
     # clock starts now and intro message from TapeRecorder
     # should start in a bit
 
-    progressor.log("Elevator")
+    if progressor.log("Elevator"):
     
-    ElevatorDoor.open()
-    run_after(StartTapeRecorderIntroMessage, seconds=20)
-    gui.ClockStartTime = time.time()
-    gui.ClockHasStarted = True
-    logging.debug("starting clock")
-    run_after(ElevatorDoor.close, seconds=15)
-    if fail:
-        gui.notify("Elevator failed, opened manually", fail=True)
-    else:
-        gui.notify("Elevator Successfully Escaped", solved=True)
-    nextFailButton()
+        ElevatorDoor.open()
+        run_after(StartTapeRecorderIntroMessage, seconds=20)
+        gui.ClockStartTime = time.time()
+        gui.ClockHasStarted = True
+        logging.debug("starting clock")
+        run_after(ElevatorDoor.close, seconds=15)
+        if fail:
+            gui.notify("Elevator failed, opened manually", fail=True)
+        else:
+            gui.notify("Elevator Successfully Escaped", solved=True)
+        nextFailButton("Elevator Escape")
 
 
 def LockPickingCompleted(fail=False):
@@ -198,7 +208,7 @@ def LockPickingCompleted(fail=False):
         LockPicking.send("OpenYourself")
     else:
         gui.notify("LockPicking Successfully Completed", solved=True)
-    nextFailButton()
+    nextFailButton("Open Safe")
 
 
 def PlayLockPickingHint(fail=False):
@@ -214,14 +224,14 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
             TapeRecorder.send(Command='Load', s="1.ogg"+ "\0"*5, filelength=50)
             gui.notify("TapeRecorder Intro Message Started")
             run_after(PlayLockPickingHint, seconds=5+50)
-            nextFailButton()
+            nextFailButton("Start TapeRecorder")
 
 
 def GreenDudeCompleted(fail=False):
     if progressor.log("GreenDude"):
         gui.notify("GreenDude Correct Passcode entered", fail=fail, solved= not fail)
         TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=21)
-        nextFailButton()
+        nextFailButton("GreenDude Fail")
 
 
 def LieDetectorActivated(fail=False):
@@ -289,6 +299,7 @@ def shooting_range_receive(d):
     elif d['Command'] == "MissionCompleted" or d['Command'] == "PuzzleFinished":
         ShootingRangeCompleted()
 
+ShootingRange.bind(receive=shooting_range_receive)
 
 def green_dude_receive(d):
     print "GreenDude Receive"
@@ -299,12 +310,18 @@ GreenDude.bind(receive=green_dude_receive)
 
 currentFailButton = 0
 def nextFailButton(button=None):
-    if button is not None:
-        raise NotImplementedError
     global currentFailButton
-    gui.MissionFailButtons[currentFailButton].config(state=gui.tk.DISABLED)
-    currentFailButton +=1
-    gui.MissionFailButtons[currentFailButton].config(state=gui.tk.NORMAL)
+    while True:
+        b_text = gui.MissionFailButtons[currentFailButton].config("text")[-1]
+        currentFailButton +=1
+        gui.MissionFailButtons[currentFailButton].config(state=gui.tk.DISABLED)
+        print "comparing {} and {}".format(b_text, button)
+        if b_text == button:
+            gui.MissionFailButtons[currentFailButton].config(state=gui.tk.NORMAL)
+            break
+        if currentFailButton > 20:
+            break
+        
 
 
 def display_status(device):

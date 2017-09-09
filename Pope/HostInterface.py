@@ -163,11 +163,11 @@ LogTextWidget.tag_configure("fail", foreground="#ff9900", font="helvetica 10 bol
 ShootingCanvas = tk.Canvas(top, height=200, width=200, bg='blue')
 ShootingCanvas.place(x=550, y=10)
 ShootingPositions = [
-    (5, 5, 65, 65),
-    (5, 135, 65, 195),
-    (135, 5, 195, 65),
     (135, 135, 195, 195),
-    (70, 70, 130, 130)
+    (5, 135, 65, 195),
+    (5, 5, 65, 65),
+    (70, 70, 130, 130),
+    (135, 5, 195, 65)
 ]
 ShootingCircles = []
 for position in ShootingPositions:
@@ -177,6 +177,14 @@ for position in ShootingPositions:
 
 def ShootingCirclesSetColor(n, color):
     ShootingCanvas.itemconfig(ShootingCircles[n], fill=color)
+
+# TapeRecorderControls
+TapeRecorderFrame = tk.Frame()
+TapeRecorderPlayButton = tk.Button(TapeRecorderFrame, text="Play")
+TapeRecorderPlayButton.pack()
+TapeRecorderPauseButton = tk.Button(TapeRecorderFrame, text="Pause")
+TapeRecorderPauseButton.pack()
+TapeRecorderFrame.place(x=100, y=15)
 
 
 def notify(text, warning=False, solved=False, fail=False):

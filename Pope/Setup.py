@@ -1,6 +1,6 @@
 from MoteinoConfig import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
-     WineBox, TapeRecorder, LieButtons, moteino_status
+     WineBox, TapeRecorder, LieButtons, moteino_status, ShootingRange
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
@@ -95,8 +95,8 @@ class Progressor(object):
         if self.Checkpoints[self.progress+1] != checkpoint:
             temp = gui.askquestion("Advencement to fast!", 
                                    "Players sem to have skipped something, " +
-                                   "Should progress be overwritten?")
-
+                                   "Should progress be overwritten?") == "yes"
+            print "Answer = " + str(temp)
         if temp:
             self.progress +=1
             self.ProgressTimes.append(time.time())
