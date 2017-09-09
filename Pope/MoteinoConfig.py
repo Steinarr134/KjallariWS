@@ -215,7 +215,7 @@ ShootingRange.add_translation("Command",
                               ("TargetHit", 3102),  # gets sent when user hits correct target
                               ("DispColors", 3103),  # To use for whatever
                               ("WrongTarget", 3104),  # Gets sent when user hits incorrect target
-                              ("MissionComplete", 3105),  #Will be sent when users win the game
+                              ("MissionComplete", 3105),  # Will be sent when users win the game
                               ("NewSequence", 3106),  # to use to change sequence
                               ("PuzzleFinished", 3107))  #
 

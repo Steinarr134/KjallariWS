@@ -175,6 +175,8 @@ for position in ShootingPositions:
 # c2 = ShootingCanvas.create_oval()
 
 
+def ShootingCirclesSetColor(n, color):
+    ShootingCanvas.itemconfig(ShootingCircles[n], fill=color)
 
 
 def notify(text, warning=False, solved=False, fail=False):

@@ -201,36 +201,34 @@ def LockPickingCompleted(fail=False):
     nextFailButton()
 
 
-def PLayLockPickingHint(fail=False):
+def PlayLockPickingHint(fail=False):
     TapeRecorder.send(Command='Load', s="3.ogg"+ "\0"*5, filelength=16)
 
 
 TapeRecorderIntroMessageStarted = False
 def StartTapeRecorderIntroMessage(timeout=False, fail=False):
-
-    progressor.log("TapeRecorder")
-    
-    global TapeRecorderIntroMessageStarted
-    if not TapeRecorderIntroMessageStarted:
-        TapeRecorderIntroMessageStarted = True
-        TapeRecorder.send(Command='Load', s="1.ogg"+ "\0"*5, filelength=50)
-        gui.notify("TapeRecorder Intro Message Started")
-        run_after(PLayLockPickingHint, seconds=5+50)
-        nextFailButton()
+    if progressor.log("TapeRecorder"):
+        global TapeRecorderIntroMessageStarted
+        if not TapeRecorderIntroMessageStarted:
+            TapeRecorderIntroMessageStarted = True
+            TapeRecorder.send(Command='Load', s="1.ogg"+ "\0"*5, filelength=50)
+            gui.notify("TapeRecorder Intro Message Started")
+            run_after(PlayLockPickingHint, seconds=5+50)
+            nextFailButton()
 
 
 def GreenDudeCompleted(fail=False):
     if progressor.log("GreenDude"):
-        
         gui.notify("GreenDude Correct Passcode entered", fail=fail, solved= not fail)
         TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, filelength=21)
-        nextFailButtonailButton()
+        nextFailButton()
 
 
 def LieDetectorActivated(fail=False):
-    gui.notify("Lie Detector Activated", fail=fail, solved= not fail)
-    TapeRecorder.send(Command='Load', s="6.ogg"+ "\0"*5, filelength=37)
-    nextFailButton()
+    if progressor.log("LieDetector"):
+        gui.notify("Lie Detector Activated", fail=fail, solved= not fail)
+        TapeRecorder.send(Command='Load', s="6.ogg"+ "\0"*5, filelength=37)
+        nextFailButton()
     
 
 def LieDetectorCompleted(fail=False):
@@ -239,8 +237,10 @@ def LieDetectorCompleted(fail=False):
     nextFailButton()
 
 
-def ShootingRangeCompleted():
-    pass # ??
+def ShootingRangeCompleted(fail=False):
+    gui.notify("Shooting Range Completed", fail=fail, solved=not fail)
+    # Herna vantar eitthvad
+    nextFailButton()
 
 
 def MorseCompleted(fail=False):
@@ -278,6 +278,16 @@ def liebuttons_receive(d):
     if d['Command'] == "CorrectPassCode":
         LieDetectorActivated()
 LieButtons.bind(receive=liebuttons_receive)
+
+
+def shooting_range_receive(d):
+    if d['Command'] == "TargetHit":
+        gui.ShootingCirclesSetColor(d['Target'], 'green')
+    elif d['Command'] == "WrongTarget":
+        for i in range(5):
+            gui.ShootingCirclesSetColor(i, 'red')
+    elif d['Command'] == "MissionCompleted" or d['Command'] == "PuzzleFinished":
+        ShootingRangeCompleted()
 
 
 def green_dude_receive(d):
