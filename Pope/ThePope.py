@@ -173,6 +173,8 @@ def mission_fail_callback(event=None):
         result = gui.askquestion("GreenDude", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             GreenDudeCompleted(fail=True)
+    elif b_text == "Morse Fail":
+        MorseCompleted(fail=True)
     else:
         print "Don't know what happened but b_text was: " + b_text
 for b in gui.MissionFailButtons:
@@ -252,10 +254,9 @@ def ShootingRangeCompleted(fail=False):
     # Herna vantar eitthvad
     nextFailButton()
 
+MorseSequence = [63, 0, 2, 0, 3, 5, 5, 5, 14, 10, 10, 10, 20, 20, 20, 40, 40, 40, 48, 16, 16, 16, 0, 0, 0, 63, 0, 2, 0, 3, 5, 5, 5, 14, 10, 10, 10, 20, 20, 20, 40, 40, 40, 48, 16, 16, 16, 0, 0, 0]
 
-def MorseCompleted(fail=False):
-    TapeRecorder.send("FDSS??")
-    StealthDoor.open()
+
 
 
 def StealthCompleted(fail=False):
@@ -268,6 +269,16 @@ def BombActivated():
 
 def BombDiffused():
     pass
+
+def MorseCompleted(fail=False):
+    Stealth.send("SetSequence", Sequence=MorseSequence)
+    Sirens.send("SetPin1Low")
+    
+
+def stealth_receive(d):
+    if d['Command'] == 'Tripped':
+        Sirens.send("SetPin1High")
+Stealth.bind(receive=stealth_receive)
 
 
 def elevator_receive(d):

@@ -1,6 +1,7 @@
 from MoteinoConfig import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
-     WineBox, TapeRecorder, LieButtons, moteino_status, ShootingRange
+     WineBox, TapeRecorder, LieButtons, moteino_status, \
+     ShootingRange, Stealth, Sirens
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
