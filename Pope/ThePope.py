@@ -90,6 +90,8 @@ def initialize_room(player_info={}):
 
     Elevator.send("SetActiveDoor", 1)
 
+    Stealth.send("Reset")
+
     TapeRecorder.send("Reset")
     #taperecorder load 1 and pauses
 
@@ -175,6 +177,8 @@ def mission_fail_callback(event=None):
             GreenDudeCompleted(fail=True)
     elif b_text == "Morse Fail":
         MorseCompleted(fail=True)
+    elif b_text == "Stealth Fail":
+        StealthRetry()
     else:
         print "Don't know what happened but b_text was: " + b_text
 for b in gui.MissionFailButtons:
@@ -205,13 +209,13 @@ def ElevatorEscaped(fail=False):
 
 
 def LockPickingCompleted(fail=False):
-    if fail:
-        gui.notify("LockPicking failed, opened manually", fail=True)
-        LockPicking.send("OpenYourself")
-    else:
-        gui.notify("LockPicking Successfully Completed", solved=True)
-    nextFailButton("Open Safe")
-
+    if progressor.log("LockPicking"):
+        if fail:
+            gui.notify("LockPicking failed, opened manually", fail=True)
+            LockPicking.send("OpenYourself")
+        else:
+            gui.notify("LockPicking Successfully Completed", solved=True)
+        nextFailButton("Open Safe")
 
 def PlayLockPickingHint(fail=False):
     TapeRecorder.send(Command='Load', s="3.ogg"+ "\0"*5, filelength=16)
@@ -257,7 +261,13 @@ def ShootingRangeCompleted(fail=False):
 MorseSequence = [63, 0, 2, 0, 3, 5, 5, 5, 14, 10, 10, 10, 20, 20, 20, 40, 40, 40, 48, 16, 16, 16, 0, 0, 0, 63, 0, 2, 0, 3, 5, 5, 5, 14, 10, 10, 10, 20, 20, 20, 40, 40, 40, 48, 16, 16, 16, 0, 0, 0]
 
 
+def StealthRetry():
+    MorseCompleted()
 
+def StealthTripped(lasernr):
+    Sirens.send("SetPin1High")
+    gui.notify("Stealth tripped on laser {}".format(lasernr))
+    
 
 def StealthCompleted(fail=False):
     pass #??
@@ -276,8 +286,8 @@ def MorseCompleted(fail=False):
     
 
 def stealth_receive(d):
-    if d['Command'] == 'Tripped':
-        Sirens.send("SetPin1High")
+    if d['Command'] == 'Triggered':
+        StealthTripped(d["Tripped"])
 Stealth.bind(receive=stealth_receive)
 
 
@@ -324,8 +334,8 @@ def nextFailButton(button=None):
     global currentFailButton
     while True:
         b_text = gui.MissionFailButtons[currentFailButton].config("text")[-1]
-        currentFailButton +=1
         gui.MissionFailButtons[currentFailButton].config(state=gui.tk.DISABLED)
+        currentFailButton +=1
         print "comparing {} and {}".format(b_text, button)
         if b_text == button:
             gui.MissionFailButtons[currentFailButton].config(state=gui.tk.NORMAL)

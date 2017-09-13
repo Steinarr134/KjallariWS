@@ -270,8 +270,8 @@ Sirens.add_translation("Command",
                        ("TogglePin2", 3702),
                        ("SetPin1High", 3703),
                        ("SetPin1Low", 3704),
-                       ("SetPin2High", 3705),
-                       ("SetPin2Low", 3706))
+                       ("SetPin2High", 3706),
+                       ("SetPin2Low", 3705))
 
 LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
                                 MoteinoStructs['LieButtons'],
@@ -290,9 +290,13 @@ def StealthRec(d):
 
 def moteino_status(device):
     d = mynetwork.send_and_receive(device, Command="Status")
-    print d
+    
+    print("{} Received from {}".format(d, device))
     if not d:
         return "No response from {}".format(device)
+    sender = d["Sender"].Name
+    if sender != device:
+        return "Wrong sender: " + sender + ", expected: " + device
     ret = ""
 
     if device == "Elevator":
@@ -311,6 +315,12 @@ def moteino_status(device):
     elif device == "LockPicking":
         pickorder = str(d['PickOrder'])
         ret += "LockPicking is up and running, current pick order: {}".format(pickorder)
+    elif device == "Stealth":
+        tripped = d["Tripped"]
+        if tripped == 0:
+            ret += "Stealth is up and running, all lasers working"
+        else:
+            ret += "Stealth is running but slave {} is tripping".format(tripped)
     else:
         ret += device + " is up and running"
 

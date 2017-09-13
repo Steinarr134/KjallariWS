@@ -91,7 +91,8 @@ class Progressor(object):
         return self.CheckPoints[self.progress]
     
     def log(self, checkpoint):
-        print "###########  Progressor  " + checkpoint
+        print("###########  Progressor  {}, progress is {}"
+              "".format(checkpoint, self.Checkpoints[self.progress+1]))
         temp = True
         if self.Checkpoints[self.progress+1] != checkpoint:
             temp = gui.askquestion("Advencement to fast!", 
