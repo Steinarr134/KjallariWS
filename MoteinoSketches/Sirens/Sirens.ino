@@ -108,16 +108,12 @@ void checkOnRadio()
     // if nothing was received then we'll return immediately
    if (radio.receiveDone())
   {
-    Serial.println("Something received");
-    delay(200);
     // receive the data into IncomingData
     IncomingData = *(Payload*)radio.DATA;
 
     // send ack if requested
     if (radio.ACKRequested())
     {
-      Serial.println("sending ack");
-      delay(200);
       radio.sendACK();
     }
     // useful for debugging:
@@ -144,10 +140,10 @@ void checkOnRadio()
         digitalWrite(Pins[0], HIGH);
         break;
       case SetPin1Low:
-        digitalWrite(Pins[0], HIGH);
+        digitalWrite(Pins[0], LOW);
         break;
       case SetPin2High:
-        digitalWrite(Pins[1], LOW);
+        digitalWrite(Pins[1], HIGH);
         break;
       case SetPin2Low:
         digitalWrite(Pins[1], LOW);
