@@ -281,6 +281,13 @@ LieButtons.add_translation("Command",
                            ("ChangePassCode", 5102),
                            ("Disp", 5103))
 
+LiePiA = mynetwork.add_node(53, "int Command;", "liePieA")
+LiePiA.add_translation("Command", ("Start", 50))
+
+LiePiB = mynetwork.add_node(52, "int Command;", "liePieA")
+LiePiB.add_translation("Command", ("Start", 50))
+
+
 def StealthRec(d):
     if d['Command'] == 'Triggered':
         print "Slave {} Triggered".format(d['Tripped'])
