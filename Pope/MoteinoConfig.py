@@ -1,6 +1,9 @@
 
 import sys
-sys.path.append("/home/pi/moteinopy")
+if "win" in sys.platform:
+    sys.path.append("C:\Users\SteinarrHrafn\Documents\GitHub\moteinopy")
+else:
+    sys.path.append("/home/pi/moteinopy")
 from moteinopy import MoteinoNetwork, look_for_base
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -341,3 +344,9 @@ def moteino_status(device):
 
 Stealth.bind(receive=StealthRec)
 
+def test(d, n, **kwargs):
+    ret = 0
+    for i in range(n):
+        ret += int(d.send(0, **kwargs))
+    print "{} successfull out of {}     ({:.1%})".format(ret, i+1, ret/float(i+1))
+    return ret
