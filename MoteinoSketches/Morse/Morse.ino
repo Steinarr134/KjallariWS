@@ -215,7 +215,7 @@ void setPasscode()
 void sendStatus()
 {
   
-  Serial.println("sending status");
+  //Serial.println("sending status");
   OutgoingData.Command = Status;
   OutgoingData.Temperature = getTemperature();
   for (int i = 0; i < MaxArrayLength; i++)

@@ -111,6 +111,9 @@ MoteinoStructs = {
         "int Command;"
         "byte PassCode[4];"
         "byte Lights[7];",
+    'Lie2Buttons':
+        "int Command;"
+        "byte Temperature;",
 }
 
 MoteinoIDs = {
@@ -130,6 +133,7 @@ MoteinoIDs = {
     'TvPi': 41,
     'TapeRecorder': 42,
     'LieButtons': 51,
+    'Lie2Buttons': 54,
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -289,6 +293,13 @@ LiePiA.add_translation("Command", ("Start", 50))
 
 LiePiB = mynetwork.add_node(52, "int Command;", "liePieA")
 LiePiB.add_translation("Command", ("Start", 50))
+
+Lie2Buttons = mynetwork.add_node(MoteinoIDs['Lie2Buttons'],
+                                 MoteinoStructs['Lie2Buttons'],
+                                 'Lie2Buttons')
+Lie2Buttons.add_translation("Command",
+                            ('Button1Press', 5401),
+                            ('Button2Press', 5402))
 
 
 def StealthRec(d):

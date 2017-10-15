@@ -20,7 +20,7 @@ def elevator_door_send_fun(what):
         print "WTF do you mean by '{}' in elevator_door_send_fun".format(what)
 
 logging.debug("Initializing door control")
-DoorController = _Dctrl("/dev/ttyUSB1")
+DoorController = _Dctrl("com50")
 ElevatorDoor = _Door(DoorController, 0)
 SafeDoor = _RemoteDoor(LockPicking, auto_close=False)
 BookDrawer = _Door(DoorController, 2)
