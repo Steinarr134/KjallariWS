@@ -12,7 +12,10 @@ Devices = [
     'Sirens',
     'TvPi',
     'TapeRecorder',
-    'LieButtons'
+    'LieButtons',
+    'LiePiA',
+    'LiePiB',
+    'Lie2Buttons'
 ]
 
 DeviceSubmenus = []

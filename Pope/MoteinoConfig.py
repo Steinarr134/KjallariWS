@@ -288,10 +288,10 @@ LieButtons.add_translation("Command",
                            ("ChangePassCode", 5102),
                            ("Disp", 5103))
 
-LiePiA = mynetwork.add_node(53, "int Command;", "liePieA")
+LiePiA = mynetwork.add_node(53, "int Command;", "LiePiA")
 LiePiA.add_translation("Command", ("Start", 50))
 
-LiePiB = mynetwork.add_node(52, "int Command;", "liePieA")
+LiePiB = mynetwork.add_node(52, "int Command;", "LiePiB")
 LiePiB.add_translation("Command", ("Start", 50))
 
 Lie2Buttons = mynetwork.add_node(MoteinoIDs['Lie2Buttons'],
@@ -348,8 +348,8 @@ def moteino_status(device):
 
     # ret += str(d)
 
-    # if 'RSSI' in d:
-    #     ret += "   RSSI: {}".format(d['RSSI'])
+    if 'RSSI' in d:
+        ret += "   RSSI: {}".format(d['RSSI'] - 0x7f)
         
     return ret
 

@@ -1,7 +1,7 @@
 from MoteinoConfig import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
      WineBox, TapeRecorder, LieButtons, moteino_status, \
-     ShootingRange, Stealth, Sirens
+     ShootingRange, Stealth, Sirens, LiePiA, LiePiB, Lie2Buttons
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
@@ -20,7 +20,7 @@ def elevator_door_send_fun(what):
         print "WTF do you mean by '{}' in elevator_door_send_fun".format(what)
 
 logging.debug("Initializing door control")
-DoorController = _Dctrl("com50")
+DoorController = _Dctrl("/dev/ttyUSB1")
 ElevatorDoor = _Door(DoorController, 0)
 SafeDoor = _RemoteDoor(LockPicking, auto_close=False)
 BookDrawer = _Door(DoorController, 2)
