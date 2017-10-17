@@ -3,7 +3,7 @@ import sys
 if "win" in sys.platform:
     sys.path.append("C:\Users\SteinarrHrafn\Documents\GitHub\moteinopy")
 else:
-    sys.path.append("/home/pi/moteinopy")
+    sys.path.append("/home/campz/moteinopy")
 from moteinopy import MoteinoNetwork, look_for_base
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -143,11 +143,12 @@ if "win" in sys.platform:
     # mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 else:
     ports = os.popen("ls /dev/ttyUSB*").read()
+    print ports
     if ports:
         for p in ports.split('\n'):
-            ret, reason = look_for_base("/dev/ttyUSB0")
+            ret, reason = look_for_base(p)
             if not ret:
-                print reason
+                print "No base on {} because: {}".format(p, reason)
             else:
                 port = p
                 break
@@ -240,7 +241,7 @@ Elevator.add_translation("Command",
 WineBoxHolder = mynetwork.add_node(MoteinoIDs['WineBoxHolder'],
                                    MoteinoStructs['WineBoxHolder'],
                                    "WineBoxHolder")
-WineBoxHolder.add_translation("Command", ("open", 3601), ("close", 0))
+WineBoxHolder.add_translation("Command", ("Open", 3601), ("Close", 0))
 
 
 WineBox = mynetwork.add_node(MoteinoIDs['WineBox'],

@@ -91,6 +91,8 @@ def initialize_room(player_info={}):
     Elevator.send("SetActiveDoor", 1)
 
     Stealth.send("Reset")
+    LiePiA.send("Reset")
+    LiePiB.send("Reset")
 
     TapeRecorder.send("Reset")
     #taperecorder load 1 and pauses
@@ -179,6 +181,8 @@ def mission_fail_callback(event=None):
         MorseCompleted(fail=True)
     elif b_text == "Stealth Fail":
         StealthRetry()
+    elif b_text == "Start Lie Detector":
+        LieDetectorActivated(fail=True)
     else:
         print "Don't know what happened but b_text was: " + b_text
 for b in gui.MissionFailButtons:
@@ -244,13 +248,44 @@ def LieDetectorActivated(fail=False):
     if progressor.log("LieDetector"):
         gui.notify("Lie Detector Activated", fail=fail, solved= not fail)
         TapeRecorder.send(Command='Load', s="6.ogg"+ "\0"*5, filelength=37)
-        nextFailButton()
+        nextFailButton("Start Lie Detector")
+        run_after(TurnLieDetectorOn, seconds=5)
+
+
+LieDetectorHasBeenActivated = False
+LieDetectorVideos = ["B1.mov", "B2.mov", "B3.mov"]
+LieDetectorVideoPosition = 0
+
+
+def Lie2ButtonsReact(d):
+    print "Lie2ButtonsReact reacting to : " + str(d)
+    if d['Command'] == "Button1Press":
+        # PLay last video again
+        TvPi.send("PlayFile", LieDetectorVideos[LieDetectorVideoPosition])
+    elif d['Command'] == "Button2Press":
+        global LieDetectorVideoPosition
+        LieDetectorVideoPosition += 1
+        if LieDetectorVideoPosition >= len(LieDetectorVideos):
+            LieDetectorCompleted(fail=False)
+            pass
+        else:
+            TvPi.send("PlayFile", LieDetectorVideos[LieDetectorVideoPosition])
+
+Lie2Buttons.bind(receive=Lie2ButtonsReact)
+
+def TurnLieDetectorOn():
+    LiePiA.send("Start")
+    LiePiB.send("Start")
     
 
 def LieDetectorCompleted(fail=False):
     gui.notify("Lie Detector Completed", fail=fail, solved= not fail)
     TapeRecorder.send(Command='Load', s="7.ogg"+ "\0"*5, filelength=38)
-    nextFailButton()
+    nextFailButton("LieDetectorFail")
+    run_after(OpenWineBoxHolder, seconds=3)
+
+def OpenWineBoxHolder():
+    WineBoxHolder.send("Open")
 
 
 def ShootingRangeCompleted(fail=False):
@@ -372,5 +407,6 @@ gui.ActionMenu.add_command(label="Edit Group info", command=edit_group_info)
 if __name__ == "__main__":
     run_after(initialize_room, seconds=1)
     gui.top.mainloop()
+    quit()
 
 
