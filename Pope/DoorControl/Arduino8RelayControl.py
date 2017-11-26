@@ -7,6 +7,7 @@ CLOSED = 1
 class Door(object):
     OPEN = 0
     CLOSED = 1
+
     def __init__(self, controller, position):
         self.Controller = controller
         self.Position = position
@@ -25,11 +26,12 @@ class Door(object):
 
 class EmptyDoorSlot(object):
     def __init__(self):
-        self.State = OPEN
+        self.State = CLOSED
 
 
 class DoorController(object):
     def __init__(self, port):
+        print "Door Control starting on port {}".format(port)
         self.Serial = serial.Serial(port, 115200)
         self.Doors = [EmptyDoorSlot(),
                       EmptyDoorSlot(),
@@ -44,6 +46,8 @@ class DoorController(object):
         s = ''
         for door in self.Doors:
             s += str(door.State)
+
+        print "Sending: {}".format(s)
         self.Serial.write(s + '\n')
 
     def _set_(self, door, state):

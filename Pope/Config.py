@@ -1,21 +1,21 @@
 Devices = [
-    'GreenDude',
-    'SplitFlap',
-    'TimeBomb',
-    'Stealth',
-    'Morser',
-    'ShootingRange',
-    'LockPicking',
     'Elevator',
-    'WineBoxHolder',
+    'LockPicking',
+    'GreenDude',
     'WineBox',
+    'ShootingRange',
+    'Morser',
+    'Stealth',
     'Sirens',
-    'TvPi',
-    'TapeRecorder',
+    'TimeBomb',
     'LieButtons',
     'LiePiA',
     'LiePiB',
-    'Lie2Buttons'
+    'Lie2Buttons',
+    'SplitFlap',
+    'TapeRecorder',
+    'TvPi',
+    'WineBoxHolder',
 ]
 
 DeviceSubmenus = []

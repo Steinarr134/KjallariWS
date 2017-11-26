@@ -2,7 +2,7 @@ from MoteinoConfig import mynetwork, GreenDude, SplitFlap, \
      Morser, TimeBomb, LockPicking, Elevator, WineBoxHolder, \
      WineBox, TapeRecorder, LieButtons, moteino_status, \
      ShootingRange, Stealth, Sirens, LiePiA, LiePiB, Lie2Buttons, \
-     TvPi
+     TvPi, ProbablyDoorSerialPort
 from DoorControl import Door as _Door, DoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
@@ -10,6 +10,17 @@ import logging
 import time
 import HostInterface as gui
 from Config import *
+
+
+exitfunctions = []
+exitfunctions.append(mynetwork.shut_down)
+
+
+def exit():
+    print "Running Exit Functions"
+    for func in exitfunctions:
+        func()
+    quit()
 
 
 def elevator_door_send_fun(what):
@@ -20,8 +31,9 @@ def elevator_door_send_fun(what):
     else:
         print "WTF do you mean by '{}' in elevator_door_send_fun".format(what)
 
+
 logging.debug("Initializing door control")
-DoorController = _Dctrl("/dev/ttyUSB1")
+DoorController = _Dctrl(ProbablyDoorSerialPort)
 ElevatorDoor = _Door(DoorController, 0)
 SafeDoor = _RemoteDoor(LockPicking, auto_close=False)
 BookDrawer = _Door(DoorController, 2)
@@ -30,6 +42,8 @@ WineCaseDoor = _RemoteDoor(WineBox)
 StealthDoor = _Door(DoorController, 3)
 FromBombDoor = _Door(DoorController, 4)
 FinalExitDoor = _Door(DoorController, 5)
+
+print DoorController.Doors
 
 Doors = [ElevatorDoor,
          SafeDoor,
@@ -44,9 +58,21 @@ logging.debug("Doors Initialized")
 
 Send2SplitFlapLock = threading.Lock()
 
+Threads = []
+
+
+def join_threads():
+    for t in Threads:
+        t.join()
+
+
+exitfunctions.append(join_threads)
+
+
 class Send2SplitFlapThread(threading.Thread):
     def __init__(self, stuff2send):
         threading.Thread.__init__(self)
+        Threads.append(self)
         self.Stuff2Send = stuff2send
         self.start()
 
@@ -61,12 +87,14 @@ class Send2SplitFlapThread(threading.Thread):
                 time.sleep(5)
             SplitFlap.send("Clear")
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
-                
+
+
 def no_ack_fun(d):
     print d
     gui.notify("Oh, no! {} didn't hear us"
                "".format(d['Sender'].Name),
                warning=True)
+
 
 mynetwork.bind_default(no_ack=no_ack_fun)
 
@@ -89,7 +117,7 @@ class Progressor(object):
         self.ProgressTimes = []
 
     def current_cp(self):
-        return self.CheckPoints[self.progress]
+        return self.Checkpoints[self.progress]
     
     def log(self, checkpoint):
         print("###########  Progressor  {}, progress is {}"
@@ -101,11 +129,9 @@ class Progressor(object):
                                    "Should progress be overwritten?") == "yes"
             print "Answer = " + str(temp)
         if temp:
-            self.progress +=1
+            self.progress += 1
             self.ProgressTimes.append(time.time())
         return temp
 
 
-
 progressor = Progressor()
-        

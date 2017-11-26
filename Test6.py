@@ -1,3 +1,5 @@
+print "sdfljk"
+
 import pyodbc
 
 import Moteinos

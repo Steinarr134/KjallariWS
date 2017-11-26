@@ -104,7 +104,7 @@ MoteinoStructs = {
     'TapeRecorder':
         "int Command;"
         "char s[10];"
-        "int Filelength;"
+        "int FileLength;"
         "int LightValue;",
 
     'LieButtons':
@@ -137,7 +137,8 @@ MoteinoIDs = {
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
-
+port = None
+ProbablyDoorSerialPort = None
 if "win" in sys.platform:
     port = raw_input("what port?")
     # mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
@@ -150,9 +151,14 @@ else:
             if not ret:
                 print "No base on {} because: {}".format(p, reason)
             else:
+                print "Found base on port: {}".format(p)
                 port = p
                 break
-        
+if port is None:
+    print("No Base found, using fake base")
+else:
+    ProbablyDoorSerialPort = "/dev/ttyUSB1" if port == "/dev/ttyUSB0" else "/dev/ttyUSB0"
+
 mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 mynetwork.default_max_wait = 1000
 
@@ -310,6 +316,7 @@ def StealthRec(d):
     else:
         print "Stealth said: " + str(d)
 
+
 def moteino_status(device):
     d = mynetwork.send_and_receive(device, Command="Status")
     
@@ -354,7 +361,9 @@ def moteino_status(device):
         
     return ret
 
+
 Stealth.bind(receive=StealthRec)
+
 
 def test(d, n, **kwargs):
     ret = 0
