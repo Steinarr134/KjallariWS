@@ -6,6 +6,7 @@ import time
 scheduler = BackgroundScheduler()
 scheduler.start()
 
+logging.basicConfig(level=logging.DEBUG)
 
 def run_after(func, seconds=0, minutes=0):
     scheduler.add_job(func,
@@ -197,6 +198,9 @@ def mission_fail_callback(event=None):
         StealthRetry()
     elif b_text == "Start Lie Detector":
         LieDetectorActivated(fail=True)
+    elif b_text == "Lie Detector Fail":
+        LieDetectorCompleted(fail=True)
+    # elif b_text == "ShootingRangeFail":
     else:
         print "Don't know what happened but b_text was: " + b_text
 
@@ -241,7 +245,7 @@ def LockPickingCompleted(fail=False):
 
 def PlayLockPickingHint(fail=False):
     gui.notify("LockPicking hint started playing")
-    TapeRecorder.send(Command='Load', s="3.ogg"+ "\0"*5, FileLength=16)
+    TapeRecorder.send(Command='Load', s="3.ogg" + "\0"*5, FileLength=17)
 
 
 TapeRecorderIntroMessageStarted = False
@@ -268,7 +272,7 @@ def GreenDudeCompleted(fail=False):
 def LieDetectorActivated(fail=False):
     if progressor.log("LieDetector"):
         gui.notify("Lie Detector Activated", fail=fail, solved= not fail)
-        TapeRecorder.send(Command='Load', s="6.ogg"+ "\0"*5, FileLength=37)
+        TapeRecorder.send(Command='Load', s="6.ogg" + "\0"*5, FileLength=37)
         nextFailButton("Start Lie Detector")
         run_after(TurnLieDetectorOn, seconds=5)
 
@@ -285,7 +289,7 @@ def TurnLieDetectorOn():
 
 def LieDetectorCompleted(fail=False):
     gui.notify("Lie Detector Completed", fail=fail, solved= not fail)
-    TapeRecorder.send(Command='Load', s="7.ogg"+ "\0"*5, FileLength=38)
+    TapeRecorder.send(Command='Load', s="7.ogg" + "\0"*5, FileLength=38)
     nextFailButton("LieDetectorFail")
     run_after(OpenWineBoxHolder, seconds=3)
 

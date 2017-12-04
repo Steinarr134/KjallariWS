@@ -195,8 +195,8 @@ LockPicking.add_translation('Command',
                             ('SetCorrectPickOrder', 17601),
                             ('LockWasPicked', 17602),
                             ('OpenYourself', 17603),
-                            ('open', 17603),
-                            ('close', 0))
+                            ('Open', 17603),
+                            ('Close', 0))
 
 Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
                              MoteinoStructs['Stealth'],
@@ -254,7 +254,7 @@ WineBox = mynetwork.add_node(MoteinoIDs['WineBox'],
                              MoteinoStructs['WineBox'],
                              'WineBox')
 WineBox.add_translation("Command",
-                        ("open", 2401),
+                        ("Open", 2401),
                         ("IWasSolved", 2402),
                         ("SetTime2Solve", 2403))
 
@@ -357,7 +357,7 @@ def moteino_status(device):
     # ret += str(d)
 
     if 'RSSI' in d:
-        ret += "   RSSI: {}".format(d['RSSI'] - 0x7f)
+        ret += "   RSSI: {}".format(d['RSSI'])
         
     return ret
 
@@ -371,3 +371,7 @@ def test(d, n, **kwargs):
         ret += int(d.send(0, **kwargs))
     print "{} successfull out of {}     ({:.1%})".format(ret, i+1, ret/float(i+1))
     return ret
+
+
+if __name__ == '__main__':
+    mynetwork.shut_down()

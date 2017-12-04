@@ -19,7 +19,9 @@ exitfunctions.append(mynetwork.shut_down)
 def exit():
     print "Running Exit Functions"
     for func in exitfunctions:
+        print "running exitfunc: {}".format(func)
         func()
+    print "exitfunctions done"
     quit()
 
 
@@ -74,6 +76,7 @@ class Send2SplitFlapThread(threading.Thread):
         threading.Thread.__init__(self)
         Threads.append(self)
         self.Stuff2Send = stuff2send
+        self.setDaemon(True)
         self.start()
 
     def run(self):
@@ -113,7 +116,6 @@ class Progressor(object):
             "Morser",
         ]
         self.progress = 0
-
         self.ProgressTimes = []
 
     def current_cp(self):
@@ -135,3 +137,6 @@ class Progressor(object):
 
 
 progressor = Progressor()
+
+if __name__ == '__main__':
+    exit()

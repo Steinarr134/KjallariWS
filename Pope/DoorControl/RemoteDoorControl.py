@@ -38,10 +38,10 @@ class RemoteDoor(object):
 
     def open(self):
         self.State = OPEN
-        self.send_fun("open")
+        self.send_fun("Open")
         if self.AutoClose:
             CloseLaterThread(self, self.AutoCloseTime)
 
     def close(self):
         self.State = CLOSED
-        self.send_fun("close")
+        self.send_fun("Close")

@@ -1,4 +1,5 @@
 import serial
+import threading
 
 OPEN = 0
 CLOSED = 1
@@ -41,6 +42,7 @@ class DoorController(object):
                       EmptyDoorSlot(),
                       EmptyDoorSlot(),
                       EmptyDoorSlot()]
+        self.SerialWriteLock = threading.Lock()
 
     def _send_(self):
         s = ''
@@ -48,7 +50,8 @@ class DoorController(object):
             s += str(door.State)
 
         print "Sending: {}".format(s)
-        self.Serial.write(s + '\n')
+        with self.SerialWriteLock:
+            self.Serial.write(s + '\n')
 
     def _set_(self, door, state):
         if not isinstance(door, Door):
