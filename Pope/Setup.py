@@ -12,6 +12,11 @@ import HostInterface as gui
 from Config import *
 
 
+import sqlite3
+
+dbslod = "C:\Users\Valdi\Forrit\Sqlite\radgata.db"
+#dbslod er path á gagnagrunninn sem geymir tímana, mismunandi eftir á hvaða tölvu er unnið
+
 exitfunctions = []
 exitfunctions.append(mynetwork.shut_down)
 
@@ -131,8 +136,24 @@ class Progressor(object):
                                    "Should progress be overwritten?") == "yes"
             print "Answer = " + str(temp)
         if temp:
-            self.progress += 1
             self.ProgressTimes.append(time.time())
+
+            # self.progress er númer næstu þrautar sem er að byrja
+            if(len(self.ProgressTimes > 1):
+                timetaken = self.ProgressTimes[-1] - self.ProgressTime[-2]
+            # timetaken er, í sekúndum, tíminn sem síðasta þraut tók (munurinn á tímasetningu á síðustu og þarsíðustu þraut)
+
+            mins = timetaken // 60
+            secs = timetaken % 60
+            # tíminn sem þrautin tók er mins:secs
+
+            con = sqlite3.connect(dbslod)
+            cur = con.cursor()
+            with con:
+                upphafstimi = str( time.ctime(int(self.ProgressTimes[0])))
+                cur.execute("INSERT INTO timar VALUES ('" + upphafstimi + "','" + str(self.progress) + "','" + str(mins) + "','" + str(secs)))
+
+            self.progress += 1
         return temp
 
 
