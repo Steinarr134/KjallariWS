@@ -52,6 +52,8 @@ def pope_receive(d):
     elif d['Command'] == "Status":
         Pope.send("Status")
 
+
+
 Pope.bind(receive=pope_receive)
 
 

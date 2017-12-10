@@ -8,6 +8,7 @@ scheduler.start()
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def run_after(func, seconds=0, minutes=0):
     scheduler.add_job(func,
                       'date',
@@ -88,7 +89,6 @@ def initialize_room(player_info={}):
     player_info['room initialization time'] = t
     save_group_info(player_info)
 
-
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
@@ -120,11 +120,11 @@ def display_status_all_devices():
 
 
 def send_to_split_flap(event):
-    stuff2send = gui.SplitFlapEntry.get(1.0, gui.tk.END).strip()
+    stuff2send = gui.SplitFlapEntry.get(1.0, gui.tk.END).strip().upper()
     print "I want to send this to splitflap: " + stuff2send
     Send2SplitFlapThread(str(stuff2send))
     gui.SplitFlapEntry.delete(0., float(len(stuff2send)))
-    gui.notify( "'" + stuff2send.replace('\n', ' / ') + "' sent to SplitFlap", fail=True)
+    gui.notify("'" + stuff2send.replace('\n', ' / ') + "' sent to SplitFlap", fail=True)
 
 
 # gui.SplitFlapEntry.bind("<Return>", send_to_split_flap)
@@ -264,14 +264,14 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
 
 def GreenDudeCompleted(fail=False):
     if progressor.log("GreenDude"):
-        gui.notify("GreenDude Correct Passcode entered", fail=fail, solved= not fail)
+        gui.notify("GreenDude Correct Passcode entered", fail=fail, solved=not fail)
         TapeRecorder.send(Command='Load', s="5.ogg"+ "\0"*5, FileLength=21)
         nextFailButton("GreenDude Fail")
 
 
 def LieDetectorActivated(fail=False):
     if progressor.log("LieDetector"):
-        gui.notify("Lie Detector Activated", fail=fail, solved= not fail)
+        gui.notify("Lie Detector Activated", fail=fail, solved=not fail)
         TapeRecorder.send(Command='Load', s="6.ogg" + "\0"*5, FileLength=37)
         nextFailButton("Start Lie Detector")
         run_after(TurnLieDetectorOn, seconds=5)

@@ -134,6 +134,8 @@ MoteinoIDs = {
     'TapeRecorder': 42,
     'LieButtons': 51,
     'Lie2Buttons': 54,
+    'LiePiA': 53,
+    'LiePiB': 55,
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -173,6 +175,7 @@ GreenDude.add_translation('Command',
                           ('Disp', 1101),
                           ('SetPasscode', 1102),
                           ('CorrectPasscode', 1103))
+
 
 SplitFlap = mynetwork.add_node(MoteinoIDs['SplitFlap'],
                                MoteinoStructs['SplitFlap'],
@@ -295,10 +298,10 @@ LieButtons.add_translation("Command",
                            ("ChangePassCode", 5102),
                            ("Disp", 5103))
 
-LiePiA = mynetwork.add_node(53, "int Command;", "LiePiA")
+LiePiA = mynetwork.add_node(MoteinoIDs['LiePiA'], "int Command;", "LiePiA")
 LiePiA.add_translation("Command", ("Start", 50))
 
-LiePiB = mynetwork.add_node(52, "int Command;", "LiePiB")
+LiePiB = mynetwork.add_node(MoteinoIDs['LiePiB'], "int Command;", "LiePiB")
 LiePiB.add_translation("Command", ("Start", 50))
 
 Lie2Buttons = mynetwork.add_node(MoteinoIDs['Lie2Buttons'],

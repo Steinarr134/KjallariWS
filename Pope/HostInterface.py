@@ -52,7 +52,7 @@ def player_info(exit_button_callback, info={}):
     
     age_range_frame = tk.Frame(window)
     age_range_frame.pack(side=tk.TOP)
-    age_range_label1 = tk.Label(age_range_frame, text="Age Range (cirka):  From")
+    age_range_label1 = tk.Label(age_range_frame, text="Age Range (circa):  From")
     age_range_entry1 = tk.Entry(age_range_frame, bd=1, width=5)
     age_range_label2 = tk.Label(age_range_frame, text=" to ")
     age_range_entry2 = tk.Entry(age_range_frame, bd=1, width=5)
