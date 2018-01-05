@@ -1,4 +1,11 @@
- // for the radio
+/*
+Framtíðar möguleikar:
+- Self-calibrate function: Tengja rétt og láta arduinoinn mæla út réttar spennur og geyma í eeprom. Sækja svo úr eeprom í startup.
+eeprom er persistent memory, 1024 byte i atmega328p (sem er a moteino).
+https://www.arduino.cc/en/Reference/EEPROM
+
+*/
+// for the radio
 #include <RFM69.h>
 #include <SPI.h>
 #define NODEID        170    //unique for each node on same network
