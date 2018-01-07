@@ -1,5 +1,9 @@
 /*
- Öfugt: digitalWrite(Lights[i],LOW) kveikir ljosid, HIGH slekkur.
+ Virad ofugt, digitialWrite(Lights[i],LOW) kveikir ljosid, HIGH kveikir.
+
+ Ljos kveikna thegar ytt a takka. 
+ Rangt password: laetur pafa vita, bidur eftir akalli a LightWrong()
+ Rett password: laetur pafa vita, gerir inactive, bidur eftir akalli um LightRight()
 
 
 */
@@ -113,8 +117,8 @@ void loop(){
   if(active == 1){
     checkOnButtons();
 
-    // thetta kallar a check fallid, sem skilar true og sendir skilabod ef rett
-    // annars skildar thad false, sem er geymt i breytu og notad.
+    // thetta kallar a check fallid, sem skilar true og sendir pafa skilabod ef rett
+    // annars skilar thad false, sem er geymt i breytu og notad.
     boolean correct = checkIfCorrectPassCode();
 
     if((!correct) && ButtonPresses[0] != 255){
@@ -122,7 +126,7 @@ void loop(){
         resetButtonPresses();     // setur allt i 255 (== -1)
         lastChange = millis();
         Serial.println("reset 1 triggered");
-        //  lightWrong(); // -- commentad ut, pafi kallar a thetta.
+       // lightWrong(); // kommentad ut, tvhi pafi akvedur thetta
         }
       }
 
@@ -163,7 +167,7 @@ void resetButtonPresses(){
 boolean checkIfCorrectPassCode(){
   boolean check = true;
   for (int i=0; i<PassCodeLength; i++){
-    if ((PassCode[i]-1) != ButtonPresses[i]){
+    if ((PassCode[i]-1) != ButtonPresses[i]){   // "-1" thvi takkar byrja 1 en fylki a 0
       check = false;
       // return check;
     }
@@ -171,7 +175,7 @@ boolean checkIfCorrectPassCode(){
 
   if(check){
   active = 0;  
-  // lightRight(); // -- commentad ut, pafi kallar a thetta.
+ // lightRight();  // kommentad ut, tvhi pafi akvedur thetta
   Serial.println("Correct!, informing Pope");
   OutgoingData.Command = CorrectPassCode;
   sendOutgoingData();
@@ -179,7 +183,7 @@ boolean checkIfCorrectPassCode(){
   return check;
 }
 
-void acceptButtonPress(byte button){
+void acceptButtonPress(byte button){ // right-shiftar ButtonPresses[], baetir 'button' fremst
   for (int i=0; i<(PassCodeLength-1); i++){
     ButtonPresses[i] = ButtonPresses[i+1];
   }
