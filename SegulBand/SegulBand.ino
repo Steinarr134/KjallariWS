@@ -15,8 +15,11 @@ typedef struct{         // Þarf að stilla
   int Command;
   byte MotorTemp;
   byte DriverTemp;
-  int CurrentPosition;
+  long CurrentPosition;
   byte LightIntensity;
+  int Acceleration;
+  int SlowSpeed;
+  int FastSpeed;
 } Payload;
 Payload OutgoingData;
 Payload IncomingData;
@@ -33,6 +36,7 @@ const int FastForward = 1304;
 const int ReturnToZero = 1305;
 const int SetParams = 1306;
 const int SetLights = 1307;
+const int SetCurrentPosAsZero = 1308;
 
 // Outgoing:
 const int SendRewind = 1351;
@@ -181,6 +185,11 @@ void react()
     case SetLights:
       setLights();
       break;
+    case SetCurrentPosAsZero:
+      Motor.stop();
+      while (Motor.run()) {}
+      Motor.setCurrentPosition(0);
+      break;
     default:
       Serial.println("Error: Command not recognized");
       break;
@@ -196,8 +205,7 @@ void sendStatus()
   OutgoingData.DriverTemp = (byte) sensors.getTempC(DriverSensor);
   Serial.println(OutgoingData.MotorTemp);
   OutgoingData.Command = Status;
-  OutgoingData.LightIntensity = 100;
-  OutgoingData.CurrentPosition = 101;
+  OutgoingData.CurrentPosition = Motor.currentPosition();
 //  OutgoingData.numbers[7] = 10*sensors.getTempC(HousingSensor);
   Serial.println("sending status");
   send();
@@ -215,6 +223,11 @@ void send()
 void play()
 {
   enableMotor();
+  Motor.stop();
+  while (abs(Motor.speed()) > SlowSpeed)
+  {
+    runMotor();
+  }
   Motor.setMaxSpeed(SlowSpeed);
   Serial.print("SlowSpeed");
   Serial.print("\t");
@@ -231,7 +244,7 @@ void rewind()
 {
   enableMotor();
   Motor.setMaxSpeed(FastSpeed);
-  Motor.moveTo(0);
+  Motor.moveTo(-MaxPosition);
 }
 
 void fastForward()
@@ -253,7 +266,9 @@ void returnToZero()
 
 void setParams()
 { 
-  Motor.setAcceleration(Acceleration);
+  Motor.setAcceleration(IncomingData.Acceleration);
+  SlowSpeed = IncomingData.SlowSpeed;
+  FastSpeed = IncomingData.FastSpeed;
 }
 
 void setLights()

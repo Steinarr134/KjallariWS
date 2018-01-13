@@ -1,4 +1,3 @@
-
 import sys
 if "win" in sys.platform:
     sys.path.append("C:\Users\SteinarrHrafn\Documents\GitHub\moteinopy")

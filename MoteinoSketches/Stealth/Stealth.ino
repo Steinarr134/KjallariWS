@@ -1,4 +1,4 @@
-//#include <SPIFlash.h>
+#include <SPIFlash.h>
 #include <Wire.h>
 #include <RFM69.h>
 #include <SPI.h>
@@ -62,10 +62,11 @@ void setup() {
   radio.promiscuous(promiscuousMode);
 
   //Serial.println("sdsdfsdfa");
-  while (false)
+  /*while (false)
   {
     checkOnRadio();
   }
+  */
   //Retrieve the last sequence from the EEPROM memory
 
   for (int i = 0; i < sequenceSize; i++) {

@@ -1,4 +1,4 @@
-
+// --- ALARM
 // for the radio
 #include <RFM69.h>
 #include <SPI.h>
@@ -7,6 +7,8 @@
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
+#define maxAlarmTime  30000     // 30 sec?
+
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
@@ -31,17 +33,21 @@ byte BaseID = 1;
 const int Status = 99;
 const int Reset = 98;
 const int TogglePin1 = 3701;
-const int TogglePin2 = 3702;
+const int TogglePin2 = 3702;   // <-- nota thessa skipun
 const int SetPin1High = 3703;
 const int SetPin1Low = 3704;
-const int SetPin2High = 3705;
-const int SetPin2Low = 3706;
+const int SetPin2High = 3705;  // <-- og thessar tvaer, hi og lo.
+const int SetPin2Low = 3706;   // <--
 
 byte Pin1 = 9;
-byte Pin2 = 7;
+byte Pin2 = 7;      // PIN 7 --> base á npn darlington. 7.high== sirena ON, 7.low==sirena OFF
 
 byte State[2] = {0};
 byte Pins[] = {Pin1, Pin2};
+
+// Fail-safe: til ad alarm festist ekki i gangi. maxAlarmTime skilgreint i #define efsts
+boolean alarmOn = false;
+unsigned long int alarmOnTime = 0;     
 
 void setup() {
   // initiate Serial port:
@@ -83,6 +89,21 @@ void loop()
   // overwrite if it receives a new one. If nothing has been received checkOnRadio() will return
   // immediately.
   checkOnRadio();
+
+
+  // Baett vid eftira. Fail-safe, maxAlarmTime:
+  if(State[1] && !alarmOn)
+  {
+    alarmOn = true;
+    alarmOnTime=millis();
+  }
+  if(alarmOn && (millis() - alarmOnTime >= maxAlarmTime))
+  {
+    digitalWrite(Pins[1], LOW);   // slökkva a alarm
+    alarmOnTime = 0;
+    alarmOn = false;
+  }
+
 }
 
 void _Toggle(byte pin)
@@ -171,4 +192,3 @@ bool sendOutgoingData()
 {
   return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),sizeof(OutgoingData));
 }
-
