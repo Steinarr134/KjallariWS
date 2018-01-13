@@ -1,20 +1,23 @@
-    #!/usr/bin/env python
+#!/usr/bin/env python
+
+
+
 import sys
 import time
-sys.stderr = open("/home/pi/logs/" + str(time.time())+"_err.txt", 'w+')
+# sys.stderr = open("/home/pi/logs/" + str(time.time())+"_err.txt", 'w+')
 import RPi.GPIO as GPIO
 from arduino import Motor
 import atexit
 from pygame import mixer
 import threading
-from RasPiCommunication import Receiver
+from moteinopy import MoteinoNetwork
 import demjson
 import os
 import logging
-
 logging.basicConfig(level=logging.DEBUG)
 
-print "running..."
+print "imports done..."
+
 GPIO.setmode(GPIO.BCM)
 atexit.register(GPIO.cleanup)
 
@@ -31,7 +34,7 @@ class File(object):
 
 f = File()
 
-
+StupidState = True
 ScrollSpeed = 4
 last_press = None
 last_press_time = None
@@ -82,6 +85,9 @@ def skip(s):
 
 
 def play():
+    if StupidState:
+        motor.play()
+        return
     if file_over():
         return
     global playing_active
@@ -99,6 +105,9 @@ def stop():
 
 
 def forward():
+    if StupidState:
+        motor.forward()
+        return
     if file_over():
         return
     m.pause()
@@ -125,6 +134,9 @@ def forward():
         print "waiting ended"
 
 def rewind():
+    if StupidState:
+        motor.rewind()
+        return
     if not SomethingIsLoaded:
         return
     m.pause()
@@ -150,6 +162,8 @@ def rewind():
         print "waiting ended"
 
 def release():
+    if StupidState:
+        return
     global something_is_being_pressed
     something_is_being_pressed = False
     print "release()"
@@ -192,7 +206,7 @@ class ExecutionThread(threading.Thread):
     def __init__(self, fun):
         threading.Thread.__init__(self)
         self.fun = fun
-        
+
     def run(self):
         self.fun()
 
@@ -211,7 +225,7 @@ def reverse_button_press(channel):
         print "reverse was depressed"
         e = ExecutionThread(release)
         e.start()
-        
+
 GPIO.setup(reverse_button_pin, GPIO.IN)
 GPIO.add_event_detect(reverse_button_pin,
                       GPIO.BOTH,
@@ -236,7 +250,7 @@ def forward_button_press(channel):
         print "forward was depressed"
         e = ExecutionThread(release)
         e.start()
-        
+
 GPIO.setup(forward_button_pin, GPIO.IN)
 GPIO.add_event_detect(forward_button_pin,
                       GPIO.BOTH,
@@ -277,27 +291,69 @@ def handle_command(stuff):
     if type(stuff) != dict:
         stuff = dict(stuff)
     if stuff['Command'] == "Load":
-        load(filename="/home/pi/KjallariWS/SegulBand/audio_files/" + stuff['filename'],
-             filelength=stuff['filelength'])
-        if stuff['StartPlaying']:
+        global StupidState
+        StupidState = False
+        print "loading: " + stuff['s'].strip("\0")
+        load(filename="/home/pi/KjallariWS/SegulBand/audio_files/" + stuff['s'].strip("\0").strip(),
+             filelength=stuff['FileLength'])
+        if stuff['s']:
             play()
     elif stuff['Command'] == "Play":
         play()
     elif stuff['Command'] == "Pause":
         stop()
+    elif stuff['Command'] == "Forward":
+        forward()
+    elif stuff['Command'] == "Reverse":
+        reverse()
     elif stuff['Command'] == "ShutDown":
         os.system("sudo shutdown -h now")
     elif stuff['Command'] == "Reboot":
         os.system("sudo reboot")
     elif stuff['Command'] == "SetLights":
         motor.set_lights(stuff['value'])
+    elif stuff['Command'] == "Status":
+        Pope.send("Status")
+    elif stuff['Command'] == "Reset":
+        motor.return2zero()
+    elif stuff['Command'] == "SetCurrentPosAsZero":
+        motor.set_current_pos_as_zero()
+    elif stuff['Command'] == "SetStupidState":
+        global StupidState
+        StupidState = True
     else:
         logging.warning("did not understand command: " + str(stuff))
 
-rec = Receiver()
-rec.bind(handle_command, ('192.168.1.101', 1234))
+print "setting up moteinos"
+
+if motor.Port == "/dev/ttyUSB0":
+    Moteinos = MoteinoNetwork("/dev/ttyUSB1", base_id=42, baudrate=38400)
+else:
+    Moteinos = MoteinoNetwork("/dev/ttyUSB0", base_id=42, baudrate=38400)
+
+Pope = Moteinos.add_node(1, "int Command;char s[10];int FileLength;int LightValue;", "Pope")
+Pope.bind(receive=handle_command)
+Pope.add_translation("Command",
+    ("Play", 4201),
+    ("Pause", 4202),
+    ("Forward", 4207),
+    ("Reverse", 4208),
+    ("ShutDown", 4203),
+    ("Reboot", 4204),
+    ("Setlights", 4205),
+    ("Load", 4206),
+    ("Status", 99),
+    ("Reset", 98),
+    ("SetCurrentPosAsZero", 4209),
+    ("SetStupidState", 4210))
+
+motor.set_params(3000, 800, 2200)
 
 
 while True:
-    time.sleep(10)
-    logging.debug(time.time())
+    time.sleep(100)
+
+    # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
+    # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))
+
+    # logging.debug(time.time())
