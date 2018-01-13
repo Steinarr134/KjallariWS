@@ -273,16 +273,18 @@ def LieDetectorActivated(fail=False):
     if progressor.log("LieDetector"):
         gui.notify("Lie Detector Activated", fail=fail, solved=not fail)
         TapeRecorder.send(Command='Load', s="6.ogg" + "\0"*5, FileLength=37)
+
         nextFailButton("Start Lie Detector")
         run_after(TurnLieDetectorOn, seconds=5)
 
 
 LieDetectorHasBeenActivated = False
 LieDetectorVideos = ["B1.mov", "B2.mov", "B3.mov"]
-LieDetectorVideoPosition = 0
+LieDetectorVideoPosition = -1
 
 
 def TurnLieDetectorOn():
+    print "TurnLieDetectorOn()"
     LiePiA.send("Start")
     LiePiB.send("Start")
 
@@ -395,20 +397,21 @@ currentFailButton = 0
 
 def lie_2_buttons_receive(d):
     print "lie_2_buttons_receive reacting to : " + str(d)
-    if progressor.current_cp().lower() == "LieDetector":
+    if progressor.current_cp() == "LieDetector":
         if d['Command'] == "Button1Press":
             # PLay last video again
-            TvPi.send("PlayFile", LieDetectorVideos[LieDetectorVideoPosition])
+            if LieDetectorVideoPosition >= 0:
+                TvPi.send("PlayFile", LieDetectorVideos[LieDetectorVideoPosition])
         elif d['Command'] == "Button2Press":
             global LieDetectorVideoPosition
             LieDetectorVideoPosition += 1
             if LieDetectorVideoPosition >= len(LieDetectorVideos):
                 LieDetectorCompleted(fail=False)
-                pass
             else:
                 TvPi.send("PlayFile", LieDetectorVideos[LieDetectorVideoPosition])
     else:
-        print "Progressor doesn't want to do stuff for lie_2_buttons_receive"
+        print "Progressor doesn't want to do stuff for lie_2_buttons_receive, " \
+              "current progress was: {}".format(progressor.current_cp())
 
 
 Lie2Buttons.bind(receive=lie_2_buttons_receive)

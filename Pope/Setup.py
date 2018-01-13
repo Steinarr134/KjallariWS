@@ -116,13 +116,13 @@ class Progressor(object):
             "Morser",
         ]
         self.progress = 0
-        self.ProgressTimes = []
+        self.ProgressTimes = [None for cp in self.Checkpoints]
 
     def current_cp(self):
         return self.Checkpoints[self.progress]
     
     def log(self, checkpoint):
-        print("###########  Progressor  {}, progress is {}"
+        print("###########  Progressor  {}, next progress should be {}"
               "".format(checkpoint, self.Checkpoints[self.progress+1]))
         temp = True
         if self.Checkpoints[self.progress+1] != checkpoint:
@@ -131,8 +131,12 @@ class Progressor(object):
                                    "Should progress be overwritten?") == "yes"
             print "Answer = " + str(temp)
         if temp:
-            self.progress += 1
-            self.ProgressTimes.append(time.time())
+            if checkpoint in self.Checkpoints:
+                print "Setting progress to {} (index:{})".format(checkpoint, self.Checkpoints.index(checkpoint))
+                self.progress = self.Checkpoints.index(checkpoint)
+                self.ProgressTimes[self.Checkpoints.index(checkpoint)] = time.time()
+            else:
+                raise ValueError("Checkpoint was: {}".format(checkpoint))
         return temp
 
 

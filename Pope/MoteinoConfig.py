@@ -17,7 +17,6 @@ ToDo:
 
 """
 
-
 Moteinos = ['GreenDude',
             'SplitFlap',
             'TimeBomb',
@@ -135,7 +134,7 @@ MoteinoIDs = {
     'LieButtons': 51,
     'Lie2Buttons': 54,
     'LiePiA': 53,
-    'LiePiB': 55,
+    'LiePiB': 52,
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -162,6 +161,7 @@ else:
     ProbablyDoorSerialPort = "/dev/ttyUSB1" if port == "/dev/ttyUSB0" else "/dev/ttyUSB0"
 
 mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
+mynetwork.logger.setLevel(logging.DEBUG)
 mynetwork.default_max_wait = 1000
 
 mynetwork.add_global_translation('Command',
@@ -176,7 +176,6 @@ GreenDude.add_translation('Command',
                           ('SetPasscode', 1102),
                           ('CorrectPasscode', 1103))
 
-
 SplitFlap = mynetwork.add_node(MoteinoIDs['SplitFlap'],
                                MoteinoStructs['SplitFlap'],
                                'SplitFlap')
@@ -188,8 +187,8 @@ Morser = mynetwork.add_node(MoteinoIDs['Morser'],
                             MoteinoStructs['Morser'],
                             'Morser')
 Morser.add_translation('Command',
-                       ('SetPasscode', 155),
-                       ('CorrectPasscode', 151))
+                       ('SetPasscode', 1505),
+                       ('CorrectPasscode', 1501))
 
 LockPicking = mynetwork.add_node(MoteinoIDs['LockPicking'],
                                  MoteinoStructs['LockPicking'],
@@ -199,7 +198,8 @@ LockPicking.add_translation('Command',
                             ('LockWasPicked', 17602),
                             ('OpenYourself', 17603),
                             ('Open', 17603),
-                            ('Close', 0))
+                            ('SetActive', 17604),
+                            ('SetInactive', 17605))
 
 Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
                              MoteinoStructs['Stealth'],
@@ -277,7 +277,9 @@ TapeRecorder.add_translation("Command",
                              ("Reboot", 4204),
                              ("Setlights", 4205),
                              ("Load", 4206),
-                             ("Status", 99))
+                             ("Forward", 4207),
+                             ("Reverse", 4208),
+                             ("bla", 4209))
 
 Sirens = mynetwork.add_node(MoteinoIDs['Sirens'],
                             MoteinoStructs['Sirens'],
@@ -296,6 +298,8 @@ LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
 LieButtons.add_translation("Command",
                            ("CorrectPassCode", 5101),
                            ("ChangePassCode", 5102),
+                           ("CorrectLightShow", 5106),
+                           ("IncorrectLightShow", 5107),
                            ("Disp", 5103))
 
 LiePiA = mynetwork.add_node(MoteinoIDs['LiePiA'], "int Command;", "LiePiA")
