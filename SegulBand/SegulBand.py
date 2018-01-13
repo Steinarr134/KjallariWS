@@ -296,7 +296,9 @@ def handle_command(stuff):
         print "loading: " + stuff['s'].strip("\0")
         load(filename="/home/pi/KjallariWS/SegulBand/audio_files/" + stuff['s'].strip("\0").strip(),
              filelength=stuff['FileLength'])
-        if stuff['s']:
+        if stuff['s'].strip("\0").strip() == "1.ogg"
+            motor.set_current_pos_as_zero()
+        elif stuff['s'].strip():
             play()
     elif stuff['Command'] == "Play":
         play()
@@ -316,6 +318,8 @@ def handle_command(stuff):
         Pope.send("Status")
     elif stuff['Command'] == "Reset":
         motor.return2zero()
+        global StupidState
+        StupidState = True
     elif stuff['Command'] == "SetCurrentPosAsZero":
         motor.set_current_pos_as_zero()
     elif stuff['Command'] == "SetStupidState":
