@@ -21,6 +21,7 @@ typedef struct {
   unsigned int Command;
   byte Lights[7];
   byte Temperature;
+  byte PassCode[7];
 } Payload;
 Payload OutgoingData;
 Payload IncomingData;
@@ -28,7 +29,7 @@ byte DataLen = 10;
 byte BaseID = 1;
 
 // operating variables
-const int CorrectPassCode = 25;
+const int CorrectPassCode = 1103;
 const int Status = 99;
 const int Disp = 1101;
 const int SetPassCode = 1102;
@@ -186,7 +187,7 @@ void setPassCode()
 {
   for (byte i = 0; i < 7; i++)
   {
-    CorrectSwitchState[i] = IncomingData.Lights[i];
+    CorrectSwitchState[i] = IncomingData.PassCode[i];
   }
 }
 
@@ -197,6 +198,7 @@ void sendStatus()
   for (byte i = 0; i < 7; i++)
   {
     OutgoingData.Lights[i] = CurrentSwitchState[i];
+    OutgoingData.Passcode[i] = CorrectSwitchState[i];
   }
   OutgoingData.Temperature = getTemperature();
   if (!sendOutgoing())

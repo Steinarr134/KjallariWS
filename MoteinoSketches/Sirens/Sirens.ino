@@ -1,15 +1,18 @@
-
+// --- ALARM
 // for the radio
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        176    //unique for each node on same network
+#define NODEID        37    //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
+#define maxAlarmTime  30000     // 30 sec?
+
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
+byte LED = 9;
 
 // Here we define our struct.
 // The radio always sends 64 bytes of data. The RFM69 library uses 3 bytes as a header
@@ -17,8 +20,7 @@ bool promiscuousMode = false; //set to 'true' to sniff all packets on the same n
 // since multiple structs to single nodes hasn't been implemented into moteinopy.
 typedef struct{
   int Command;
-  byte PickOrder[6];
-  int Temperature;
+  int Milliseconds;
   long Uptime;
 } Payload;
 
@@ -30,17 +32,22 @@ byte BaseID = 1;
 // Command values:
 const int Status = 99;
 const int Reset = 98;
-const int SetCorrectPickOrder = 17601;
-const int LockWasPicked = 17602;
+const int TogglePin1 = 3701;
+const int TogglePin2 = 3702;   // <-- nota thessa skipun
+const int SetPin1High = 3703;
+const int SetPin1Low = 3704;
+const int SetPin2High = 3705;  // <-- og thessar tvaer, hi og lo.
+const int SetPin2Low = 3706;   // <--
 
-const int _outputPins[] = {3, 4, 5, 6, 7, 14};
-const int NUMBER_OF_OUTPUTS = 6;
-const int _inputPins[] = {15, 16, 17, 18, 19, A6};
-const int NUMBER_OF_INPUTS = 6;
-boolean _pinsStatus[] = {false, false, false, false, false, false};
-int _pickOrder[] = {0,1,2,3,4,5};
-int _pinsPicked = 0;
-const int analogThreshold = 400;
+byte Pin1 = 9;
+byte Pin2 = 7;      // PIN 7 --> base á npn darlington. 7.high== sirena ON, 7.low==sirena OFF
+
+byte State[2] = {0};
+byte Pins[] = {Pin1, Pin2};
+
+// Fail-safe: til ad alarm festist ekki i gangi. maxAlarmTime skilgreint i #define efsts
+boolean alarmOn = false;
+unsigned long int alarmOnTime = 0;     
 
 void setup() {
   // initiate Serial port:
@@ -53,17 +60,26 @@ void setup() {
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
 
-  
+  pinMode(Pin1, OUTPUT);
+  pinMode(Pin2, OUTPUT);
+  digitalWrite(Pin1, LOW);
+  digitalWrite(Pin2, LOW);
 
 
-  ////////////////// put your code here
+//  digitalWrite(Pin1, HIGH);
+//  delay(250);
+//  digitalWrite(Pin1, LOW);
+//  digitalWrite(Pin2, HIGH);
+//  delay(250);
+//  digitalWrite(Pin2, LOW);
+  Toggle(0, 2000);
+  Toggle(1, 2000);
+  Serial.println("Started");
 
-  DeclareOutputs();
 }
 
 void loop()
 {
-
 
   ////////////////// put your code here as well
 
@@ -72,21 +88,40 @@ void loop()
   // background but doesn't send back an ack. The radio also only holds 1 data packet so it will
   // overwrite if it receives a new one. If nothing has been received checkOnRadio() will return
   // immediately.
-
-  CheckForChange();
   checkOnRadio();
 
-  if (IsLockPicked())
+
+  // Baett vid eftira. Fail-safe, maxAlarmTime:
+  if(State[1] && !alarmOn)
   {
-    SendInfoAboutLockPick();
+    alarmOn = true;
+    alarmOnTime=millis();
   }
-  
+  if(alarmOn && (millis() - alarmOnTime >= maxAlarmTime))
+  {
+    digitalWrite(Pins[1], LOW);   // slökkva a alarm
+    alarmOnTime = 0;
+    alarmOn = false;
+  }
+
 }
 
-void SendInfoAboutLockPick()
+void _Toggle(byte pin)
 {
-  OutgoingData.Command = LockWasPicked;
-  sendOutgoingData();
+  State[pin] = !State[pin];
+  /*Serial.print("Flipping pin: ");
+  Serial.print(Pins[pin]);
+  Serial.print(" to ");
+  Serial.println(State[pin]);
+  delay(100);*/
+  digitalWrite(Pins[pin], State[pin]);
+}
+
+void Toggle(byte pin, int t)
+{
+  _Toggle(pin);
+  delay(t);
+  _Toggle(pin);
 }
 
 void checkOnRadio()
@@ -103,19 +138,36 @@ void checkOnRadio()
       radio.sendACK();
     }
     // useful for debugging:
-//    Serial.print("Received: command: ");
-//    Serial.println(IncomingData.Command);
+    Serial.print("Received: command: ");
+    Serial.println(IncomingData.Command);
 
     switch (IncomingData.Command)
     {
       case Status:
         sendStatus();
         break;
-      case SetCorrectPickOrder:
-        for (int i = 0; i < NUMBER_OF_INPUTS; i++)
-        {
-          _pickOrder[i] = IncomingData.PickOrder[i];
-        }
+      case Reset:
+        Serial.println("Restarting from sketch");
+        delay(100);
+        asm volatile (" jmp 0");
+        break;
+      case TogglePin1:
+        Toggle(0, IncomingData.Milliseconds);
+        break;
+      case TogglePin2:
+        Toggle(1, IncomingData.Milliseconds);
+        break;
+      case SetPin1High:
+        digitalWrite(Pins[0], HIGH);
+        break;
+      case SetPin1Low:
+        digitalWrite(Pins[0], LOW);
+        break;
+      case SetPin2High:
+        digitalWrite(Pins[1], HIGH);
+        break;
+      case SetPin2Low:
+        digitalWrite(Pins[1], LOW);
         break;
       default:
         Serial.print("Received unkown Command: ");
@@ -133,7 +185,6 @@ void sendStatus()
 {
   OutgoingData.Command = Status;
   OutgoingData.Uptime = millis();
-  OutgoingData.Temperature = (int)radio.readTemperature(0);
   sendOutgoingData();
 }
 
@@ -141,73 +192,3 @@ bool sendOutgoingData()
 {
   return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),sizeof(OutgoingData));
 }
-
-
-void CheckForChange(){
-  for(int i = 0; i < NUMBER_OF_INPUTS; i++){
-      int sensorVal = ReadPin(i);
-      
-      if(sensorVal == LOW){
-        continue;
-      }
-      
-      if(_pinsStatus[i]){
-        continue;
-      }
-      
-      if(i != _pickOrder[_pinsPicked]){
-        ResetPins();
-        break;
-      }
-
-      PullUpPin(i);
- 
-  }
-}
-
-boolean IsLockPicked(){
-  for(int pin = 0; pin < NUMBER_OF_INPUTS; pin++){
-    if(_pinsStatus[pin] == false){
-      return false;
-    }
-  }
-  return true;
-}
-
-int ReadPin(int pin){
-  if(pin != 5){
-    return digitalRead(_inputPins[pin]);
-  }
-
-  return analogRead(_inputPins[pin]);
-}
-
-void PullUpPin(int pin){
-  digitalWrite(_outputPins[pin], HIGH);
-  _pinsPicked++;
-  _pinsStatus[pin] = true; 
-}
-
-void ResetPins(){
-  for(int i = 0; i < NUMBER_OF_OUTPUTS; i++){
-    digitalWrite(_outputPins[i], LOW);
-    _pinsStatus[i] = false;
-  }
-  _pinsPicked = 0;
-}
-
-void DeclareOutputs(){
-  for(int i = 0; i < NUMBER_OF_OUTPUTS; i++){
-    pinMode(_outputPins[i], OUTPUT);
-    digitalWrite(_outputPins[i],LOW);
-  }
-}
-
-void DeclareInputs(){
-  for(int i = 0; i < NUMBER_OF_INPUTS; i++){
-    pinMode(_inputPins[i], INPUT);
-  }
-}
-
-
-

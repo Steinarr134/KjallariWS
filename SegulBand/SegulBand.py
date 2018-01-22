@@ -4,7 +4,11 @@
 
 import sys
 import time
+<<<<<<< HEAD
 sys.stderr = open("/home/pi/logs/" + str(time.time())+"_errrrr.txt", 'w+')
+=======
+# sys.stderr = open("/home/pi/logs/" + str(time.time())+"_err.txt", 'w+')
+>>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
 import RPi.GPIO as GPIO
 from arduino import Motor
 import atexit
@@ -206,7 +210,7 @@ class ExecutionThread(threading.Thread):
     def __init__(self, fun):
         threading.Thread.__init__(self)
         self.fun = fun
-        
+
     def run(self):
         self.fun()
 
@@ -225,7 +229,7 @@ def reverse_button_press(channel):
         print "reverse was depressed"
         e = ExecutionThread(release)
         e.start()
-        
+
 GPIO.setup(reverse_button_pin, GPIO.IN)
 GPIO.add_event_detect(reverse_button_pin,
                       GPIO.BOTH,
@@ -250,7 +254,7 @@ def forward_button_press(channel):
         print "forward was depressed"
         e = ExecutionThread(release)
         e.start()
-        
+
 GPIO.setup(forward_button_pin, GPIO.IN)
 GPIO.add_event_detect(forward_button_pin,
                       GPIO.BOTH,
@@ -296,7 +300,11 @@ def handle_command(stuff):
         print "loading: " + stuff['s'].strip("\0")
         load(filename="/home/pi/KjallariWS/SegulBand/audio_files/" + stuff['s'].strip("\0").strip(),
              filelength=stuff['FileLength'])
+<<<<<<< HEAD
         if stuff['s'].strip("\0").strip() == "1.ogg":
+=======
+        if stuff['s'].strip("\0").strip() == "1.ogg"
+>>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
             motor.set_current_pos_as_zero()
         elif stuff['s'].strip():
             play()
@@ -306,8 +314,13 @@ def handle_command(stuff):
         stop()
     elif stuff['Command'] == "Forward":
         forward()
+<<<<<<< HEAD
     elif stuff['Command'] == "Rewind":
         rewind()
+=======
+    elif stuff['Command'] == "Reverse":
+        reverse()
+>>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
     elif stuff['Command'] == "ShutDown":
         os.system("sudo shutdown -h now")
     elif stuff['Command'] == "Reboot":
@@ -341,7 +354,11 @@ Pope.add_translation("Command",
     ("Play", 4201),
     ("Pause", 4202),
     ("Forward", 4207),
+<<<<<<< HEAD
     ("Rewind", 4208),
+=======
+    ("Reverse", 4208),
+>>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
     ("ShutDown", 4203),
     ("Reboot", 4204),
     ("Setlights", 4205),
@@ -352,6 +369,7 @@ Pope.add_translation("Command",
     ("SetStupidState", 4210))
 
 motor.set_params(3000, 800, 2200)
+<<<<<<< HEAD
 
 
 while True:
@@ -360,4 +378,14 @@ while True:
     # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
     # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))
     
+=======
+
+
+while True:
+    time.sleep(100)
+
+    # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
+    # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))
+
+>>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
     # logging.debug(time.time())

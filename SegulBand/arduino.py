@@ -71,6 +71,14 @@ class Motor(object):
 
     def _send_command(self, command):
         self._write(self.Struct.encode({'Command': command}) + '\n')
+<<<<<<< HEAD
+=======
+
+    def _write(self, msg):
+        with self.SerialLock:
+            logging.debug("sending '{}' to serial port".format(msg))
+            self.Serial.write(msg+"\n")
+>>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
 
     def _write(self, msg):
         with self.SerialLock:
@@ -97,7 +105,11 @@ class Motor(object):
 
     def set_params(self, acc, slow, fast):
         self._write(self.Struct.encode(
+<<<<<<< HEAD
             {"Command": self.SetParams, 
+=======
+            {"Command": self.SetParams,
+>>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
              "Acceleration": acc,
              "SlowSpeed": slow,
              "FastSpeed": fast}))
