@@ -5,7 +5,7 @@ import logging
 import os
 import time
 import atexit
-import demjson
+import pickle
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -80,7 +80,9 @@ class SocketThread(threading.Thread):
                     if not incoming:
                         return
                     else:
-                        self.React(demjson.decode(incoming))
+                        incoming = incoming.strip("\"")
+                        logging.debug("received: {}".format(incoming))
+                        self.React(pickle.loads(incoming))
 
 
 class SocketAcceptingThread(threading.Thread):

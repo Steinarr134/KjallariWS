@@ -52,11 +52,8 @@ class Motor(object):
         self.Struct = Struct("int Command;"
                              "byte MotorTemp;"
                              "byte DriverTemp;"
-                             "long CurrentPos;"
-                             "byte LightIntensity;"
-                             "int Acceleration;"
-                             "int SlowSpeed;"
-                             "int FastSpeed;")
+                             "int CurrentPos;"
+                             "byte LightIntensity;")
         self.Status = 99
         self.Play = 1301
         self.Stop = 1302
@@ -95,13 +92,6 @@ class Motor(object):
     def set_current_pos_as_zero(self):
         self.send_command(self.SetCurrentPosAsZero)
 
-    def set_params(self, acc, slow, fast):
-        self._write(self.Struct.encode(
-            {"Command": self.SetParams, 
-             "Acceleration": acc,
-             "SlowSpeed": slow,
-             "FastSpeed": fast}))
-
     def get_temps(self):
         self._send_command(self.Status)
         incoming = self.Serial.readline()
@@ -109,4 +99,5 @@ class Motor(object):
 
     def set_lights(self, intensity):
         self._write(self.Struct.encode({'Command': self.SetLights,
-                                        'LightIntensity': intensity}))
+                                                  'LightIntensity': intensity})
+                                       +'\n')
