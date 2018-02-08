@@ -1,0 +1,18 @@
+ID: 007
+Date: <date>
+PlayerInfo: {Players: 4, Age Range: [30, 40], Nationality: "sdfsd", Gender: "male"/"female"/"both"}
+
+
+Elevator: {failed: False, finished: 231214324}
+LockPicking: {failed: False, finished: 22324}
+GreenDude: {failed: False, finihed: 2342342}
+LieDetector: {failed: False, started: 2323, finished: sdfsdf}
+WineCase: {failed: False, finished: 223423}
+ShootingRange: {failed: 2343, started: 234, finished: 23423, score: 234234}
+Stealth: {failed: 2334, score: 213}
+Bomb: {failed: 324, started: 324, finished: 4234}
+
+TapeRecorder: [{started_by: "host", started: 234234}, ...]
+Clues: [{message: "32323", time: 23}, ....]
+
+Completed: True

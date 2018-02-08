@@ -8,9 +8,6 @@ for line in lines:
     bins.append([int(i) for i in line.strip().split("\t")])
 print values
 # print bins
-"1\t0\t1\t1\n"
-["1", ]
-"1101"
 
 import cv2
 import numpy as np

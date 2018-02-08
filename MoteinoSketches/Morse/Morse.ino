@@ -1,3 +1,4 @@
+
 /*
    12.9.2016. Steina Dögg steina.dogg@gmail.com
    Sketch sem les pinna, ákvarðar hvort input sé dot eða dash, og safnar innslögum í innsláttar fylki.
@@ -16,6 +17,7 @@ boolean displayWinner = false;
 #define SERIAL_BAUD 9600
 #define BaseID 1
 RFM69 radio;
+
 
 
 int indicator = 9; //built in led
@@ -48,7 +50,7 @@ void setup() {
 
 void loop() {
 
-  //checkOnRadio();
+  checkOnRadio();
 
   //Stuff to do when input goes from LOW to HIGH.
   if (digitalRead(inputPin) == HIGH && previousState == LOW)
@@ -159,8 +161,8 @@ const int DataLen = sizeof(OutgoingData);
 // Command Values:
 const int Status = 99;
 const int Reset = 98;
-const int SetPasscode = 155;
-const int CorrectPasscode = 151;
+const int SetPasscode = 1505;
+const int CorrectPasscode = 1501;
 
 void checkOnRadio()
 {
@@ -212,7 +214,8 @@ void setPasscode()
 
 void sendStatus()
 {
-  Serial.println("sending status");
+  
+  //Serial.println("sending status");
   OutgoingData.Command = Status;
   OutgoingData.Temperature = getTemperature();
   for (int i = 0; i < MaxArrayLength; i++)

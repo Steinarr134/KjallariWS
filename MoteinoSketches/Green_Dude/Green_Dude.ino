@@ -21,6 +21,7 @@ typedef struct {
   unsigned int Command;
   byte Lights[7];
   byte Temperature;
+  byte PassCode[7];
 } Payload;
 Payload OutgoingData;
 Payload IncomingData;
@@ -186,7 +187,7 @@ void setPassCode()
 {
   for (byte i = 0; i < 7; i++)
   {
-    CorrectSwitchState[i] = IncomingData.Lights[i];
+    CorrectSwitchState[i] = IncomingData.PassCode[i];
   }
 }
 
@@ -197,6 +198,7 @@ void sendStatus()
   for (byte i = 0; i < 7; i++)
   {
     OutgoingData.Lights[i] = CurrentSwitchState[i];
+    OutgoingData.Passcode[i] = CorrectSwitchState[i];
   }
   OutgoingData.Temperature = getTemperature();
   if (!sendOutgoing())

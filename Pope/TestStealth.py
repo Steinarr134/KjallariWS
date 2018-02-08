@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 logging.basicConfig(level=logging.DEBUG)
-from Config import *
+from MoteinoConfig import *
 import time
 
 
@@ -32,6 +32,8 @@ if __name__ == '__main__':
                 SplitFlap.send("Clear")
                 time.sleep(0.5)
                 SplitFlap.send("Disp", 'abcdefg')
+            elif bla== "elevator":
+                Elevator.send("SolveDoor1")
         else:
             Stealth.send("SetSequence", Sequence=seq, Tempo=t)
 

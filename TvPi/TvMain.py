@@ -66,7 +66,6 @@ class PopenThread(threading.Thread):
             #print "444444444444444444 I'm already dead, bith!"
             pass
         self.Done = True
-        
 Threads = []
 
 done = False
@@ -79,7 +78,6 @@ while not done:
     for thread in reversed(t2remove):
         #print "================= removing thread"
         Threads.remove(thread)
-            
     for event in pygame.fastevent.get():
         if event.type == pygame.QUIT:
             done = True
@@ -92,6 +90,7 @@ while not done:
             #print("---------------------Play event, doing: " + "omxplayer " + event.message)
             Threads.append(PopenThread("omxplayer " + event.message + " -o local"))
         
+
 
 pygame.quit()
 logging.debug("End of script")

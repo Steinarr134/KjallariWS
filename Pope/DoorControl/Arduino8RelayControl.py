@@ -1,12 +1,14 @@
 import serial
+import threading
 
-OPEN = 1
-CLOSED = 0
+OPEN = 0
+CLOSED = 1
 
     
 class Door(object):
-    OPEN = 1
-    CLOSED = 0
+    OPEN = 0
+    CLOSED = 1
+
     def __init__(self, controller, position):
         self.Controller = controller
         self.Position = position
@@ -25,11 +27,12 @@ class Door(object):
 
 class EmptyDoorSlot(object):
     def __init__(self):
-        self.State = OPEN
+        self.State = CLOSED
 
 
 class DoorController(object):
     def __init__(self, port):
+        print "Door Control starting on port {}".format(port)
         self.Serial = serial.Serial(port, 115200)
         self.Doors = [EmptyDoorSlot(),
                       EmptyDoorSlot(),
@@ -39,12 +42,16 @@ class DoorController(object):
                       EmptyDoorSlot(),
                       EmptyDoorSlot(),
                       EmptyDoorSlot()]
+        self.SerialWriteLock = threading.Lock()
 
     def _send_(self):
         s = ''
         for door in self.Doors:
             s += str(door.State)
-        self.Serial.write(s + '\n')
+
+        print "Sending: {}".format(s)
+        with self.SerialWriteLock:
+            self.Serial.write(s + '\n')
 
     def _set_(self, door, state):
         if not isinstance(door, Door):
@@ -53,9 +60,11 @@ class DoorController(object):
         self._send_()
 
     def open(self, door):
+        print "opening door"
         self._set_(door, OPEN)
 
     def close(self, door):
+        print "closing door"
         self._set_(door, CLOSED)
 
     def open_all(self):

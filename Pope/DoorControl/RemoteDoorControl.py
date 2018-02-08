@@ -8,6 +8,7 @@ CLOSED = 0
 class CloseLaterThread(threading.Thread):
     def __init__(self, door, close_after):
         threading.Thread.__init__(self)
+        self.setDaemon(True)
         self.wait4 = close_after
         self.door = door
         self.start()
@@ -23,6 +24,7 @@ class CloseLaterThread(threading.Thread):
 class RemoteDoor(object):
     OPEN = 1
     CLOSED = 0
+
     def __init__(self, node, send_fun = None,
                  auto_close=False, auto_close_time=4):
         self.node = node
@@ -36,9 +38,10 @@ class RemoteDoor(object):
 
     def open(self):
         self.State = OPEN
-        self.send_fun("open")
-        CloseLaterThread(self, self.AutoCloseTime)
+        self.send_fun("Open")
+        if self.AutoClose:
+            CloseLaterThread(self, self.AutoCloseTime)
 
     def close(self):
         self.State = CLOSED
-        self.send_fun("close")
+        self.send_fun("Close")

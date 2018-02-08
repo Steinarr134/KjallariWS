@@ -1,10 +1,29 @@
+/*
+ * This is a sketch for moteino sitting on MightyBoost
+ * 
+ * It controls the MightyBoost capabilitties and acts as a sender/receiver for the Pi
+ * 
+ * Behavior:
+ * 
+ * When Power is lost Send signal to Pi that it should shut down via RequestShutDownPin
+ * Subsequentily cut power to the Pi after 15 seconds or sooner if bootOK signal disappears
+ * 
+ * When external power returns: Return power to Pi
+ * 
+ * Normal operation: Act as a sender/receiver, bridge between Serial and Network just like 
+ * a BaseMoteino would in the moteinopy environment.
+ * 
+ */
+
+
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        1    //unique for each node on same network
+#define NODEID        41   //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
+#define BAUDRATE      115200
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
@@ -17,7 +36,7 @@ byte SerialBuffer[63];
 
 typedef struct {
   byte sender;
-    byte send2;
+  byte send2;
   byte rssi;
 } RadioStruct;
 
@@ -37,14 +56,34 @@ byte Output5VPin = 4;
 byte BatteryPin = A7;
 byte ButtonPin = 3;
 
+byte ON = HIGH;
+byte OFF = LOW;
+
+byte dtabs = 0;
+
+void debug(char *s)
+{
+  for (int i = 0; i<dtabs; i++)
+  {
+    Serial.print('\t');
+  }
+  Serial.println(s);
+}
+
 void setup()
 { // Setup runs once
-  Serial.begin(115200);
+  Serial.begin(BAUDRATE);
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   if (HIGH_POWER)
+  {
+    debug("Setting High Power");
     radio.setHighPower(); //only for RFM69HW!
+  }
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
+
+  pinMode(5, OUTPUT);
+  analogWrite(5, 100);
 }
 
 void pretendStartup()
@@ -86,24 +125,37 @@ void loop()
   checkOnBattery();
 }
 
+void delayWradio(long m)
+{
+  unsigned long tstart = millis();
+  while (millis() < tstart + m)
+  {
+    checkOnRadio();
+  }
+}
 
 unsigned long LastBatteryCheckTime = 0;
 unsigned long LastTimeExternalPower = 0;
 unsigned long LastTimeNoExternalPower = 0;
-void checkOnBattery()
+
+bool externalPowerConnected()
 {
-  if (millis() - LastBatteryCheckTime > 20)
+  float b = measureBattery();
+  return (b > 4.3);
+}
+void checkOnBattery()
+{ 
+  // only do this every second
+  if (millis() - LastBatteryCheckTime > 1000)
   {
-    float b = measureBattery();
-    if (b > 4.3)
+    LastBatteryCheckTime = millis();
+    if (externalPowerConnected())
     {
-      if (digitalRead(ButtonPin))
-      {
-        shutDownPi();
-      }
-      LastBatteryCheckTime = millis();
       LastTimeExternalPower = millis();
-      if (millis() - LastTimeNoExternalPower > 3000)
+
+       // if external power has been on for 10-30 seconds
+      if (millis() - LastTimeNoExternalPower > 10000
+       && millis() - LastTimeNoExternalPower < 30000)
       {
         startUpPi();
       }
@@ -111,7 +163,10 @@ void checkOnBattery()
     else
     {
       LastTimeNoExternalPower = millis();
-      if (millis() - LastTimeExternalPower > 3000)
+
+      // if external power has been missing for 10-30 seconds
+      if (millis() - LastTimeExternalPower > 10000
+       && millis() - LastTimeExternalPower < 30000)
       {
         shutDownPi();
       }
@@ -121,8 +176,50 @@ void checkOnBattery()
 
 void startUpPi()
 {
+  debug("startUpPi()");
+  dtabs++;
+  
+  if (bootOK()) // if it's already up and running then do nothing
+  {
+    debug("Already up and running");
+    dtabs--;
+    return;
+  }
+
+  debug("Turning power on");
   digitalWrite(RequestShutDownPin, LOW);
-  digitalWrite(Output5VPin, HIGH);
+  output5V(ON); // turn on 5V to Pi
+  unsigned long tstart = millis();
+
+  // wait until pi starts up, max 60 seconds
+  debug("waiting for BootOK signal");
+  while ((millis() - tstart < 60000) && !bootOK())
+  {
+    delay(50);
+  }
+
+  // if Pi failed to start up:
+  if (!bootOK())
+  {
+    debug("Pi doesn't seem to be starting up correctly, let's try power cycling");
+    output5V(OFF); // shut off 5V to Pi
+    delay(1000); // Wait a bit so the Pi definitely shuts off
+    debug("yay for recursion");
+    startUpPi(); // call this function recursively, yay recursion!
+  }
+  else
+  {
+    debug("Pi is up and running");
+  }
+  
+  dtabs--;
+}
+
+boolean Output5V = OFF;
+void output5V(boolean onoff)
+{
+  digitalWrite(Output5VPin, onoff);
+  Output5V = onoff;
 }
 
 boolean bootOK()
@@ -137,17 +234,55 @@ float measureBattery()
 
 void shutDownPi()
 {
-  if (bootOK())
+  debug("shutDownPi()");
+  dtabs++;
+  // if 5V outout is off then the Pi can't be on, in wich case this
+  // job is very easy, infact it is done.
+  if (!Output5VPin)
   {
-    digitalWrite(RequestShutDownPin, HIGH);
-    while (bootOK())
-    {
-      delay(50);
-    }
-    delay(5000);
-    digitalWrite(Output5VPin, LOW);
-    digitalWrite(RequestShutDownPin, LOW);
+    debug("5V already off");
+    dtabs--;
+    return;
   }
+  
+  // if 5v active and Pi is notup and running it just might be booting up
+  if (!bootOK())
+  {
+    debug("the Pi might be booting up");
+    // in that case we sleep for 20 seconds to give the Pi time to boot before shutting it down
+    boolean ExternalPowerWasPresent = externalPowerConnected();
+    delay(20000);
+
+    // if we are shutting down because of loss of power but power has been returned while waiting we cancel the whole thing
+    if (!ExternalPowerWasPresent && externalPowerConnected())
+    {
+      debug("Power has been restored while we waited, cancelling shutdown");
+      dtabs--;
+      return;
+    }
+  }
+
+  // Tell the Pi to shut down
+  debug("sending ShutDownRequest");
+  digitalWrite(RequestShutDownPin, HIGH);
+  unsigned long RequestTime = millis();
+
+  // wait for a maximum of 20 seconds for the Pi to die
+  debug("Waiting for shutdown");
+  while (bootOK() && millis() - RequestTime < 20000)
+  {
+    delay(50);
+  }
+  
+  // wait 2 seconds just for the hell of it
+  debug("shutdown complete");
+  delay(2000);
+
+  // cut the power
+  debug("cutting power");
+  output5V(OFF);
+  digitalWrite(RequestShutDownPin, LOW);
+  dtabs--;
 }
 
 void checkOnSerial()
@@ -175,6 +310,7 @@ void checkOnSerial()
         sendTheStuff();
       }
       SerialCounter = 0;
+      FirstHexDone = false;
     }
     else if (incoming == 'X')
     {
