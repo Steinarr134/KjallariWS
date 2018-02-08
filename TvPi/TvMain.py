@@ -40,8 +40,8 @@ pygame.init()
 pygame.fastevent.init()
 pygame.mouse.set_visible(False)
 
-#screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-screen = pygame.display.set_mode((500, 500))
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+# screen = pygame.display.set_mode((500, 500))
 
 screen.fill((0, 0, 0))
 
