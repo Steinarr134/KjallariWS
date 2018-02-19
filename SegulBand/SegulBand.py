@@ -4,7 +4,7 @@
 
 import sys
 import time
-# sys.stderr = open("/home/pi/logs/" + str(time.time())+"_err.txt", 'w+')
+sys.stderr = open("/home/pi/logs/" + str(time.time())+"_errrrr.txt", 'w+')
 import RPi.GPIO as GPIO
 from arduino import Motor
 import atexit
@@ -356,8 +356,6 @@ motor.set_params(3000, 800, 2200)
 
 while True:
     time.sleep(100)
-
+    
     # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
     # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))
-
-    # logging.debug(time.time())
