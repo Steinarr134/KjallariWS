@@ -107,7 +107,7 @@ MoteinoStructs = {
 
     'LieButtons':
         "int Command;"
-        "byte PassCode[4];"
+        "byte PassCode[3];"
         "byte Lights[7];",
     'Lie2Buttons':
         "int Command;"
@@ -291,8 +291,8 @@ Sirens.add_translation("Command",
                        ("TogglePin2", 3702),
                        ("SetPin1High", 3703),
                        ("SetPin1Low", 3704),
-                       ("SetPin2High", 3706),
-                       ("SetPin2Low", 3705))
+                       ("SetPin2High", 3705),
+                       ("SetPin2Low", 3706))
 
 LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
                                 MoteinoStructs['LieButtons'],
@@ -300,9 +300,12 @@ LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
 LieButtons.add_translation("Command",
                            ("CorrectPassCode", 5101),
                            ("ChangePassCode", 5102),
+                           ("Disp", 5103),
+                           ("SetActive", 5104),
+                           ("SetInactive", 5105),
                            ("CorrectLightShow", 5106),
-                           ("IncorrectLightShow", 5107),
-                           ("Disp", 5103))
+                           ("IncorrectLightShow", 5107)
+                           )
 
 LiePiA = mynetwork.add_node(MoteinoIDs['LiePiA'], "int Command;", "LiePiA")
 LiePiA.add_translation("Command", ("Start", 50))

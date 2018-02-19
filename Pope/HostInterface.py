@@ -29,10 +29,11 @@ FailButtonNames = [
     "GreenDude Fail",
     "Start Lie Detector",
     "Lie Detector Fail",
-    "Wine Box Fail",
+    "Open WineBox",
     "Shooting Range Fail",
     "Morse Fail",
     "Stealth Fail",
+    "Start TimeBomb"
 ]
 
 

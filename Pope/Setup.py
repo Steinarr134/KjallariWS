@@ -15,12 +15,18 @@ from Config import *
 exitfunctions = []
 exitfunctions.append(mynetwork.shut_down)
 
+def list_threads():
+    print "Threads that are still running:"
+    for t in threading.enumerate():
+        print t
+
 
 def exit():
     print "Running Exit Functions"
     for func in exitfunctions:
         print "running exitfunc: {}".format(func)
         func()
+    list_threads()
     print "exitfunctions done"
     quit()
 

@@ -296,7 +296,7 @@ def handle_command(stuff):
         print "loading: " + stuff['s'].strip("\0")
         load(filename="/home/pi/KjallariWS/SegulBand/audio_files/" + stuff['s'].strip("\0").strip(),
              filelength=stuff['FileLength'])
-        if stuff['s'].strip("\0").strip() == "1.ogg"
+        if stuff['s'].strip("\0").strip() == "1.ogg":
             motor.set_current_pos_as_zero()
         elif stuff['s'].strip():
             play()
@@ -307,7 +307,7 @@ def handle_command(stuff):
     elif stuff['Command'] == "Forward":
         forward()
     elif stuff['Command'] == "Reverse":
-        reverse()
+        rewind()
     elif stuff['Command'] == "ShutDown":
         os.system("sudo shutdown -h now")
     elif stuff['Command'] == "Reboot":

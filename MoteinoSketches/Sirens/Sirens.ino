@@ -7,7 +7,7 @@
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
-#define maxAlarmTime  30000     // 30 sec?
+#define maxAlarmTime  3000000     // 3000 sec?
 
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
