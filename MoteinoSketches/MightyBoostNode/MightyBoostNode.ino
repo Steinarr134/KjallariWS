@@ -18,12 +18,12 @@
 
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        41   //unique for each node on same network
+#define NODEID        42   //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
-#define BAUDRATE      115200
+#define BAUDRATE      38400
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
