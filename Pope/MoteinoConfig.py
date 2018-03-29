@@ -216,7 +216,8 @@ TimeBomb.add_translation('Command',
                          ("BombExploded", 17002),
                          ("SetExplosionTime", 17003),
                          ("BombActivated", 17004),
-                         ("SetOptions", 17005))
+                         ("SetOptions", 17005),
+                         ("CalibrateSolution", 17006))
 
 ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
                                    MoteinoStructs['ShootingRange'],

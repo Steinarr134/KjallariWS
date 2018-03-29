@@ -19,3 +19,8 @@ Devices = [
 ]
 
 DeviceSubmenus = []
+
+
+class Object(object):
+    pass        # I do realize this seems pointless but it actually does something
+

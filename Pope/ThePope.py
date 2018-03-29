@@ -4,11 +4,9 @@ from datetime import datetime
 import time
 
 # Initialize Scheduler
+
 scheduler = BackgroundScheduler()
 scheduler.start()
-
-# Configurate logging module
-logging.basicConfig(level=logging.DEBUG)
 
 
 # A nice little quick hand function to run something at a later time using the Scheduler.
@@ -18,9 +16,11 @@ def run_after(func, seconds=0, minutes=0):
                       run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
 
 
-# This is supposed to hold the player info
-CurrentPlayerInfo = {}
+# Configurate logging module
+logging.basicConfig(level=logging.DEBUG)
 
+# This is supposed to hold the player info
+CurrentPlayerInfo = p.get("CurrentPlayerInfo", {})
 
 """
 TODO:
@@ -68,7 +68,7 @@ Takkar sem thurfa ad vera til:
 # Functions to open windows to input and edit group info
 
 
-def save_group_info(player_info=()):  # kannski ad nota {} i stadinn fyrir ()
+def save_group_info(player_info={}):  # kannski ad nota {} i stadinn fyrir ()
     print "save_group_info() wants to save:{} but need programming".format(player_info)
 
 
@@ -86,20 +86,29 @@ def edit_group_info():
 
 
 # A function to handle resetting the room
-def initialize_room(player_info=()):
+def initialize_room(player_info={}):
     """
     This function should set everything up
     That includes resetting any variables
     """
     t = time.time()
+    if player_info == {} and \
+            gui.askquestion("Reload Previous Group", "Do you want to reload previous group?") == "yes":
+        p.load()
+    else:
+        p.reset()
+        player_info['room initialization time'] = t
 
-    player_info['room initialization time'] = t
-    save_group_info(player_info)
+    gui.o = p.get("gui.o", gui.P())
+    global progressor
+    progressor = p.get("progressor", Progressor())
+    if progressor.progress > 1:
+        nextFailButton(gui.FailButtonNames[progressor.progress - 1])
 
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
-    TimeBomb.send("Reset")
+    # TimeBomb.send("Reset")
 
     Elevator.send("SetActiveDoor", 1)
 
@@ -112,6 +121,7 @@ def initialize_room(player_info=()):
 
     display_status_all_devices()
 
+    # give gui time to print all the stuff??
     dt = time.time() - t
     if dt < 10:
         time.sleep(10 - dt)
@@ -130,13 +140,16 @@ def display_status_all_devices():
 
 
 def nextFailButton(button=None):
+    if button not in gui.FailButtonNames:
+        print "{} not in {}".format(button, gui.FailButtonNames)
+        return
     global currentFailButton
     while True:
         print gui.MissionFailButtons[currentFailButton].config("text")
         b_text = gui.MissionFailButtons[currentFailButton].config("text")[-1]
         gui.MissionFailButtons[currentFailButton].config(state=gui.tk.DISABLED)
         currentFailButton += 1
-        print "comparing {} and {}".format(b_text, button)
+        print "comparing {} and {}, == {}".format(b_text, button, b_text == button)
         if b_text == button:
             gui.MissionFailButtons[currentFailButton].config(state=gui.tk.NORMAL)
             break
@@ -186,8 +199,8 @@ def ElevatorEscaped(fail=False):
 
         ElevatorDoor.open()
         run_after(StartTapeRecorderIntroMessage, seconds=20)
-        gui.ClockStartTime = time.time()
-        gui.ClockHasStarted = True
+        gui.o.ClockStartTime = time.time()
+        gui.o.ClockHasStarted = True
         logging.debug("starting clock")
         run_after(ElevatorDoor.close, seconds=15)
         if fail:
@@ -306,7 +319,9 @@ def LieDetectorCompleted(fail=False):
     gui.notify("Lie Detector Completed", fail=fail, solved=not fail)
     TapeRecorder.send(Command='Load', s="7.ogg" + "\0"*5, FileLength=38)
     nextFailButton("Lie Detector Fail")
-    run_after(OpenWineBoxHolder, seconds=3)
+    LiePiA.send("Reset")
+    LiePiB.send("Reset")
+    run_after(OpenWineBoxHolder, seconds=12)
 
 
 def liebuttons_receive(d):
@@ -341,18 +356,22 @@ Lie2Buttons.bind(receive=lie_2_buttons_receive)
 
 # WineBox
 
-
 def OpenWineBoxHolder():
     WineBoxHolder.send("Open")
 
 
 def WineBoxCompleted(fail=False):
+    if fail:
+        WineBox.send("Open")
     gui.notify("Wine Box opened", fail=fail, solved=not fail)
     nextFailButton("Open WineBox")
 
 
 def winebox_receive(d):
-    pass
+    if d['Command'] == "IWasSolved":
+        if progressor.log("WineBox"):
+            WineBox.send("Open")
+            WineBoxCompleted()
 
 
 WineBox.bind(receive=winebox_receive)
@@ -363,7 +382,7 @@ WineBox.bind(receive=winebox_receive)
 
 def ShootingRangeCompleted(fail=False):
     gui.notify("Shooting Range Completed", fail=fail, solved=not fail)
-    # Herna vantar eitthvad
+    TvPi.send("PlayFile", s="SOS.mov")
     nextFailButton("Shooting Range Fail")
 
 
@@ -391,10 +410,12 @@ def MorseCompleted(fail=False):
     nextFailButton("Morse Fail")
     Stealth.send("SetSequence", Sequence=MorseSequence)
     Sirens.send("SetPin1Low")
+    StealthDoor.open()
 
 
 def morse_receive(d):
-    pass
+    if d['Command'] == "CorrectPasscode":
+        MorseCompleted()
 
 
 Morser.bind(receive=morse_receive)
@@ -403,7 +424,8 @@ Morser.bind(receive=morse_receive)
 # Stealth
 
 def StealthRetry():
-    MorseCompleted()
+    Stealth.send("SetSequence", Sequence=MorseSequence)
+    Sirens.send("SetPin1Low")
 
 
 def StealthTripped(lasernr):
@@ -528,7 +550,9 @@ def mission_fail_callback(event=None):
         if result == 'yes':
             LieDetectorActivated(fail=True)
     elif b_text == "Lie Detector Fail":
-        LieDetectorCompleted(fail=True)
+        result = gui.askquestion("Lie Detector Fail", "Are you sure want to skip this mission?", icon='warning')
+        if result == 'yes':
+            LieDetectorCompleted(fail=True)
     elif b_text == "Open WineBox":
         result = gui.askquestion("Lie Detector", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
@@ -571,6 +595,11 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
                                   command=lambda: stealth2split.deactivate())
         DeviceSubmenu.add_command(label="Send LightShow",
                                   command=lambda: Stealth.send("SetSequence", Sequence=MorseSequence))
+        subsubmenu = gui.tk.Menu(DeviceSubmenu, tearoff=False)
+        DeviceSubmenu.add_cascade(label="Set Tempo", menu=subsubmenu)
+        for t in [200, 300, 400, 500, 600, 700, 800]:
+            subsubmenu.add_command(label=str(t),
+                                   command=lambda _t=t: Stealth.send("SetTempo", Tempo=_t))
     if Device == "Sirens":
         DeviceSubmenu.add_command(label="Turn on",
                                   command=lambda: Sirens.send("SetPin2High"))
@@ -606,6 +635,10 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
             subsubmenu.add_command(label=f,
                                    command=lambda _f=f: TvPi.send("PlayFile", s=_f))
 
+    if Device == "WineBox":
+        DeviceSubmenu.add_command(label="Open",
+                                  command=lambda: WineBox.send("Open"))
+
 
 gui.ActionMenu.add_command(label="Check All Device Status", command=display_status_all_devices)
 # gui.ActionMenu.add_command(label="Reset Room")
@@ -620,4 +653,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     print "Dropped out of mainloop"
+    p.save()
     exit()

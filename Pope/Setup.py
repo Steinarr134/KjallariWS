@@ -10,6 +10,7 @@ import logging
 import time
 import HostInterface as gui
 from Config import *
+from Persistance import Perri
 
 
 exitfunctions = []
@@ -44,12 +45,12 @@ logging.debug("Initializing door control")
 DoorController = _Dctrl(ProbablyDoorSerialPort)
 ElevatorDoor = _Door(DoorController, 0)
 SafeDoor = _RemoteDoor(LockPicking, auto_close=False)
-BookDrawer = _Door(DoorController, 2)
+BookDrawer = _Door(DoorController, 3)
 WineCaseHolderDoor = _RemoteDoor(WineBoxHolder)
 WineCaseDoor = _RemoteDoor(WineBox)
-StealthDoor = _Door(DoorController, 3)
-FromBombDoor = _Door(DoorController, 4)
-FinalExitDoor = _Door(DoorController, 5)
+StealthDoor = _Door(DoorController, 4)
+FromBombDoor = _Door(DoorController, 5)
+FinalExitDoor = _Door(DoorController, 6)
 
 print DoorController.Doors
 
@@ -130,6 +131,10 @@ class Progressor(object):
     def log(self, checkpoint):
         print("###########  Progressor  {}, next progress should be {}"
               "".format(checkpoint, self.Checkpoints[self.progress+1]))
+        for i in range(self.progress):
+            if self.Checkpoints[i + 1] == checkpoint:
+                print("Task already Done!!!")
+                break
         temp = True
         if self.Checkpoints[self.progress+1] != checkpoint:
             temp = gui.askquestion("Advencement to fast!", 
@@ -147,6 +152,7 @@ class Progressor(object):
 
 
 progressor = Progressor()
+p = Perri()
 
 if __name__ == '__main__':
     exit()
