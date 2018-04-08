@@ -9,7 +9,7 @@ Accelerometer accel;
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
-#define ENCRYPTKEY    "HugiBogi" //exactly the same 16 characters/bytes on all nodes!
+#define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
@@ -44,7 +44,7 @@ const int SetTime2Solve = 2403;
 unsigned long locked_until_time = 0;
 
 int LED = 9;
-long Time2Solve = 3000;
+long Time2Solve = 10000;
 
 boolean can_be_solved = true;
 
@@ -73,21 +73,25 @@ void setup() {
 }
 
 
+float zthresh = -9.7;
+float xthresh = 0.50;
+float ythresh = 0.50;
+
 
 bool isUpsideDown()
 {
+  //Serial.println("1");
   float z = accel.readAZ();
+  //Serial.println("2");
+  float x = accel.readAX();
+  float y = accel.readAY();
   //Serial.println(z);
-  if (z > 8)
-  {
-    can_be_solved = true;
-    //Serial.print("sdfsf");
-  }
-  return (z < -8);
+  return ((z < zthresh) && (abs(x) < xthresh) && (abs(y) < ythresh));
 }
 
 unsigned long last_check_time = 0;
 unsigned long last_time_not_upside_down = 0;
+boolean has_been_turned_back;
 void checkOnSensor()
 {
   if (millis() - last_check_time > 20)
@@ -96,13 +100,19 @@ void checkOnSensor()
     if (!isUpsideDown())
     {
       last_time_not_upside_down = millis();
+      has_been_turned_back = true;
     }
-    else if (can_be_solved && (millis() - last_time_not_upside_down > Time2Solve))
+    else if (has_been_turned_back && (millis() - last_time_not_upside_down > Time2Solve))
     {
       //Serial.print("canbesolved was; ");
       //Serial.println(can_be_solved);
       problemSolved();
+      has_been_turned_back = false; 
     }
+    //else {
+    //  Serial.print(millis());
+     // Serial.println("\t-\tIt's upside down");
+    //}
   }
 }
 
@@ -141,16 +151,48 @@ void open_lid()
 }
 
 
-
+long blinkt = -4000;
+bool ledstate = 0;
 
 void loop() {
   // put your main code here, to run repeatedly:
 
+  if (millis() - blinkt > 500)
+  {
+    ledstate = !ledstate;
+    digitalWrite(9, ledstate);
+  }
   checkOnSensor();
   stopOpeningLid();
   checkOnRadio();
+  checkOnSerial();
 }
 
+void checkOnSerial()
+{
+  if (Serial.available())
+  {
+    char c = Serial.read();
+    if (c == 'z')
+    {
+      Serial.print("X  -  ");
+      Serial.println(accel.readAX());
+      Serial.print("Y  -  ");
+      Serial.println(accel.readAY());
+      Serial.print("Z  -  ");
+      Serial.println(accel.readAZ());
+    }
+    else if (c == 's')
+    {
+      Serial.print("BatteryStatus: ");
+      Serial.println(analogRead(BatteryPin));
+      Serial.print("has_been_tured_back:");
+      Serial.println(has_been_turned_back);
+      Serial.print("time_until_solved: ");
+      Serial.println(millis() - last_time_not_upside_down);
+    }
+  }
+}
 
 void checkOnRadio()
 {
@@ -166,8 +208,8 @@ void checkOnRadio()
       radio.sendACK();
     }
     // useful for debugging:
-//    Serial.print("Received: command: ");
-//    Serial.println(IncomingData.Command);
+    //Serial.print("Received: command: ");
+    //Serial.println(IncomingData.Command);
 
     switch (IncomingData.Command)
     {
