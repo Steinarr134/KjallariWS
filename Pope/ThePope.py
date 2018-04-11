@@ -104,6 +104,7 @@ def initialize_room(player_info={}):
     progressor = p.get("progressor", Progressor())
     if progressor.progress > 1:
         nextFailButton(gui.FailButtonNames[progressor.progress - 1])
+    progressor.plot()
 
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
@@ -115,6 +116,7 @@ def initialize_room(player_info={}):
     Stealth.send("Reset")
     LiePiA.send("Reset")
     LiePiB.send("Reset")
+    LieButtons.send("Reset")
 
     # TapeRecorder.send("Reset")
     # taperecorder load 1 and pauses
@@ -228,9 +230,9 @@ TapeRecorderFiles = [("1.ogg", 50), ("2.ogg", 15), ("3.ogg", 17), ("4.ogg", 15),
 
 
 def StartTapeRecorderIntroMessage(timeout=False, fail=False):
-    if progressor.log("TapeRecorder"):
-        global TapeRecorderIntroMessageStarted
-        if not TapeRecorderIntroMessageStarted:
+    global TapeRecorderIntroMessageStarted
+    if not TapeRecorderIntroMessageStarted:
+        if progressor.log("TapeRecorder"):
             TapeRecorderIntroMessageStarted = True
             TapeRecorder.send("Play")
             gui.notify("TapeRecorder Intro Message Started")
@@ -288,17 +290,117 @@ GreenDude.bind(receive=green_dude_receive)
 
 
 def LieDetectorActivated(fail=False):
-    if progressor.log("LieDetector"):
+    if progressor.log("LieDetectorStart"):
         gui.notify("Lie Detector Activated", fail=fail, solved=not fail)
         TapeRecorder.send(Command='Load', s="6.ogg" + "\0"*5, FileLength=37)
-
+        LieButtons.send("CorrectLightShow")
         nextFailButton("Start Lie Detector")
-        run_after(TurnLieDetectorOn, seconds=5)
+        run_after(LieDetectorHandler.start_lie_detector, seconds=5)
+
+
+class LieDetectorOperationHandler(object):
+    def __init__(self, NP):
+        self.P = NP
+        if NP == 3:
+            bla = bool(int(random.random()+0.5))
+            self.ScenesAvailable = [True, bla, not bla]
+        elif NP == 4:
+            self.ScenesAvailable = [False, True, True]
+        elif NP == 5:
+            self.ScenesAvailable = [True, True, True]
+
+        class Scene(object):
+            def __init__(self, Files, Number, Outlength):
+                self.Files = Files
+                self.N = Number
+                self.CurrentFile = None
+                self.Done = False
+                self.CurrentFileNumber = -1
+                self.OutroLength = Outlength
+
+            def reset(self):
+                self.CurrentFileNumber = -1
+                self.CurrentFile = None
+
+            def next_file(self):
+                if self.Done:
+                    return
+                self.CurrentFileNumber += 1
+                self.CurrentFile = self.Files[self.CurrentFileNumber]
+                if type(self.CurrentFile) is list:
+                    self.CurrentFile = random.choice(self.CurrentFile)
+                if self.CurrentFileNumber == len(self.Files) - 1:
+                    self.Done = True
+                TvPi.send("PlayFile", self.CurrentFile)
+
+            # def replay_file(self):
+            #     TvPi.send("PlayFile", self.CurrentFile)
+
+        self.Scenes = [Scene(["B1.mov", "B2.mov", "B3.mov", "B4.mov",
+                              ["B5_1.mov", "B5_2.mov", "B5_3.mov", "B5_4.mov"], "B6.mov"], 0, 14),
+                       Scene(["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
+                              ["PP5_1.mov", "PP5_2.mov", "PP5_3.mov", "PP5_4.mov"], "PP6.mov"], 1, 15),
+                       Scene(["GB1.mov", "GB2.mov", "GB3.mov", "GB4.mov",
+                              ["GB5_1.mov", "GB5_2.mov", "GB5_3.mov", "GB5_4.mov"], "GB6.mov"], 2, 20)]
+        self.CurrentScene = None
+        self.Lock = threading.Lock()
+
+    def start_lie_detector(self):
+        LieButtons.send("SetListenToButtonPresses")
+        LiePiA.send("Start")
+        LiePiB.send("Start")
+        self.disp_scenes_available()
+
+    def disp_scenes_available(self):
+        bla = self.ScenesAvailable
+        LieButtons.send("Disp", Lights=[int(not bla[0]), int(not bla[1]), int(not bla[2]), 1, 1, 1, 1])
+
+    def disp_only(self, n):
+        bla = [1, 1, 1, 1, 1, 1, 1]
+        bla[n] = 0
+        LieButtons.send("Disp", Lights=bla)
+
+    def handle(self, incoming):
+        if self.Lock.locked():
+            return
+        with self.Lock:
+            print incoming
+            if incoming["SenderName"] == "Lie2Buttons":
+                if incoming["Command"] == "Button1Press":
+                    # Players pass the question
+                    self.CurrentScene.next_file()
+                    if self.CurrentScene.Done:
+                        time.sleep(self.CurrentScene.OutroLength)
+                        self.ScenesAvailable[self.CurrentScene.N] = False
+                        self.CurrentScene = None
+                        self.disp_scenes_available()
+
+                elif incoming["Command"] == "Button2Press":
+                    # Players fail the Scene, Go back to Scene selection
+                    self.CurrentScene.reset()
+                    self.CurrentScene = None
+                    self.disp_scenes_available()
+
+            elif incoming["SenderName"] == "LieButtons":
+                if incoming["Command"] == "CorrectPassCode":
+                    LieDetectorActivated()
+                elif incoming["Command"] == "ButtonPress":
+                    if incoming["Button"] in [0, 1, 2]:
+                        if self.CurrentScene is None:
+                            if self.ScenesAvailable[incoming["Button"]]:
+                                self.CurrentScene = self.Scenes[incoming["Button"]]
+                                self.CurrentScene.next_file()
+                                self.disp_only(incoming["Button"])
+
+
+
+LieDetectorHandler = LieDetectorOperationHandler(4)
+LieButtons.bind(receive=LieDetectorHandler.handle)
+Lie2Buttons.bind(receive=LieDetectorHandler.handle)
 
 
 LieDetectorHasBeenActivated = False
 LieDetectorVideos = ["B1.mov", "B2.mov", "B3.mov"]
-LieDetectorVideoPosition = -1
 
 TvPiFiles = ["B1.mov",
              "B2.mov",
@@ -309,19 +411,14 @@ TvPiFiles = ["B1.mov",
              "SOS.mov"]
 
 
-def TurnLieDetectorOn():
-    print "TurnLieDetectorOn()"
-    LiePiA.send("Start")
-    LiePiB.send("Start")
-
-
 def LieDetectorCompleted(fail=False):
-    gui.notify("Lie Detector Completed", fail=fail, solved=not fail)
-    TapeRecorder.send(Command='Load', s="7.ogg" + "\0"*5, FileLength=38)
-    nextFailButton("Lie Detector Fail")
-    LiePiA.send("Reset")
-    LiePiB.send("Reset")
-    run_after(OpenWineBoxHolder, seconds=12)
+    if progressor.log("LieDetectorFinish"):
+        gui.notify("Lie Detector Completed", fail=fail, solved=not fail)
+        TapeRecorder.send(Command='Load', s="7.ogg" + "\0"*5, FileLength=38)
+        nextFailButton("Lie Detector Fail")
+        LiePiA.send("Reset")
+        LiePiB.send("Reset")
+        run_after(OpenWineBoxHolder, seconds=12)
 
 
 def liebuttons_receive(d):
@@ -329,7 +426,7 @@ def liebuttons_receive(d):
         LieDetectorActivated()
 
 
-LieButtons.bind(receive=liebuttons_receive)
+# LieButtons.bind(receive=liebuttons_receive)
 
 
 def lie_2_buttons_receive(d):
@@ -351,7 +448,7 @@ def lie_2_buttons_receive(d):
               "current progress was: {}".format(progressor.current_cp())
 
 
-Lie2Buttons.bind(receive=lie_2_buttons_receive)
+# Lie2Buttons.bind(receive=lie_2_buttons_receive)
 
 
 # WineBox
@@ -361,10 +458,11 @@ def OpenWineBoxHolder():
 
 
 def WineBoxCompleted(fail=False):
-    if fail:
-        WineBox.send("Open")
-    gui.notify("Wine Box opened", fail=fail, solved=not fail)
-    nextFailButton("Open WineBox")
+    if progressor.log("WineBox"):
+        if fail:
+            WineBox.send("Open")
+        gui.notify("Wine Box opened", fail=fail, solved=not fail)
+        nextFailButton("Open WineBox")
 
 
 def winebox_receive(d):
@@ -381,9 +479,10 @@ WineBox.bind(receive=winebox_receive)
 
 
 def ShootingRangeCompleted(fail=False):
-    gui.notify("Shooting Range Completed", fail=fail, solved=not fail)
-    TvPi.send("PlayFile", s="SOS.mov")
-    nextFailButton("Shooting Range Fail")
+    if progressor.log("ShootingRange"):
+        gui.notify("Shooting Range Completed", fail=fail, solved=not fail)
+        TvPi.send("PlayFile", s="SOS.mov")
+        nextFailButton("Shooting Range Fail")
 
 
 def shooting_range_receive(d):
@@ -406,11 +505,12 @@ MorseSequence = [63, 0, 2, 0, 3, 5, 5, 5, 14, 10, 10, 10, 20, 20, 20, 40, 40, 40
 
 
 def MorseCompleted(fail=False):
-    gui.notify("Morse Completed", fail=fail, solved=not fail)
-    nextFailButton("Morse Fail")
-    Stealth.send("SetSequence", Sequence=MorseSequence)
-    Sirens.send("SetPin1Low")
-    StealthDoor.open()
+    if progressor.log("Morse"):
+        gui.notify("Morse Completed", fail=fail, solved=not fail)
+        nextFailButton("Morse Fail")
+        Stealth.send("SetSequence", Sequence=MorseSequence)
+        Sirens.send("SetPin1Low")
+        StealthDoor.open()
 
 
 def morse_receive(d):

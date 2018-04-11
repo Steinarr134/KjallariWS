@@ -8,6 +8,7 @@ from DoorControl import Door as _Door, DoorController as _Dctrl, \
 import threading
 import logging
 import time
+import random
 import HostInterface as gui
 from Config import *
 from Persistance import Perri
@@ -117,16 +118,21 @@ class Progressor(object):
             "TapeRecorder",
             "LockPicking",
             "GreenDude",
-            "LieDetector",
+            "LieDetectorStart",
+            "LieDetectorFinish",
             "WineBox",
             "ShootingRange",
             "Morser",
         ]
         self.progress = 0
+        self.StartTime = None
         self.ProgressTimes = [None for cp in self.Checkpoints]
 
     def current_cp(self):
         return self.Checkpoints[self.progress]
+
+    def plot(self):
+        gui.update_progress_plot(self.ProgressTimes[1:self.progress+1])
     
     def log(self, checkpoint):
         print("###########  Progressor  {}, next progress should be {}"
@@ -134,7 +140,7 @@ class Progressor(object):
         for i in range(self.progress):
             if self.Checkpoints[i + 1] == checkpoint:
                 print("Task already Done!!!")
-                break
+                return
         temp = True
         if self.Checkpoints[self.progress+1] != checkpoint:
             temp = gui.askquestion("Advencement to fast!", 
@@ -145,7 +151,11 @@ class Progressor(object):
             if checkpoint in self.Checkpoints:
                 print "Setting progress to {} (index:{})".format(checkpoint, self.Checkpoints.index(checkpoint))
                 self.progress = self.Checkpoints.index(checkpoint)
-                self.ProgressTimes[self.Checkpoints.index(checkpoint)] = time.time()
+                if self.StartTime is None:
+                    # should happen during elevator escape
+                    self.StartTime = time.time()
+                self.ProgressTimes[self.Checkpoints.index(checkpoint)] = time.time() - self.StartTime
+                self.plot()
             else:
                 raise ValueError("Checkpoint was: {}".format(checkpoint))
         return temp

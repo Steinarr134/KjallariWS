@@ -108,7 +108,9 @@ MoteinoStructs = {
     'LieButtons':
         "int Command;"
         "byte PassCode[3];"
-        "byte Lights[7];",
+        "byte Lights[7];"
+        "byte Button",
+
     'Lie2Buttons':
         "int Command;"
         "byte Temperature;",
@@ -302,10 +304,11 @@ LieButtons.add_translation("Command",
                            ("CorrectPassCode", 5101),
                            ("ChangePassCode", 5102),
                            ("Disp", 5103),
-                           ("SetActive", 5104),
-                           ("SetInactive", 5105),
+                           ("SetListenToPasscode", 5104),
+                           ("SetListenToButtonPresses", 5105),
                            ("CorrectLightShow", 5106),
-                           ("IncorrectLightShow", 5107)
+                           ("IncorrectLightShow", 5107),
+                           ("ButtonPress", 5108)
                            )
 
 LiePiA = mynetwork.add_node(MoteinoIDs['LiePiA'], "int Command;", "LiePiA")
