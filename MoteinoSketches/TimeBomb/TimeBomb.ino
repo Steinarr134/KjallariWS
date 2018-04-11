@@ -1,6 +1,6 @@
-/*
-Framtíðar möguleikar:
-- Self-calibrate function: Tengja rétt og láta arduinoinn mæla út réttar spennur og geyma í eeprom. Sækja svo úr eeprom í startup.
+ /*
+Framtíðar möguleikar:           framtidin er herna -kv Steinarr, 29 mars 2018
+- Self-calibrate function: Tengja rétt og láta arduinoinn mæla út réttar spennur og geyma í eeprom. Sækja svo úr eeprom í startup. 
 eeprom er persistent memory, 1024 byte i atmega328p (sem er a moteino).
 https://www.arduino.cc/en/Reference/EEPROM
 
@@ -21,6 +21,7 @@ Method and circuit updated (kbf), 03.01.18:
 // for the radio
 #include <RFM69.h>
 #include <SPI.h>
+#include <EEPROM.h>
 #define NODEID        170    //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
@@ -30,6 +31,8 @@ RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
 
+// -------------------------------- Radio Stuff -----------------------------------------
+
 // Here we define our struct.
 // The radio always sends 64 bytes of data. The RFM69 library uses 3 * - bytes as a header
 // so that leaves us with 61 bytes. You'll have to fit every peaca of info into 61 bytes
@@ -37,9 +40,9 @@ bool promiscuousMode = false; //set to 'true' to sniff all packets on the same n
 typedef struct{
   int Command;
   unsigned long Time;
-  unsigned long smokeTime;
-  bool smokeOn;
-  bool buzzerOn;
+  int smokeTime;
+  byte smokeOn;
+  byte buzzerOn;
 } Payload;
 
 // Two instances of payload:
@@ -55,28 +58,59 @@ const int Reset = 98;
 const int SetXplosionTime = 17003;
 const int BombActivated = 17004; 
 const int SetOptions = 17005;
+const int CalibrateSolution = 17006;
+
+
+// --------------------------- Pins ------------------------------
 
 ////Pins
 byte DataPin = 3; //Blue wire
 byte LatchPin = 5; //Green wire
 byte ClockPin = 4; //Yellow wire
 byte PiezoPin = 6; //White wire
-byte fanPin = 8; 
-byte solenoidPin = 9;
+byte SmokePin = 8 ;
 
 byte BananaPins[] = {A0, A1, A2, A3, A4};
 
+
+//----------------- EEPROM Stuff -----------------------------
+
+byte E_smokeOn = 101;
+byte E_buzzerOn = 102;
+byte E_CorrectValues[] = {103, 105, 107, 109, 111};
+byte E_smokeTime = 113;
+
+
+//This function will write a 2 byte integer to the eeprom at the specified address and address + 1
+void EEPROMWriteInt(int p_address, int p_value)
+{
+  byte lowByte = ((p_value >> 0) & 0xFF);
+  byte highByte = ((p_value >> 8) & 0xFF);
+  
+  EEPROM.write(p_address, lowByte);
+  EEPROM.write(p_address + 1, highByte);
+}
+
+//This function will read a 2 byte integer from the eeprom at the specified address and address + 1
+unsigned int EEPROMReadInt(int p_address)
+{
+  byte lowByte = EEPROM.read(p_address);
+  byte highByte = EEPROM.read(p_address + 1);
+  
+  return ((lowByte << 0) & 0xFF) + ((highByte << 8) & 0xFF00);
+}
+
+// ----------------------------------operating variables -----------------------------
 byte PhotoRes = A6;
 bool isChestOpen = false;
 bool isBombDiffused = false;
 bool bombExploded = false;
 bool smokeOn = true;
-int smokeTime = 100;
+int smokeTime;
 const int maxSmokeTime = 10000;
-bool buzzerOn = true;
+bool buzzerOn;
 
-int pin[] = {792, 850, 1015, 785, 685}; // The voltage values for each pin from top to bottom
-int CorrectValues[] = {pin[0], pin[1], pin[2], pin[3], pin[4]}; // The solution to the puzzle
+int CorrectValues[5]; // The solution to the puzzle
 
 const byte LightPos[] = {2, 3, 4, 5, 6, 7, 9, 10, 11, 12};
 const byte GreenLight[] = {1,13}; 
@@ -84,6 +118,7 @@ byte _Register[16] = {0};
 int LedBlinkSpeed = 1000;
 int NofLeds = 10;
 
+// ------------------------------ Program Starts here ----------------------------------------
 void setup() {
   // initiate Serial port:
   Serial.begin(115200);
@@ -99,12 +134,18 @@ void setup() {
   pinMode(DataPin, OUTPUT);
   pinMode(LatchPin, OUTPUT);
   pinMode(PiezoPin, OUTPUT);
-  pinMode(fanPin, OUTPUT);
-  pinMode(solenoidPin, OUTPUT);
+  pinMode(SmokePin, OUTPUT);
   for (byte i = 0; i < 5; i++)
     pinMode(BananaPins[i], INPUT);
   _Register[GreenLight[0]] = 0;
   _Register[GreenLight[1]] = 0;
+
+  for (byte i=0; i<5; i++)
+  {
+    CorrectValues[i] = EEPROMReadInt(E_CorrectValues[i]);
+  }
+  
+  
   Serial.println("started");
 }
 
@@ -143,7 +184,7 @@ void reset() {
 void bombDiffused()
 {
   noTone(PiezoPin);
-  digitalWrite(fanPin, LOW);
+  //digitalWrite(fanPin, LOW);  // veit ekki afhverju thetta var herna -Steinarr
   Serial.println("BOMB DIFFUSED");
   isBombDiffused = true;
   for (int i; i< 16; i++) {
@@ -166,14 +207,21 @@ void gameOver() {
     tone(PiezoPin, 1000); 
   }
   if (smokeOn) {
-    digitalWrite(fanPin, HIGH);
-    digitalWrite(solenoidPin, HIGH);
-    delay(smokeTime*maxSmokeTime/100);
-    digitalWrite(solenoidPin, LOW);
-    delay(3000);
-    digitalWrite(fanPin, LOW);
+    smokeBomb();
   }
   noTone(PiezoPin);
+}
+
+void smokeBomb()
+{
+  digitalWrite(SmokePin, HIGH);
+  unsigned long t0 = millis();
+  int s = min(smokeTime, maxSmokeTime);
+  while (millis() - t0 < s)
+  {
+    checkOnRadio();
+  }
+  digitalWrite(SmokePin, LOW);
 }
 
 unsigned long chestHasBeenOpenedLastCheckTime = 0;
@@ -234,7 +282,7 @@ void controlLeds()
   }
   if (leds_remaining == 1) {
       min_remaining = true;
-      digitalWrite(fanPin, HIGH);
+      //digitalWrite(fanPin, HIGH); // veit ekki afhverju thetta var herna -Steinarr
   }
   if (min_remaining) {
     leds_remaining = (1-((double) t)/((double) XplosionTime))*NofLeds*10+1;
@@ -378,10 +426,10 @@ void checkOnRadio()
         XplosionTime = IncomingData.Time;
         break;
       case SetOptions:
-        smokeTime = IncomingData.smokeTime;
-        smokeOn = IncomingData.smokeOn;
-        buzzerOn = IncomingData.buzzerOn;
+        setOptions();
         break;
+      case CalibrateSolution:
+        calibrateSolution();
       default:
         Serial.print("Received unkown Command: ");
         Serial.println(IncomingData.Command);
@@ -389,6 +437,33 @@ void checkOnRadio()
   }
 }
 
+void calibrateSolution()
+{
+  for (byte i=0; i<5; i++)
+  {
+    CorrectValues[i] = analogRead(BananaPins[i]);
+    EEPROMWriteInt(E_CorrectValues[i], CorrectValues[i]);
+  }
+}
+
+void setOptions()
+{
+  if (IncomingData.smokeTime > 0)
+  {
+    smokeTime = IncomingData.smokeTime;
+    EEPROMWriteInt(E_smokeTime, smokeTime);
+  }
+  if (IncomingData.smokeOn != 0)
+  { // 0 -> NaN,   1 -> 0(false),   2 -> 1(true)
+    smokeOn = IncomingData.smokeOn - 1;
+    EEPROM.write(E_smokeOn, smokeOn);
+  }
+  if (IncomingData.buzzerOn != 0)
+  {
+    buzzerOn = IncomingData.buzzerOn - 1;
+    EEPROM.write(E_buzzerOn, buzzerOn);
+  }
+}
 void sendStatus()
 {
   OutgoingData.Command = Status;
