@@ -152,9 +152,20 @@ SplitFlapEntry.bind("<BackSpace>", lambda event: None)
 
 
 # Progress Plot
-ProgressPlot = Figure(figsize=(8, 4), dpi=50)
-ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlot, master=top)
+ProgressPlotFigure = Figure(figsize=(8, 4), dpi=50)
+ProgressPlotBaseLine = cumsum([0, 2*60, 5*60, 2*60, 4*60, 10*60, 5*60, 10*60, 2*60, 10*60, 5*60])
+ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlotFigure, master=top)
 ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
+
+
+def update_progress_plot(times):
+    ProgressPlotFigure.clear()
+    p = ProgressPlotFigure.add_subplot(111)
+    p.plot(range(11), ProgressPlotBaseLine, color="r")
+    print "plot times: {}".format(times)
+    p.plot(range(len(times)), times)
+    ProgressPlotCanvas.draw()
+
 
 
 # Log Text
