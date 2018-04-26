@@ -135,6 +135,7 @@ void setup() {
   pinMode(LatchPin, OUTPUT);
   pinMode(PiezoPin, OUTPUT);
   pinMode(SmokePin, OUTPUT);
+  digitalWrite(SmokePin, LOW);
   for (byte i = 0; i < 5; i++)
     pinMode(BananaPins[i], INPUT);
   _Register[GreenLight[0]] = 0;
@@ -150,7 +151,7 @@ void setup() {
 }
 
 
-unsigned long XplosionTime = 10000;
+unsigned long XplosionTime = 120000;
 bool min_remaining = false;
 unsigned long ChestOpeningTime = 0;
 
@@ -163,6 +164,7 @@ void loop()
     if (millis() - checkOpenLast > 50) {
       checkOpenLast = millis();
       chestHasBeenOpened();
+      noTone(PiezoPin);
     }
     checkOnRadio();
   }
@@ -242,7 +244,7 @@ void chestHasBeenOpened()
       return;
     }
     else {
-      isChestOpen = false;
+      //isChestOpen = false;
       return;
     }
   }
@@ -252,21 +254,20 @@ byte _BananaPinCorrectTolerance = 15;
 unsigned long _checkOnBananaPinsLastCheckTime = 0;
 void checkOnBananaPins()
 {
-  if (millis() - _checkOnBananaPinsLastCheckTime > 25)
-  { 
-    Serial.print("BananaPinState: ");
-    for (byte i = 0; i<5; i++) {
-      Serial.print(analogRead(BananaPins[i]));
-      Serial.print(" ");
-    }
-    Serial.println();
-    for (byte i = 0; i<5; i++)
-    {
-      if (absdiff(analogRead(BananaPins[i]), CorrectValues[i]) > _BananaPinCorrectTolerance)
-        return;
-    }
-    bombDiffused();
+  /*
+  Serial.print("BananaPinState: ");
+  for (byte i = 0; i<5; i++) {
+    Serial.print(analogRead(BananaPins[i]));
+    Serial.print(" ");
   }
+  Serial.println();
+  */
+  for (byte i = 0; i<5; i++)
+  {
+    if (absdiff(analogRead(BananaPins[i]), CorrectValues[i]) > _BananaPinCorrectTolerance)
+      return;
+  }
+  bombDiffused();
 }
 
 unsigned long _controlLedsLastBlinkTime = 0;
@@ -300,8 +301,8 @@ void controlLeds()
   else {
     noTone(PiezoPin);
   }
-  Serial.print("Beep: ");
-  Serial.println(ledBeep);
+  //Serial.print("Beep: ");
+  //Serial.println(ledBeep);
   ledBeep++;
   if (ledBeep == 9) {
     ledBeep = 0;
@@ -468,6 +469,9 @@ void sendStatus()
 {
   OutgoingData.Command = Status;
   if (isChestOpen) {OutgoingData.Time = XplosionTime - millis() + ChestOpeningTime;}
+  OutgoingData.smokeTime = smokeTime;
+  OutgoingData.smokeOn = smokeOn;
+  OutgoingData.buzzerOn = buzzerOn;
   sendOutgoingData();
 }
 
