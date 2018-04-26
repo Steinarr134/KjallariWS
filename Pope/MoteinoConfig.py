@@ -39,8 +39,8 @@ MoteinoStructs = {
         "int Command;" +
         "unsigned long TimeLeft;"
         "int SmokeTime;"
-        "bool SmokeOn;"
-        "bool buzzerOn;",
+        "byte SmokeOn;"
+        "byte buzzerOn;",
 
     'Morser':
         "int Command;" +
