@@ -68,7 +68,7 @@ byte DataPin = 3; //Blue wire
 byte LatchPin = 5; //Green wire
 byte ClockPin = 4; //Yellow wire
 byte PiezoPin = 6; //White wire
-byte SmokePin = 8 ;
+byte SmokePin = 9 ; // will be used for the big bell
 
 byte BananaPins[] = {A0, A1, A2, A3, A4};
 
@@ -107,7 +107,7 @@ bool isBombDiffused = false;
 bool bombExploded = false;
 bool smokeOn = true;
 int smokeTime;
-const int maxSmokeTime = 10000;
+const int maxSmokeTime = 30000;
 bool buzzerOn;
 
 int CorrectValues[5]; // The solution to the puzzle
@@ -135,7 +135,7 @@ void setup() {
   pinMode(LatchPin, OUTPUT);
   pinMode(PiezoPin, OUTPUT);
   pinMode(SmokePin, OUTPUT);
-  digitalWrite(SmokePin, LOW);
+  digitalWrite(SmokePin, HIGH);
   for (byte i = 0; i < 5; i++)
     pinMode(BananaPins[i], INPUT);
   _Register[GreenLight[0]] = 0;
@@ -145,13 +145,17 @@ void setup() {
   {
     CorrectValues[i] = EEPROMReadInt(E_CorrectValues[i]);
   }
+  smokeTime = EEPROMReadInt(E_smokeTime);
+  smokeOn = EEPROMReadInt(E_smokeOn);
+  buzzerOn = EEPROMReadInt(E_buzzerOn);
+  
   
   
   Serial.println("started");
 }
 
 
-unsigned long XplosionTime = 120000;
+unsigned long XplosionTime = 30000;
 bool min_remaining = false;
 unsigned long ChestOpeningTime = 0;
 
@@ -216,14 +220,14 @@ void gameOver() {
 
 void smokeBomb()
 {
-  digitalWrite(SmokePin, HIGH);
+  digitalWrite(SmokePin, LOW);
   unsigned long t0 = millis();
   int s = min(smokeTime, maxSmokeTime);
   while (millis() - t0 < s)
   {
     checkOnRadio();
   }
-  digitalWrite(SmokePin, LOW);
+  digitalWrite(SmokePin, HIGH);
 }
 
 unsigned long chestHasBeenOpenedLastCheckTime = 0;
