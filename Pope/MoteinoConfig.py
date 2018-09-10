@@ -145,10 +145,12 @@ if "win" in sys.platform:
     port = raw_input("what port?")
     # mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 else:
-    ports = os.popen("ls /dev/ttyUSB*").read()
+    ports = os.popen("ls /dev/ttyUSB*").read().split('\n')
     print ports
     if ports:
-        for p in ports.split('\n'):
+        for p in ports:
+            if not p:
+                continue
             ret, reason = look_for_base(p)
             if not ret:
                 print "No base on {} because: {}".format(p, reason)
@@ -156,10 +158,13 @@ else:
                 print "Found base on port: {}".format(p)
                 port = p
                 break
+        for p in ports:
+            print " are ProbablyDoors maybe on {}".format(p)
+            if p and p != port:
+                print "YES!"
+                ProbablyDoorSerialPort = p
 if port is None:
     print("No Base found, using fake base")
-else:
-    ProbablyDoorSerialPort = "/dev/ttyUSB1" if port == "/dev/ttyUSB0" else "/dev/ttyUSB0"
 
 mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 mynetwork.logger.setLevel(logging.DEBUG)

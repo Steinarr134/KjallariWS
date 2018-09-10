@@ -117,8 +117,9 @@ def initialize_room(player_info={}):
     LiePiA.send("Reset")
     LiePiB.send("Reset")
     LieButtons.send("Reset")
+    WineBoxHolder.send("Reset")
 
-    # TapeRecorder.send("Reset")
+    TapeRecorder.send("Reset")
     # taperecorder load 1 and pauses
 
     display_status_all_devices()
@@ -272,7 +273,8 @@ LockPicking.bind(receive=lockpicking_receive)
 def GreenDudeCompleted(fail=False):
     if progressor.log("GreenDude"):
         gui.notify("GreenDude Correct Passcode entered", fail=fail, solved=not fail)
-        TapeRecorder.send(Command='Load', s="5.ogg" + "\0"*5, FileLength=21)
+        TapeRecorder.send(Command='Load', s="5.ogg" + "\0"*5, FileLength=22)
+        run_after(BookDrawer.open, seconds=21)
         nextFailButton("GreenDude Fail")
 
 
@@ -366,7 +368,9 @@ class LieDetectorOperationHandler(object):
         with self.Lock:
             print incoming
             if incoming["SenderName"] == "Lie2Buttons":
-                if incoming["Command"] == "Button1Press":
+                if StealthActive:
+                    StealthRetry()
+                elif incoming["Command"] == "Button1Press":
                     # Players pass the question
                     self.CurrentScene.next_file()
                     if self.CurrentScene.Done:
@@ -505,12 +509,12 @@ MorseSequence = [63, 0, 2, 0, 3, 5, 5, 5, 14, 10, 10, 10, 20, 20, 20, 40, 40, 40
 
 
 def MorseCompleted(fail=False):
-    if progressor.log("Morse"):
+    if progressor.log("Morser"):
         gui.notify("Morse Completed", fail=fail, solved=not fail)
         nextFailButton("Morse Fail")
-        Stealth.send("SetSequence", Sequence=MorseSequence)
-        Sirens.send("SetPin1Low")
+        # TvPi.send("")
         StealthDoor.open()
+        StealthStart()
 
 
 def morse_receive(d):
@@ -522,14 +526,23 @@ Morser.bind(receive=morse_receive)
 
 
 # Stealth
+StealthActive = False
+
+
+def StealthStart():
+    Stealth.send("SetSequence", Sequence=MorseSequence)
+    global StealthActive
+    StealthActive = True
+
 
 def StealthRetry():
     Stealth.send("SetSequence", Sequence=MorseSequence)
-    Sirens.send("SetPin1Low")
+    Sirens.send("SetPin2Low")
+    gui.notify("Stealth has been reset")
 
 
 def StealthTripped(lasernr):
-    Sirens.send("SetPin1High")
+    Sirens.send("SetPin2High")
     gui.notify("Stealth tripped on laser {}".format(lasernr))
 
 
@@ -549,11 +562,31 @@ Stealth.bind(receive=stealth_receive)
 # TimeBomb
 
 def BombActivated():
-    pass
+    gui.notify("Bomb Activated", solved=True)
 
 
 def BombDiffused():
-    pass
+    gui.notify("Bomb Diffused ", solved=True)
+    gui.notify("Room Completed!!!", solved=True)
+    FinalExitDoor.open()
+
+
+def BombExploded():
+    gui.notify("Bomb Exploded!", fail=True)
+    FinalExitDoor.open()
+
+
+def timebomb_receive(d):
+    if d:
+        if d['Command'] == "BombActivated":
+            BombActivated()
+        elif d["Command"] == "BombDiffused":
+            BombDiffused()
+        elif d["Command"] == "BombExploded":
+            BombExploded()
+
+
+TimeBomb.bind(receive=timebomb_receive)
 
 
 # Stealth Debugging:
