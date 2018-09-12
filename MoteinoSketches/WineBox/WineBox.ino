@@ -98,7 +98,7 @@ void checkOnSensor()
   if (millis() - last_check_time > 100)
   {
     last_check_time = millis();
-    if (isUpsideDown() && capsCharged())
+    if (can_be_solved && isUpsideDown() && capsCharged())
     {
       problemSolved();
     }
