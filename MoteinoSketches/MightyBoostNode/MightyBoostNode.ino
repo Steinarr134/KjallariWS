@@ -146,8 +146,8 @@ bool externalPowerConnected()
 {
   float b = measureBattery();
   
-      Serial.print("Battery measurment = ");
-      Serial.println(b);
+      //Serial.print("Battery measurment = ");
+      //Serial.println(b);
   return (b > 4.0);
 }
 void checkOnBattery()
@@ -158,8 +158,8 @@ void checkOnBattery()
     LastBatteryCheckTime = millis();
     if (externalPowerConnected())
     {
-      Serial.print("LastTimeExtrernalPower = ");
-      Serial.println(millis());
+      //Serial.print("LastTimeExtrernalPower = ");
+      //Serial.println(millis());
       LastTimeExternalPower = millis();
 
        // if external power has been on for 10-30 seconds
@@ -171,8 +171,8 @@ void checkOnBattery()
     }
     else
     {
-      Serial.print("LastTime _NO_ ExtrernalPower = ");
-      Serial.println(millis());
+      //Serial.print("LastTime _NO_ ExtrernalPower = ");
+      //Serial.println(millis());
       LastTimeNoExternalPower = millis();
 
       // if external power has been missing for 10-30 seconds
@@ -207,13 +207,13 @@ void startUpPi()
   while ((millis() - tstart < 60000) && !bootOK())
   {
     delay(500);
-    bloop(1);
+    //bloop(1);
   }
 
   // if Pi failed to start up:
   if (!bootOK())
   {
-    bloop(10);
+    //bloop(10);
     debug("Pi doesn't seem to be starting up correctly, let's try power cycling");
     output5V(OFF); // shut off 5V to Pi
     delay(1000); // Wait a bit so the Pi definitely shuts off
@@ -237,7 +237,7 @@ void output5V(boolean onoff)
 
 boolean bootOK()
 {
-  Serial.println(analogRead(BootOkPin));
+  //Serial.println(analogRead(BootOkPin));
   return analogRead(BootOkPin) > 800;
   
 }
@@ -266,7 +266,7 @@ void shutDownPi()
     debug("the Pi might be booting up");
     // in that case we sleep for 20 seconds to give the Pi time to boot before shutting it down
     boolean ExternalPowerWasPresent = externalPowerConnected();
-    bloop(2,1000);
+    //bloop(2,1000);
     delay(20000);
 
     // if we are shutting down because of loss of power but power has been returned while waiting we cancel the whole thing
@@ -282,7 +282,7 @@ void shutDownPi()
   debug("sending ShutDownRequest");
   digitalWrite(RequestShutDownPin, HIGH);
   unsigned long RequestTime = millis();
-  bloop(5);
+  //bloop(5);
   // wait for a maximum of 20 seconds for the Pi to die
   debug("Waiting for shutdown");
   while (bootOK() && millis() - RequestTime < 20000)
