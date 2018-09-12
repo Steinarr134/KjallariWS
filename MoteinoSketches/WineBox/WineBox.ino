@@ -40,9 +40,6 @@ const int OpenYourself = 2401;
 const int IWasSolved = 2402;
 const int SetTime2Solve = 2403;
 
-
-unsigned long locked_until_time = 0;
-
 int LED = 9;
 long Time2Solve = 10000;
 
@@ -58,9 +55,13 @@ void setup() {
   accel.begin();
   pinMode(Sesam, OUTPUT);
   pinMode(LED, OUTPUT);
+  pinMode(BatteryPin, INPUT);
   digitalWrite(LED, HIGH);
+  
   delay(500);
   digitalWrite(LED, LOW);
+
+  
 
   // initiate radio:
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
@@ -94,30 +95,23 @@ unsigned long last_time_not_upside_down = 0;
 boolean has_been_turned_back;
 void checkOnSensor()
 {
-  if (millis() - last_check_time > 20)
+  if (millis() - last_check_time > 100)
   {
     last_check_time = millis();
-    if (!isUpsideDown())
+    if (isUpsideDown() && capsCharged())
     {
-      last_time_not_upside_down = millis();
-      has_been_turned_back = true;
-    }
-    else if (has_been_turned_back && (millis() - last_time_not_upside_down > Time2Solve))
-    {
-      //Serial.print("canbesolved was; ");
-      //Serial.println(can_be_solved);
       problemSolved();
-      has_been_turned_back = false; 
     }
-    //else {
-    //  Serial.print(millis());
-     // Serial.println("\t-\tIt's upside down");
-    //}
   }
 }
 
 unsigned long stop_opening_time = 0;
 boolean stop_opening_flag = false;
+
+bool capsCharged()
+{
+  return analogRead(BatteryPin) > 900;
+}
 
 void stopOpeningLid()
 {
@@ -137,19 +131,23 @@ void problemSolved()
  OutgoingData.Command = IWasSolved;
  sendOutgoingData();
  can_be_solved = false;
- if (millis() > locked_until_time)
- {
   open_lid();
- }
 }
 
 void open_lid()
 {
  digitalWrite(Sesam, HIGH);
- stop_opening_time = millis();
- stop_opening_flag = true;
+ delayWithRadio(500);
+ digitalWrite(Sesam, LOW);
+ 
 }
-
+void delayWithRadio(unsigned long t){
+  unsigned long now = millis();
+  while (millis() - now < t)
+  {
+    checkOnRadio();
+  }
+}
 
 long blinkt = -4000;
 bool ledstate = 0;
@@ -215,7 +213,6 @@ void checkOnRadio()
     {
       case Status:
         sendStatus();
-        locked_until_time = millis() + 3600000;
         break;
       case Reset:
         asm volatile (" jmp 0");
