@@ -80,22 +80,28 @@ exitfunctions.append(join_threads)
 
 
 class Send2SplitFlapThread(threading.Thread):
-    def __init__(self, stuff2send):
+    def __init__(self, stuff2send, time_between=5):
         threading.Thread.__init__(self)
-        Threads.append(self)
+        # Threads.append(self)
         self.Stuff2Send = stuff2send
+        self.TimeBetween = time_between
+
         self.setDaemon(True)
         self.start()
 
     def run(self):
         with Send2SplitFlapLock:
             parts = self.Stuff2Send.split('\n')
-            for part in parts:
+            if self.TimeBetween is int:
+                ts = [self.TimeBetween for part in parts]
+            else:
+                ts = self.TimeBetween
+            for i, part in enumerate(parts):
                 part = part.strip()
                 part += " "*(11 - len(part))
                 SplitFlap.send("Disp", part)
                 gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format(part))
-                time.sleep(5)
+                time.sleep(ts[i])
             SplitFlap.send("Clear")
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
 
@@ -163,6 +169,22 @@ class Progressor(object):
 
 progressor = Progressor()
 p = Perri()
+
+
+DeviceSubmenus = []
+
+
+class Object(object):
+    pass        # I do realize this seems pointless but it actually does something
+
+
+def cumsum(l):
+    new_l = []
+    s = 0
+    for number in l:
+        s += number
+        new_l.append(s)
+    return new_l
 
 if __name__ == '__main__':
     exit()

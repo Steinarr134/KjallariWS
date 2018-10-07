@@ -10,6 +10,8 @@ import socket
 import json
 import threading
 
+name = "A"
+
 Event = pygame.fastevent.Event
 
 GPIO.setmode(GPIO.BCM)
@@ -26,7 +28,7 @@ W, H = 720, 600
 # initialise display
 CLOCK = pygame.time.Clock()
 pygame.init()
-DS = pygame.display.set_mode((W, H),pygame.FULLSCREEN)
+DS = pygame.display.set_mode((W, H), pygame.FULLSCREEN)
 FPS = 100.00
 MSPF = 2.00 / FPS
 

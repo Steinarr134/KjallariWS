@@ -188,6 +188,69 @@ def send_to_split_flap(event):
 gui.SplitFlapEntryButton.bind("<Button-1>", send_to_split_flap)
 
 
+class SplitFlapTimeWarnerBro(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.setDaemon(True)
+        self.start()
+
+        self.DispAt = [m*60 for m in [80, 70, 60, 50, 40, 30, 20, 10, 5, 2]]
+        self.FinalCountdownAt = 1*60
+        self.StopCountdown = False
+
+    def notify(self):
+        m = self.minutes_left()
+        if m is None:
+            return
+        s = " " + str(m) if m < 10 else str(m)
+        Send2SplitFlapThread("disp", "{} min left".format(s))
+
+
+    # TODO: make this better
+    def final_countdown(self):
+        for s in range(60, 0, -1):
+            with Send2SplitFlapLock:
+                SplitFlap.send("Disp", str(s).ljust(11))
+            time.sleep(1)-
+
+
+    @staticmethod
+    def minutes_left():
+        seconds = SplitFlapTimeWarnerBro.seconds_left()
+        if seconds is None:
+            return None
+        return max(0, int(seconds / 60))
+
+    @staticmethod
+    def seconds_left():
+        if gui.o.ClockStartTime is None:
+            return None
+        return MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
+
+    def run(self):
+        while True:
+            seconds = self.seconds_left()
+            if seconds is None:  # if the clock hasn't started
+                time.sleep(60)  # sleep for a minute and check again
+                continue
+
+            if seconds < self.DispAt[-1]:
+                wait = seconds - self.FinalCountdownAt
+                time.sleep(wait)
+                self.final_countdown()
+            else:
+                ts = [seconds - _t for _t in self.DispAt]
+                wait = min([_t for _t in ts if _t > 0])
+                time.sleep(wait)
+                self.notify()
+
+
+
+
+
+
+
+
 # Elevator
 
 
@@ -472,12 +535,11 @@ def WineBoxCompleted(fail=False):
 def winebox_receive(d):
     if d['Command'] == "IWasSolved":
         if progressor.log("WineBox"):
-            WineBox.send("Open")
+            # WineBox.send("Open")
             WineBoxCompleted()
 
 
 WineBox.bind(receive=winebox_receive)
-
 
 # Shooting Range
 
@@ -562,7 +624,11 @@ Stealth.bind(receive=stealth_receive)
 # TimeBomb
 
 def BombActivated():
-    gui.notify("Bomb Activated", solved=True)
+    RoomTimeLeft = MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
+    TimeLeft = max(min(10*60, RoomTimeLeft), 1*60)  # max 10 minute, min 1 minute
+    gui.notify("Bomb Activated, Time to solve: {}:{}"
+               "".format(int(TimeLeft/60), int(TimeLeft) % 60), solved=True)
+    TimeBomb.send("SetExplosionTime", Time=TimeLeft*1000)
 
 
 def BombDiffused():
