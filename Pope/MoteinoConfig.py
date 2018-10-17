@@ -37,7 +37,7 @@ MoteinoStructs = {
 
     'TimeBomb':
         "int Command;" +
-        "unsigned long TimeLeft;"
+        "unsigned long Time;"
         "int SmokeTime;"
         "byte SmokeOn;"
         "byte buzzerOn;",

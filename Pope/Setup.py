@@ -92,16 +92,12 @@ class Send2SplitFlapThread(threading.Thread):
     def run(self):
         with Send2SplitFlapLock:
             parts = self.Stuff2Send.split('\n')
-            if self.TimeBetween is int:
-                ts = [self.TimeBetween for part in parts]
-            else:
-                ts = self.TimeBetween
             for i, part in enumerate(parts):
                 part = part.strip()
                 part += " "*(11 - len(part))
                 SplitFlap.send("Disp", part)
                 gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format(part))
-                time.sleep(ts[i])
+                time.sleep(self.TimeBetween)
             SplitFlap.send("Clear")
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
 
@@ -129,6 +125,9 @@ class Progressor(object):
             "WineBox",
             "ShootingRange",
             "Morser",
+            "Stealth",
+            "TimeBomb",
+            "RoomFinished"
         ]
         self.progress = 0
         self.StartTime = None
@@ -146,7 +145,7 @@ class Progressor(object):
         for i in range(self.progress):
             if self.Checkpoints[i + 1] == checkpoint:
                 print("Task already Done!!!")
-                return
+                return False
         temp = True
         if self.Checkpoints[self.progress+1] != checkpoint:
             temp = gui.askquestion("Advencement to fast!", 
@@ -164,6 +163,7 @@ class Progressor(object):
                 self.plot()
             else:
                 raise ValueError("Checkpoint was: {}".format(checkpoint))
+        # print "Returning {}".format(temp)
         return temp
 
 

@@ -106,6 +106,11 @@ def initialize_room(player_info={}):
         nextFailButton(gui.FailButtonNames[progressor.progress - 1])
     progressor.plot()
 
+    # TODO: fix states of things if progress was loaded from previous group
+    # progress = progressor.Checkpoints[progress.progress]
+    # if progress == "Start Lie Pie"
+    #   start_lie_pie() # or whatever
+
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
@@ -118,6 +123,9 @@ def initialize_room(player_info={}):
     LiePiB.send("Reset")
     LieButtons.send("Reset")
     WineBoxHolder.send("Reset")
+    ShootingRange.send("Reset")
+
+    SplitFlap.send("Disp", "  Camp Z   ")
 
     TapeRecorder.send("Reset")
     # taperecorder load 1 and pauses
@@ -209,9 +217,11 @@ class SplitFlapTimeWarnerBro(threading.Thread):
     # TODO: make this better
     def final_countdown(self):
         for s in range(60, 0, -1):
+            if self.StopCountdown:
+                return
             with Send2SplitFlapLock:
                 SplitFlap.send("Disp", str(s).ljust(11))
-            time.sleep(1)-
+            time.sleep(1)
 
 
     @staticmethod
@@ -419,6 +429,8 @@ class LieDetectorOperationHandler(object):
     def disp_scenes_available(self):
         bla = self.ScenesAvailable
         LieButtons.send("Disp", Lights=[int(not bla[0]), int(not bla[1]), int(not bla[2]), 1, 1, 1, 1])
+        if not any(self.ScenesAvailable):
+            LieDetectorCompleted()
 
     def disp_only(self, n):
         bla = [1, 1, 1, 1, 1, 1, 1]
@@ -435,6 +447,8 @@ class LieDetectorOperationHandler(object):
                     StealthRetry()
                 elif incoming["Command"] == "Button1Press":
                     # Players pass the question
+                    if self.CurrentScene is None:
+                        return
                     self.CurrentScene.next_file()
                     if self.CurrentScene.Done:
                         time.sleep(self.CurrentScene.OutroLength)
@@ -447,6 +461,8 @@ class LieDetectorOperationHandler(object):
                     self.CurrentScene.reset()
                     self.CurrentScene = None
                     self.disp_scenes_available()
+                    TvPi.send("Reset")
+                    Send2SplitFlapThread("Try again!")
 
             elif incoming["SenderName"] == "LieButtons":
                 if incoming["Command"] == "CorrectPassCode":
@@ -460,8 +476,7 @@ class LieDetectorOperationHandler(object):
                                 self.disp_only(incoming["Button"])
 
 
-
-LieDetectorHandler = LieDetectorOperationHandler(4)
+LieDetectorHandler = LieDetectorOperationHandler(4)  # TODO: this should be NofPlayers
 LieButtons.bind(receive=LieDetectorHandler.handle)
 Lie2Buttons.bind(receive=LieDetectorHandler.handle)
 
@@ -534,9 +549,7 @@ def WineBoxCompleted(fail=False):
 
 def winebox_receive(d):
     if d['Command'] == "IWasSolved":
-        if progressor.log("WineBox"):
-            # WineBox.send("Open")
-            WineBoxCompleted()
+        WineBoxCompleted()
 
 
 WineBox.bind(receive=winebox_receive)
@@ -557,7 +570,7 @@ def shooting_range_receive(d):
     elif d['Command'] == "WrongTarget":
         for _i in range(5):
             gui.ShootingCirclesSetColor(_i, 'red')
-    elif d['Command'] == "MissionCompleted" or d['Command'] == "PuzzleFinished":
+    elif d['Command'] == "MissionComplete" or d['Command'] == "PuzzleFinished":
         ShootingRangeCompleted()
 
 
@@ -624,9 +637,12 @@ Stealth.bind(receive=stealth_receive)
 # TimeBomb
 
 def BombActivated():
-    RoomTimeLeft = MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
+    if gui.o.ClockStartTime is None:
+        RoomTimeLeft = 10*60  # 10 minutes
+    else:
+        RoomTimeLeft = MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
     TimeLeft = max(min(10*60, RoomTimeLeft), 1*60)  # max 10 minute, min 1 minute
-    gui.notify("Bomb Activated, Time to solve: {}:{}"
+    gui.notify("Bomb Activated, Time to solve: {}:{0:02d}"
                "".format(int(TimeLeft/60), int(TimeLeft) % 60), solved=True)
     TimeBomb.send("SetExplosionTime", Time=TimeLeft*1000)
 
@@ -854,3 +870,4 @@ if __name__ == "__main__":
     print "Dropped out of mainloop"
     p.save()
     exit()
+
