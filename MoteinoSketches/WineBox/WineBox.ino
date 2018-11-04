@@ -9,7 +9,7 @@ Accelerometer accel;
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
-#define ENCRYPTKEY    "HugiBogi" //exactly the same 16 characters/bytes on all nodes!
+#define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
@@ -40,11 +40,8 @@ const int OpenYourself = 2401;
 const int IWasSolved = 2402;
 const int SetTime2Solve = 2403;
 
-
-unsigned long locked_until_time = 0;
-
 int LED = 9;
-long Time2Solve = 3000;
+long Time2Solve = 10000;
 
 boolean can_be_solved = true;
 
@@ -58,9 +55,13 @@ void setup() {
   accel.begin();
   pinMode(Sesam, OUTPUT);
   pinMode(LED, OUTPUT);
+  pinMode(BatteryPin, INPUT);
   digitalWrite(LED, HIGH);
+  
   delay(500);
   digitalWrite(LED, LOW);
+
+  
 
   // initiate radio:
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
@@ -73,34 +74,32 @@ void setup() {
 }
 
 
+float zthresh = -9.7;
+float xthresh = 0.50;
+float ythresh = 0.50;
+
 
 bool isUpsideDown()
 {
+  //Serial.println("1");
   float z = accel.readAZ();
+  //Serial.println("2");
+  float x = accel.readAX();
+  float y = accel.readAY();
   //Serial.println(z);
-  if (z > 8)
-  {
-    can_be_solved = true;
-    //Serial.print("sdfsf");
-  }
-  return (z < -8);
+  return ((z < zthresh) && (abs(x) < xthresh) && (abs(y) < ythresh));
 }
 
 unsigned long last_check_time = 0;
 unsigned long last_time_not_upside_down = 0;
+boolean has_been_turned_back;
 void checkOnSensor()
 {
-  if (millis() - last_check_time > 20)
+  if (millis() - last_check_time > 100)
   {
     last_check_time = millis();
-    if (!isUpsideDown())
+    if (can_be_solved && isUpsideDown() && capsCharged())
     {
-      last_time_not_upside_down = millis();
-    }
-    else if (can_be_solved && (millis() - last_time_not_upside_down > Time2Solve))
-    {
-      //Serial.print("canbesolved was; ");
-      //Serial.println(can_be_solved);
       problemSolved();
     }
   }
@@ -108,6 +107,11 @@ void checkOnSensor()
 
 unsigned long stop_opening_time = 0;
 boolean stop_opening_flag = false;
+
+bool capsCharged()
+{
+  return analogRead(BatteryPin) > 900;
+}
 
 void stopOpeningLid()
 {
@@ -127,30 +131,66 @@ void problemSolved()
  OutgoingData.Command = IWasSolved;
  sendOutgoingData();
  can_be_solved = false;
- if (millis() > locked_until_time)
- {
   open_lid();
- }
 }
 
 void open_lid()
 {
  digitalWrite(Sesam, HIGH);
- stop_opening_time = millis();
- stop_opening_flag = true;
+ delayWithRadio(500);
+ digitalWrite(Sesam, LOW);
+ 
+}
+void delayWithRadio(unsigned long t){
+  unsigned long now = millis();
+  while (millis() - now < t)
+  {
+    checkOnRadio();
+  }
 }
 
-
-
+long blinkt = -4000;
+bool ledstate = 0;
 
 void loop() {
   // put your main code here, to run repeatedly:
 
+  if (millis() - blinkt > 500)
+  {
+    ledstate = !ledstate;
+    digitalWrite(9, ledstate);
+  }
   checkOnSensor();
   stopOpeningLid();
   checkOnRadio();
+  checkOnSerial();
 }
 
+void checkOnSerial()
+{
+  if (Serial.available())
+  {
+    char c = Serial.read();
+    if (c == 'z')
+    {
+      Serial.print("X  -  ");
+      Serial.println(accel.readAX());
+      Serial.print("Y  -  ");
+      Serial.println(accel.readAY());
+      Serial.print("Z  -  ");
+      Serial.println(accel.readAZ());
+    }
+    else if (c == 's')
+    {
+      Serial.print("BatteryStatus: ");
+      Serial.println(analogRead(BatteryPin));
+      Serial.print("has_been_tured_back:");
+      Serial.println(has_been_turned_back);
+      Serial.print("time_until_solved: ");
+      Serial.println(millis() - last_time_not_upside_down);
+    }
+  }
+}
 
 void checkOnRadio()
 {
@@ -166,14 +206,13 @@ void checkOnRadio()
       radio.sendACK();
     }
     // useful for debugging:
-//    Serial.print("Received: command: ");
-//    Serial.println(IncomingData.Command);
+    //Serial.print("Received: command: ");
+    //Serial.println(IncomingData.Command);
 
     switch (IncomingData.Command)
     {
       case Status:
         sendStatus();
-        locked_until_time = millis() + 3600000;
         break;
       case Reset:
         asm volatile (" jmp 0");

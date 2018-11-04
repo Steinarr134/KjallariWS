@@ -7,6 +7,16 @@ from matplotlib.figure import Figure
 import time
 from Config import *
 
+# Possibly Persistant values
+class P(object):
+    def __init__(self):
+        self.ClockHasStarted = False
+        self.ClockStartTime = None
+
+
+o = P()
+
+
 top = tk.Tk()
 top.attributes("-fullscreen", True)
 # top.withdraw()
@@ -29,10 +39,11 @@ FailButtonNames = [
     "GreenDude Fail",
     "Start Lie Detector",
     "Lie Detector Fail",
-    "Wine Box Fail",
+    "Open WineBox",
     "Shooting Range Fail",
     "Morse Fail",
     "Stealth Fail",
+    "Start TimeBomb"
 ]
 
 
@@ -141,9 +152,20 @@ SplitFlapEntry.bind("<BackSpace>", lambda event: None)
 
 
 # Progress Plot
-ProgressPlot = Figure(figsize=(8, 4), dpi=50)
-ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlot, master=top)
+ProgressPlotFigure = Figure(figsize=(8, 4), dpi=50)
+ProgressPlotBaseLine = cumsum([0, 2*60, 5*60, 2*60, 4*60, 10*60, 5*60, 10*60, 2*60, 10*60, 5*60])
+ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlotFigure, master=top)
 ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
+
+
+def update_progress_plot(times):
+    ProgressPlotFigure.clear()
+    p = ProgressPlotFigure.add_subplot(111)
+    p.plot(range(11), ProgressPlotBaseLine, color="r")
+    print "plot times: {}".format(times)
+    p.plot(range(len(times)), times)
+    ProgressPlotCanvas.draw()
+
 
 
 # Log Text
@@ -238,25 +260,23 @@ for bname in FailButtonNames:
 # Clock
 ClockLabel = tk.Label(top, text="0:00:00", font="Verdana 28 bold")
 ClockLabel.place(x=350, y=50)
-ClockHasStarted = False
-ClockStartTime = None
 
 
 def clock_make_text(sec):
-    m,sec = divmod(sec,60)
-    h,m = divmod(m,60)
-    return "%02d:%02d:%02d" % (h,m,sec)
+    m, sec = divmod(sec, 60)
+    h, m = divmod(m, 60)
+    return "%02d:%02d:%02d" % (h, m, sec)
 
 
 def get_clock_text_now():
-    if ClockStartTime is None:
+    if o.ClockStartTime is None:
         return "00:00:00"
-    displaytime = round(time.time() - ClockStartTime)
+    displaytime = round(time.time() - o.ClockStartTime)
     return clock_make_text(displaytime)
 
 
 def update_clock(event=None):
-    if ClockHasStarted:
+    if o.ClockHasStarted:
         ClockLabel.configure(text=get_clock_text_now())
     top.after(999, update_clock)
 

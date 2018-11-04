@@ -15,6 +15,9 @@ videofolder = "/home/pi/usbdrv/"
 
 
 PLAYEVENT = pygame.USEREVENT + 1
+RESETEVENT = pygame.USEREVENT + 2
+
+
 def handle_command(stuff):
     logging.info("command received: " + str(stuff))
     if type(stuff) != dict:
@@ -26,6 +29,9 @@ def handle_command(stuff):
         pygame.fastevent.post(play_event)
     elif stuff["Command"] == "Status":
         Pope.send("Status")
+    elif stuff["Command"] == "Reset":
+        reset_event = pygame.fastevent.Event(RESETEVENT)
+        pygame.fastevent.post(reset_event)
 
 print "starting network"
 mynetwork = MoteinoNetwork("/dev/ttyUSB0", base_id=41, init_base=False, baudrate=38400)
@@ -33,7 +39,8 @@ mynetwork.logger.setLevel(logging.DEBUG)
 Pope = mynetwork.add_node(1, "int Command;char What2Play[10];", "Pope")
 Pope.add_translation("Command",
                      ('Play', 4101),
-                     ('Status', 99))
+                     ('Status', 99),
+                     ("Reset", 98))
 Pope.bind(receive=handle_command)
 
 pygame.init()
@@ -66,6 +73,8 @@ class PopenThread(threading.Thread):
             #print "444444444444444444 I'm already dead, bith!"
             pass
         self.Done = True
+
+
 Threads = []
 
 done = False
@@ -84,6 +93,9 @@ while not done:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 done = True
+        elif event.type == RESETEVENT:
+            for thread in Threads:
+                thread.die()
         elif event.type == PLAYEVENT:
             for thread in Threads:
                 thread.die()

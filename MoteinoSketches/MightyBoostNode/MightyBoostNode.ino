@@ -18,12 +18,12 @@
 
 #include <RFM69.h>
 #include <SPI.h>
-#define NODEID        41   //unique for each node on same network
+#define NODEID        42   //unique for each node on same network
 #define NETWORKID     7  //the same on all nodes that talk to each other
 #define FREQUENCY     RF69_433MHZ
 #define HIGH_POWER    true
 #define ENCRYPTKEY    "HugiBogiHugiBogi" //exactly the same 16 characters/bytes on all nodes!
-#define BAUDRATE      115200
+#define BAUDRATE      38400
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
@@ -55,6 +55,7 @@ byte BootOkPin = A0;
 byte Output5VPin = 4;
 byte BatteryPin = A7;
 byte ButtonPin = 3;
+byte ledpin = 9;
 
 byte ON = HIGH;
 byte OFF = LOW;
@@ -63,6 +64,7 @@ byte dtabs = 0;
 
 void debug(char *s)
 {
+  //return;
   for (int i = 0; i<dtabs; i++)
   {
     Serial.print('\t');
@@ -84,6 +86,8 @@ void setup()
 
   pinMode(5, OUTPUT);
   analogWrite(5, 100);
+  pinMode(ledpin, OUTPUT);
+
 }
 
 void pretendStartup()
@@ -141,7 +145,10 @@ unsigned long LastTimeNoExternalPower = 0;
 bool externalPowerConnected()
 {
   float b = measureBattery();
-  return (b > 4.3);
+  
+      //Serial.print("Battery measurment = ");
+      //Serial.println(b);
+  return (b > 4.0);
 }
 void checkOnBattery()
 { 
@@ -151,6 +158,8 @@ void checkOnBattery()
     LastBatteryCheckTime = millis();
     if (externalPowerConnected())
     {
+      //Serial.print("LastTimeExtrernalPower = ");
+      //Serial.println(millis());
       LastTimeExternalPower = millis();
 
        // if external power has been on for 10-30 seconds
@@ -162,6 +171,8 @@ void checkOnBattery()
     }
     else
     {
+      //Serial.print("LastTime _NO_ ExtrernalPower = ");
+      //Serial.println(millis());
       LastTimeNoExternalPower = millis();
 
       // if external power has been missing for 10-30 seconds
@@ -185,7 +196,7 @@ void startUpPi()
     dtabs--;
     return;
   }
-
+  bloop(3);
   debug("Turning power on");
   digitalWrite(RequestShutDownPin, LOW);
   output5V(ON); // turn on 5V to Pi
@@ -195,12 +206,14 @@ void startUpPi()
   debug("waiting for BootOK signal");
   while ((millis() - tstart < 60000) && !bootOK())
   {
-    delay(50);
+    delay(500);
+    //bloop(1);
   }
 
   // if Pi failed to start up:
   if (!bootOK())
   {
+    //bloop(10);
     debug("Pi doesn't seem to be starting up correctly, let's try power cycling");
     output5V(OFF); // shut off 5V to Pi
     delay(1000); // Wait a bit so the Pi definitely shuts off
@@ -224,7 +237,9 @@ void output5V(boolean onoff)
 
 boolean bootOK()
 {
+  //Serial.println(analogRead(BootOkPin));
   return analogRead(BootOkPin) > 800;
+  
 }
 
 float measureBattery()
@@ -251,6 +266,7 @@ void shutDownPi()
     debug("the Pi might be booting up");
     // in that case we sleep for 20 seconds to give the Pi time to boot before shutting it down
     boolean ExternalPowerWasPresent = externalPowerConnected();
+    //bloop(2,1000);
     delay(20000);
 
     // if we are shutting down because of loss of power but power has been returned while waiting we cancel the whole thing
@@ -266,7 +282,7 @@ void shutDownPi()
   debug("sending ShutDownRequest");
   digitalWrite(RequestShutDownPin, HIGH);
   unsigned long RequestTime = millis();
-
+  //bloop(5);
   // wait for a maximum of 20 seconds for the Pi to die
   debug("Waiting for shutdown");
   while (bootOK() && millis() - RequestTime < 20000)
@@ -447,3 +463,20 @@ byte hexval(char c)
     return 10 + c - 'a';
   }
 }
+
+void bloop(int f,int t)
+{
+  Serial.println("eg ad bloopa");
+  for (int i=0; i<f;i++)
+  {
+    digitalWrite(ledpin,HIGH);
+    delay(t);
+    digitalWrite(ledpin,LOW);
+    delay(t);
+  }
+}
+void bloop(int f)
+{
+  bloop(f,500);
+}
+

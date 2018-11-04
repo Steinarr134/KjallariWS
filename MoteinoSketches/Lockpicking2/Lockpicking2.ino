@@ -45,7 +45,7 @@ const int testPins = 17606;
 const int _outputPins[] = {3, 4, 5, 6, 7, 14};
 const int NUMBER_OF_OUTPUTS = 6;
 const int _inputPins[] = {15, 16, 17, 18, 19, A6};
-const int _doorPin = 10;
+const int _doorPin = 9;
 const int builtinLed = 9;   // status blikkari, debug
 const int NUMBER_OF_INPUTS = 6;
 boolean _pinsStatus[] = {false, false, false, false, false, false};
@@ -85,11 +85,13 @@ void loop()
   now = millis();
 
   // brown-out check, debug. built-in led blikkar hratt ef pinni er uppi, haegt ef allir nidri
-  if ((now - lastLight) >= blinkDelay) {
+  // commented ut tvi hurdin er a pinna 9
+  /*if ((now - lastLight) >= blinkDelay) {
     digitalWrite(builtinLed, ledState);
     lastLight = now;
     ledState = !ledState;
   }
+  */
 
   if (active) {
     CheckForChange();

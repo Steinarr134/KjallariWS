@@ -8,12 +8,19 @@ from DoorControl import Door as _Door, DoorController as _Dctrl, \
 import threading
 import logging
 import time
+import random
 import HostInterface as gui
 from Config import *
+from Persistance import Perri
 
 
 exitfunctions = []
 exitfunctions.append(mynetwork.shut_down)
+
+def list_threads():
+    print "Threads that are still running:"
+    for t in threading.enumerate():
+        print t
 
 
 def exit():
@@ -21,6 +28,7 @@ def exit():
     for func in exitfunctions:
         print "running exitfunc: {}".format(func)
         func()
+    list_threads()
     print "exitfunctions done"
     quit()
 
@@ -38,12 +46,12 @@ logging.debug("Initializing door control")
 DoorController = _Dctrl(ProbablyDoorSerialPort)
 ElevatorDoor = _Door(DoorController, 0)
 SafeDoor = _RemoteDoor(LockPicking, auto_close=False)
-BookDrawer = _Door(DoorController, 2)
+BookDrawer = _Door(DoorController, 3)
 WineCaseHolderDoor = _RemoteDoor(WineBoxHolder)
 WineCaseDoor = _RemoteDoor(WineBox)
-StealthDoor = _Door(DoorController, 3)
-FromBombDoor = _Door(DoorController, 4)
-FinalExitDoor = _Door(DoorController, 5)
+StealthDoor = _Door(DoorController, 4)
+FromBombDoor = _Door(DoorController, 5)
+FinalExitDoor = _Door(DoorController, 6)
 
 print DoorController.Doors
 
@@ -72,22 +80,24 @@ exitfunctions.append(join_threads)
 
 
 class Send2SplitFlapThread(threading.Thread):
-    def __init__(self, stuff2send):
+    def __init__(self, stuff2send, time_between=5):
         threading.Thread.__init__(self)
-        Threads.append(self)
+        # Threads.append(self)
         self.Stuff2Send = stuff2send
+        self.TimeBetween = time_between
+
         self.setDaemon(True)
         self.start()
 
     def run(self):
         with Send2SplitFlapLock:
             parts = self.Stuff2Send.split('\n')
-            for part in parts:
+            for i, part in enumerate(parts):
                 part = part.strip()
                 part += " "*(11 - len(part))
                 SplitFlap.send("Disp", part)
                 gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format(part))
-                time.sleep(5)
+                time.sleep(self.TimeBetween)
             SplitFlap.send("Clear")
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
 
@@ -110,20 +120,32 @@ class Progressor(object):
             "TapeRecorder",
             "LockPicking",
             "GreenDude",
-            "LieDetector",
+            "LieDetectorStart",
+            "LieDetectorFinish",
             "WineBox",
             "ShootingRange",
             "Morser",
+            "Stealth",
+            "TimeBomb",
+            "RoomFinished"
         ]
         self.progress = 0
+        self.StartTime = None
         self.ProgressTimes = [None for cp in self.Checkpoints]
 
     def current_cp(self):
         return self.Checkpoints[self.progress]
+
+    def plot(self):
+        gui.update_progress_plot(self.ProgressTimes[1:self.progress+1])
     
     def log(self, checkpoint):
         print("###########  Progressor  {}, next progress should be {}"
               "".format(checkpoint, self.Checkpoints[self.progress+1]))
+        for i in range(self.progress):
+            if self.Checkpoints[i + 1] == checkpoint:
+                print("Task already Done!!!")
+                return False
         temp = True
         if self.Checkpoints[self.progress+1] != checkpoint:
             temp = gui.askquestion("Advencement to fast!", 
@@ -134,13 +156,35 @@ class Progressor(object):
             if checkpoint in self.Checkpoints:
                 print "Setting progress to {} (index:{})".format(checkpoint, self.Checkpoints.index(checkpoint))
                 self.progress = self.Checkpoints.index(checkpoint)
-                self.ProgressTimes[self.Checkpoints.index(checkpoint)] = time.time()
+                if self.StartTime is None:
+                    # should happen during elevator escape
+                    self.StartTime = time.time()
+                self.ProgressTimes[self.Checkpoints.index(checkpoint)] = time.time() - self.StartTime
+                self.plot()
             else:
                 raise ValueError("Checkpoint was: {}".format(checkpoint))
+        # print "Returning {}".format(temp)
         return temp
 
 
 progressor = Progressor()
+p = Perri()
+
+
+DeviceSubmenus = []
+
+
+class Object(object):
+    pass        # I do realize this seems pointless but it actually does something
+
+
+def cumsum(l):
+    new_l = []
+    s = 0
+    for number in l:
+        s += number
+        new_l.append(s)
+    return new_l
 
 if __name__ == '__main__':
     exit()

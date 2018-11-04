@@ -37,10 +37,10 @@ MoteinoStructs = {
 
     'TimeBomb':
         "int Command;" +
-        "unsigned long TimeLeft;"
+        "unsigned long Time;"
         "int SmokeTime;"
-        "bool SmokeOn;"
-        "bool buzzerOn;",
+        "byte SmokeOn;"
+        "byte buzzerOn;",
 
     'Morser':
         "int Command;" +
@@ -107,8 +107,10 @@ MoteinoStructs = {
 
     'LieButtons':
         "int Command;"
-        "byte PassCode[4];"
-        "byte Lights[7];",
+        "byte PassCode[3];"
+        "byte Lights[7];"
+        "byte Button",
+
     'Lie2Buttons':
         "int Command;"
         "byte Temperature;",
@@ -143,10 +145,12 @@ if "win" in sys.platform:
     port = raw_input("what port?")
     # mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 else:
-    ports = os.popen("ls /dev/ttyUSB*").read()
+    ports = os.popen("ls /dev/ttyUSB*").read().split('\n')
     print ports
     if ports:
-        for p in ports.split('\n'):
+        for p in ports:
+            if not p:
+                continue
             ret, reason = look_for_base(p)
             if not ret:
                 print "No base on {} because: {}".format(p, reason)
@@ -154,10 +158,13 @@ else:
                 print "Found base on port: {}".format(p)
                 port = p
                 break
+        for p in ports:
+            print " are ProbablyDoors maybe on {}".format(p)
+            if p and p != port:
+                print "YES!"
+                ProbablyDoorSerialPort = p
 if port is None:
     print("No Base found, using fake base")
-else:
-    ProbablyDoorSerialPort = "/dev/ttyUSB1" if port == "/dev/ttyUSB0" else "/dev/ttyUSB0"
 
 mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 mynetwork.logger.setLevel(logging.DEBUG)
@@ -216,7 +223,8 @@ TimeBomb.add_translation('Command',
                          ("BombExploded", 17002),
                          ("SetExplosionTime", 17003),
                          ("BombActivated", 17004),
-                         ("SetOptions", 17005))
+                         ("SetOptions", 17005),
+                         ("CalibrateSolution", 17006))
 
 ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
                                    MoteinoStructs['ShootingRange'],
@@ -291,8 +299,8 @@ Sirens.add_translation("Command",
                        ("TogglePin2", 3702),
                        ("SetPin1High", 3703),
                        ("SetPin1Low", 3704),
-                       ("SetPin2High", 3706),
-                       ("SetPin2Low", 3705))
+                       ("SetPin2High", 3705),
+                       ("SetPin2Low", 3706))
 
 LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
                                 MoteinoStructs['LieButtons'],
@@ -300,9 +308,13 @@ LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
 LieButtons.add_translation("Command",
                            ("CorrectPassCode", 5101),
                            ("ChangePassCode", 5102),
+                           ("Disp", 5103),
+                           ("SetListenToPasscode", 5104),
+                           ("SetListenToButtonPresses", 5105),
                            ("CorrectLightShow", 5106),
                            ("IncorrectLightShow", 5107),
-                           ("Disp", 5103))
+                           ("ButtonPress", 5108)
+                           )
 
 LiePiA = mynetwork.add_node(MoteinoIDs['LiePiA'], "int Command;", "LiePiA")
 LiePiA.add_translation("Command", ("Start", 50))
