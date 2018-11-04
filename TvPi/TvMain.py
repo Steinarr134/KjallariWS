@@ -28,7 +28,7 @@ def handle_command(stuff):
         Pope.send("Status")
 
 print "starting network"
-mynetwork = MoteinoNetwork("/dev/ttyUSB0", base_id=41, init_base=False, baudrate=115200)
+mynetwork = MoteinoNetwork("/dev/ttyUSB0", base_id=41, init_base=False, baudrate=38400)
 mynetwork.logger.setLevel(logging.DEBUG)
 Pope = mynetwork.add_node(1, "int Command;char What2Play[10];", "Pope")
 Pope.add_translation("Command",
