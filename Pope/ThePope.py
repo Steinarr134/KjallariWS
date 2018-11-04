@@ -147,9 +147,9 @@ def initialize_room(player_info={}):
             stuff = "RSSI={}".format(mynetwork.Base.report()[0])
             gui.notify(stuff)
 
-    t = threading.Thread(target=printrssi)
-    t.setDaemon(True)
-    t.start()
+    # t = threading.Thread(target=printrssi)
+    # t.setDaemon(True)
+    # t.start()
 # Some helper functions
 
 def display_status_all_devices():
@@ -459,18 +459,29 @@ class LieDetectorOperationHandler(object):
                         return
                     self.CurrentScene.next_file()
                     if self.CurrentScene.Done:
-                        time.sleep(self.CurrentScene.OutroLength)
+
+                        time.sleep(5)
+                        Send2SplitFlapThread("Act {} Done".format(self.CurrentScene.N),
+                                             self.CurrentScene.OutroLength - 5)
+                        LieButtons.send("CorrectLightShow")
+                        time.sleep(self.CurrentScene.OutroLength - 5)
+                        
                         self.ScenesAvailable[self.CurrentScene.N] = False
                         self.CurrentScene = None
                         self.disp_scenes_available()
 
                 elif incoming["Command"] == "Button2Press":
                     # Players fail the Scene, Go back to Scene selection
+                    if self.CurrentScene is None:
+                        return
                     self.CurrentScene.reset()
                     self.CurrentScene = None
-                    self.disp_scenes_available()
+
                     TvPi.send("Reset")
-                    Send2SplitFlapThread("Try again!")
+                    Send2SplitFlapThread("Try again!", 10)
+                    LieButtons.send("IncorrectLightShow")
+
+                    run_after(self.disp_scenes_available, seconds=3)
 
             elif incoming["SenderName"] == "LieButtons":
                 if incoming["Command"] == "CorrectPassCode":
@@ -504,6 +515,8 @@ TvPiFiles = ["B1.mov",
 def LieDetectorCompleted(fail=False):
     if progressor.log("LieDetectorFinish"):
         gui.notify("Lie Detector Completed", fail=fail, solved=not fail)
+        Send2SplitFlapThread("Well Done!", 10)
+        time.sleep(5)
         TapeRecorder.send(Command='Load', s="7.ogg" + "\0"*5, FileLength=38)
         nextFailButton("Lie Detector Fail")
         LiePiA.send("Reset")
@@ -842,10 +855,10 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
         DeviceSubmenu.add_command(label="Engage Stupid State",
                                   command=lambda: TapeRecorder.send("SetStupidState"))
     if Device == "LieButtons":
-        DeviceSubmenu.add_command(label="Set Active",
-                                  command=lambda: LieButtons.send("SetActive"))
-        DeviceSubmenu.add_command(label="Set Inactive",
-                                  command=lambda: LieButtons.send("SetInactive"))
+        DeviceSubmenu.add_command(label="SetListenToPasscode",
+                                  command=lambda: LieButtons.send("SetListenToPasscode"))
+        DeviceSubmenu.add_command(label="SetListenToButtonPresses",
+                                  command=lambda: LieButtons.send("SetListenToButtonPresses"))
         DeviceSubmenu.add_command(label="Correct LightShow",
                                   command=lambda: LieButtons.send("CorrectLightShow"))
         DeviceSubmenu.add_command(label="Incorrect LightShow",

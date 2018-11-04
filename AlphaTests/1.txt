@@ -3,33 +3,30 @@
 Steinarr á páfanum, Ásgeir inni í herbergi
 
 
-Lyfta -		virkar
+Lyfta -		virkar en er aldrei í sambandi...
 
 Taperecorder -	Þarf að sameina fyrstu tvo hljóðfæla í einn.
 		Hann segir access(aðgengi) en ekki assess(meta)
 		Þarf að fara yfir alla hljóðfæla
 
-LockPicking -	virkar
+LockPicking -	virkar nema hvað hann restartar sér þegar hann sendir að hann hafi verið leystur
+                og við höfum ekki hugmynd um afhverju. Er samt ekki fatalt vandamál, aðrir moteinoar
+                geta ekki talað saman á meðan en það ætti ekki að gera mikið til því spilarar eiga eftir
+                að fatta að setja hálsfesti undir UV og fatta að stimpla þann kóða inn í GreenDude.
+                ómögulegt að það gerist á þessum 10 sekúndum sem Lockipicking er að öskra.
 
 UV lampi -	ekki augljóst hvernig á að kveikja á honum.
 
-GreenDude -	Græna ljósið kom seinna en búist var við.
-		TapeRecorder heyrði ekki í páfanum og spilaði því ekki
-		næsta hljóðfæl við teljum þaðp hafa gerst því GreenDude
-		heyrðiu ekki í páfanum þegar páfinn segist hafa heyrt í 
-		GreenDude svo GreenDude reynir aftur einmitt þegar páfinn
-		er að tala við TapeRecorder.
-		Á svipuðum tíma er líka LockPick eitthvað að tjá sig sem
-		það ætti alls ekki að vera að gera.
+GreenDude -	Kom í ljós að það var LockPicking sem var með vesenið.
 		
 
 LieDetector -	Fer í gang við 636.
 		Þarf að breyta hljóðfælnum "put the headstraps on...."
 		Gröf virka, handaskynjarar virka.
-		Þegar einhver feilar vantar að stöðva sjónvarpið strax.
-		Og það þarf meiri tíma á milli SplitFlap skrifanna.
+		Þegar einhver feilar vantar að stöðva sjónvarpið strax. - komið!
+		Og það þarf meiri tíma á milli SplitFlap skrifanna. - komið!
 		Þegar fólok klárar senu ætti að skrifa á Splitflap: 
-		Scene 2 Done eða eitthvað þvíumlíkt 
+		Scene 2 Done eða eitthvað því um líkt
 
 Winebox -	Virkaði, nema að takkinn í páfranum varð ekki grayed out
 			Leyst 17.10.2018
