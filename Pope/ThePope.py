@@ -141,7 +141,15 @@ def initialize_room(player_info={}):
     # gui.notify("Test solved", solved=True)
     # gui.notify("Test Fail", fail=True)
 
+    def printrssi():
+        while True:
+            time.sleep(2)
+            stuff = "RSSI={}".format(mynetwork.Base.report()[0])
+            gui.notify(stuff)
 
+    t = threading.Thread(target=printrssi)
+    t.setDaemon(True)
+    t.start()
 # Some helper functions
 
 def display_status_all_devices():
