@@ -1,3 +1,5 @@
+// CSMA_LIMIT  í RFM69.h breytt í -50!
+
 #include <SPIFlash.h>
 #include <Wire.h>
 #include <RFM69.h>
@@ -13,6 +15,7 @@
 #define SERIAL_BAUD   9600
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
+
 
 // operating variables
 const int statusCommand = 99;
@@ -35,6 +38,7 @@ unsigned long previousMillis = 0;
 unsigned long lightmillis = 0;
 int beat = 2000;
 int triggerstatus = 0;
+unsigned long MaxSlaveWaitTime = 100;
 
 
 //this is the package transmitted over RF
@@ -60,6 +64,7 @@ void setup() {
   radio.setHighPower(); //only for RFM69HW!
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
+
 
   //Serial.println("sdsdfsdfa");
   /*while (false)
@@ -92,6 +97,7 @@ void checkOnRadio()
       radio.sendACK();
       //Serial.println(millis());
     }
+    Serial.println(IncomingData.command);
     switch (IncomingData.command)
     {
       case statusCommand:
@@ -155,9 +161,15 @@ int checkTrigger()//check if any movement has been detected, sends a message to 
 
     // Steinarr added this part so that the radio can still be rensponsive while
     // the master waits for a slave to communicate
+
+    unsigned long t0 = millis();    
     while (!Wire.available())
     {
       checkOnRadio();
+      if (millis() - t0 < MaxSlaveWaitTime);
+      {
+        return i + 10; // +10 means that the slave doesn't respond over i2c
+      }
     }
     
     slaveChar = Wire.read();
@@ -204,13 +216,18 @@ void lightsOn()
   }
 }
 
-void sendStatus()//not active
+void sendStatus()
 {
+  //Serial.println("sendStatus()");
   triggerstatus = checkTrigger();
+  //Serial.println("got past checkTrigger()");
   OutgoingData.trippedSlave = triggerstatus;
   OutgoingData.command = statusCommand;
   OutgoingData.beat = beat;
+  //Serial.println("Sending the status...");
+  //delay(40);
   radio.sendWithRetry(BaseID, (const void*)(&OutgoingData), sizeof(OutgoingData));
+  //Serial.println("Status was sent");
 }
 
 void setBeat()
