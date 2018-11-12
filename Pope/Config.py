@@ -14,7 +14,6 @@ Devices = [
     'ShootingRange',
     'Morser',
     'Stealth',
-    'Sirens',
     'TimeBomb',
 ]
 

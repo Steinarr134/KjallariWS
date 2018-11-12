@@ -369,6 +369,8 @@ def moteino_status(device):
         tripped = d["Tripped"]
         if tripped == 0:
             ret += "Stealth is up and running, all lasers working"
+        elif 10 < tripped < 20:
+            ret = "Stealth: Slave {} is not answering over i2c".format(tripped-10)
         else:
             ret += "Stealth is running but slave {} is tripping".format(tripped)
     else:

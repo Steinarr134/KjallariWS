@@ -130,12 +130,16 @@ def initialize_room(player_info={}):
     TapeRecorder.send("Reset")
     # taperecorder load 1 and pauses
 
-    display_status_all_devices()
+    failed = display_status_all_devices()
 
     # give gui time to print all the stuff??
     dt = time.time() - t
     if dt < 10:
         time.sleep(10 - dt)
+
+    for device in failed:
+        display_status(device)
+
     ElevatorDoor.close()
     # gui.notify("Test warning", warning=True)
     # gui.notify("Test solved", solved=True)
@@ -153,9 +157,13 @@ def initialize_room(player_info={}):
 # Some helper functions
 
 def display_status_all_devices():
+    ret = []
     for device in Devices:
-        display_status(device)
+        state = display_status(device)
         time.sleep(0.1)
+        if not state:
+            ret.append(device)
+    return ret
 
 
 def nextFailButton(button=None):
@@ -181,13 +189,16 @@ def display_status(device):
     status = moteino_status(device)
     if status[:11] == "No response":
         color = 'red'
+        ret = False
     else:
         color = 'green'
+        ret = True
 
     for _i in range(len(gui.DeviceSubmenus)):
         if gui.DeviceMenu.entrycget(_i, 'label') == device:
             gui.DeviceMenu.entryconfig(_i, background=color)
     gui.notify(status)
+    return ret
 
 
 # SplitFlap
@@ -308,7 +319,13 @@ Elevator.bind(receive=elevator_receive)
 # TapeRecorder
 
 TapeRecorderIntroMessageStarted = False
-TapeRecorderFiles = [("1.ogg", 50), ("2.ogg", 15), ("3.ogg", 17), ("4.ogg", 15), ("5.ogg", 21), ("6.ogg", 37)]
+TapeRecorderFiles = [("1.ogg", 50, "Room Intro"),
+                     ("2.ogg", 26, "Alternate Intro"),
+                     ("3.ogg", 17, "LockPick Hint"),
+                     ("4.ogg", 15, "A fine start..."),
+                     ("5.ogg", 21, "Rod hint"),
+                     ("6.ogg", 37, "Lie Detector Instructions"),
+                     ("7.ogg", 38, "WineBox Hint")]
 
 
 def StartTapeRecorderIntroMessage(timeout=False, fail=False):
@@ -465,7 +482,7 @@ class LieDetectorOperationHandler(object):
                                              self.CurrentScene.OutroLength - 5)
                         LieButtons.send("CorrectLightShow")
                         time.sleep(self.CurrentScene.OutroLength - 5)
-                        
+
                         self.ScenesAvailable[self.CurrentScene.N] = False
                         self.CurrentScene = None
                         self.disp_scenes_available()
@@ -845,8 +862,8 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
     if Device == "TapeRecorder":
         subsubmenu = gui.tk.Menu(DeviceSubmenu, tearoff=False)
         DeviceSubmenu.add_cascade(label="Play file", menu=subsubmenu)
-        for i in range(5):
-            subsubmenu.add_command(label=TapeRecorderFiles[i][0],
+        for i in range(len(TapeRecorderFiles)):
+            subsubmenu.add_command(label=TapeRecorderFiles[i][2],
                                    command=lambda _i=i: TapeRecorder.send("Load",
                                                                           s=TapeRecorderFiles[_i][0] + "\0"*5,
                                                                           FileLength=TapeRecorderFiles[_i][1]))
