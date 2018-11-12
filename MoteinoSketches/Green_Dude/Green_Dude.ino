@@ -112,23 +112,16 @@ void loop()
   }
   if (digitalRead(SimaPin) == LOW && millis() - LastCheckPhoneTime > CheckPhoneInterval)
   {
-    int a = Register[GreenLedFeadBackPos] + Register[RedLedFeadBackPos];
     if (currentAndCorrectAreTheSame())
     {
       Register[GreenLedFeadBackPos] = 1;
       Register[RedLedFeadBackPos] = 0;
+      writeRegister();
       sendMessageAboutCorrect();
     } else {
       Register[GreenLedFeadBackPos] = 0;
       Register[RedLedFeadBackPos] = 1;
-    }
-    if (a != 1)
-    {
       writeRegister();
-    }
-    else
-    {
-      //sendStatus();
     }
     LastCheckPhoneTime = millis();
   } else if (millis() - LastCheckPhoneTime > CheckPhoneInterval + 250) {
@@ -198,7 +191,7 @@ void sendStatus()
   for (byte i = 0; i < 7; i++)
   {
     OutgoingData.Lights[i] = CurrentSwitchState[i];
-    OutgoingData.Passcode[i] = CorrectSwitchState[i];
+    OutgoingData.PassCode[i] = CorrectSwitchState[i];
   }
   OutgoingData.Temperature = getTemperature();
   if (!sendOutgoing())
