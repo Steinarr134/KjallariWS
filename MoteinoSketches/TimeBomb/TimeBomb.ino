@@ -108,6 +108,8 @@ bool bombExploded = false;
 bool smokeOn = true;
 int smokeTime;
 const int maxSmokeTime = 30000;
+const int PhotoResThreshold = 50;
+
 bool buzzerOn;
 
 int CorrectValues[5]; // The solution to the puzzle
@@ -123,6 +125,8 @@ void setup() {
   // initiate Serial port:
   Serial.begin(115200);
 
+  
+
   // initiate radio:
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   if (HIGH_POWER)
@@ -135,6 +139,7 @@ void setup() {
   pinMode(LatchPin, OUTPUT);
   pinMode(PiezoPin, OUTPUT);
   pinMode(SmokePin, OUTPUT);
+  pinMode(PhotoRes, INPUT);
   digitalWrite(SmokePin, HIGH);
   for (byte i = 0; i < 5; i++)
     pinMode(BananaPins[i], INPUT);
@@ -148,7 +153,8 @@ void setup() {
   smokeTime = EEPROMReadInt(E_smokeTime);
   smokeOn = EEPROMReadInt(E_smokeOn);
   buzzerOn = EEPROMReadInt(E_buzzerOn);
-  
+
+  writeRegister();
   
   
   Serial.println("started");
@@ -237,9 +243,10 @@ void chestHasBeenOpened()
     return;
   }
   else {
-    Serial.println(analogRead(PhotoRes));
+    //Serial.print("photores");
+    //Serial.println(analogRead(PhotoRes));
     chestHasBeenOpenedLastCheckTime = millis();
-    if (analogRead(PhotoRes)>3) {
+    if (analogRead(PhotoRes)>PhotoResThreshold) {
       isChestOpen = true;
       ChestOpeningTime = millis();
       Serial.print("ChestOpened");
