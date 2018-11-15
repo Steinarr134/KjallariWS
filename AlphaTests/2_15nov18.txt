@@ -1,0 +1,48 @@
+15 Nóvember 2018
+
+Ásgeir í herbergi Steinarr á páfanum
+
+Ljósið fyrir ofan lygamælinn:
+    Þarf að festa glerið og ganga frá kaplinum
+
+LockPicking:
+    Vantar Lockpicking tool
+    Þarf að ganga frá hálsmeni þannig að ekki sé hægt að taka það í sundur og missa perlurnar út um allt
+
+
+Lygamælir:
+    Það þarf að laga takkana (LieButtons), þeir eru ekki nógu responsive
+    Það þarf að fara yfir útprentuðu handritin
+    Það þarf að endurraða í myndavélakerfinu svo hægt sé að vera með view sem sýnir gröfin 2, sjónvarpið
+        og framan í fólkið.
+    Það vantar einhvers konar feedback fyrir hostinn til að vita að páfinn tók við því að
+        ýtt hafi verið á lie2buttons takka.
+
+Shooting Range
+    Vantar byssu og lykil í vínkassann.
+    Það þarf að finna til skilabyssunnimechanismann.
+    Það vantar plagg inni í skápnum sem segir hvað eru mörg skot og svoleiðis
+        spurning um að hafa lítið ljós sem lýsir það plagg upp svo það fari ekki framhjá fólki.
+
+
+Morse:
+    Var með einhver leiðindi, vildi ekki taka við lykilorðinu
+        Líklega því það var búið að hækka vel í hljóðinu en það getur ruglað skynjunina.
+        Þarf eiginlega að taka þetta í gegn
+
+    Það þarf að vera augljósara að hurðin opnist. Auðvelt að missa af því eins og er
+        Hugmynd:    Semja hlóðfæl til að spila á þessum tímapunkti, þar sem reglurnar í
+                    Stealth eru útskýrðar, hægt að taka fram í leiðinni, "á bak við bókahilluna"
+
+
+    Vantar gamaldags snúru
+
+Stealth:
+    Var með hellað vesen um daginn sem lagaðist upp úr þurru
+    Virkaði núna vel
+    Vantar fangelsisrimla og hurð
+
+Sprengja:
+    Virkaði vel eftir að við stilltum inn rétta lausn.
+
+

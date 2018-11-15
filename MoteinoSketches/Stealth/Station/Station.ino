@@ -22,7 +22,7 @@ int lightStatus = 0;
 byte temperature = 20;
 
 void setup() {
-  sensors.begin();
+  //sensors.begin();
   Wire.begin(5);
   Serial.begin(9600);
   //i2c transmission

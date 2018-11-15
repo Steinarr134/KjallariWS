@@ -168,7 +168,7 @@ class Progressor(object):
 
 
 progressor = Progressor()
-p = Perri()
+perri = Perri()
 
 
 DeviceSubmenus = []

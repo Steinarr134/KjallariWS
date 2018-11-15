@@ -1,0 +1,6 @@
+
+Ef progress er reoloadað frá síðasta þá ætti ekki að resetta allar græjurnar
+
+Ef progress hoppar framhjá lyftu þá byrjar ekki klukkan, ætti að byrja í default miðað við þangað sem hoppað er
+
+Taka út Stealth fail takkann. hann gerir ekki neitt

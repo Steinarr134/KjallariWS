@@ -1,0 +1,13 @@
+
+Kveikja á lyftuhljóði
+Skila LockPicking Tool
+Skila perlufesti
+
+Loka:
+    Lyftuhurð
+    Hurð Milli Sprengju og herbergis
+    Bókahilluhurð
+    Bókahilluskúffu
+    Vínkassahaldara
+    LockPick
+

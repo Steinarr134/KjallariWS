@@ -20,48 +20,20 @@ def run_after(func, seconds=0, minutes=0):
 logging.basicConfig(level=logging.DEBUG)
 
 # This is supposed to hold the player info
-CurrentPlayerInfo = p.get("CurrentPlayerInfo", {})
+CurrentPlayerInfo = perri.get("CurrentPlayerInfo", {})
 
 """
 TODO:
 
 
-Laga forrit a lockpicking, koma i veg fyrir ad hann sendi aftur og aftur
-og passa ad hann sleppi pinnunum svo ad their haldi ekki afram ad hitna
-- buid ad laga forritis, a eftir ad uploada thvi
-
-Spola taperecorder til baka thegar herbergid initializast
-Baeta vid styringuf fyrir taperecorder i pafanum,
-haegt ad loada hvada file sem er og haegt ad yta a play/pause
-Fara yfir lengd a fileum fyrir taperecorder
-
-Laga GreenDude, lata hann senda lykilord med status
-- buid ad laga forritid, a eftir ad uploada thvi
-
-
 
 Control the lights
-
 
 Set up Database
 
 Be able to abruptly stop and resume as if nothing happened
     First clearly define a state space
     rest will come 'EZ'
-
-    
-
-Takkar sem thurfa ad vera til:
-    Sleppa ur lyftunni (intro mission failed)
-
-    Setja i gang TapeRecorder
-
-    Opna Safe (mission theivery failed)
-
-    TapeRecorder og svoleidis(Mission GreenDude failed)
-
-    Opna Vinkassann
-    
     
 """
 
@@ -94,22 +66,46 @@ def initialize_room(player_info={}):
     t = time.time()
     if player_info == {} and \
             gui.askquestion("Reload Previous Group", "Do you want to reload previous group?") == "yes":
-        p.load()
+        perri.load()
     else:
-        p.reset()
+        perri.reset()
         player_info['room initialization time'] = t
 
-    gui.o = p.get("gui.o", gui.P())
+    gui.o = perri.get("gui.o", default=gui.P())
     global progressor
-    progressor = p.get("progressor", Progressor())
+    progressor = perri.get("progressor", Progressor())
     if progressor.progress > 1:
         nextFailButton(gui.FailButtonNames[progressor.progress - 1])
     progressor.plot()
 
     # TODO: fix states of things if progress was loaded from previous group
-    # progress = progressor.Checkpoints[progress.progress]
-    # if progress == "Start Lie Pie"
-    #   start_lie_pie() # or whatever
+    progress = progressor.current_cp()
+    if progress == "Nothing":
+        pass
+    elif progress == "Elevator":
+        pass
+    elif progress == "TapeRecorder":
+        pass
+    elif progress == "LockPicking":
+        pass
+    elif progress == "GreenDude":
+        pass
+    elif progress == "LieDetectorStart":
+        pass
+    elif progress == "LieDetectorFinish":
+        pass
+    elif progress == "WineBox":
+        pass
+    elif progress == "ShootingRange":
+        pass
+    elif progress == "Morser":
+        pass
+    elif progress == "Stealth":
+        pass
+    elif progress == "TimeBomb":
+        pass
+    elif progress == "RoomFinished":
+        pass
 
     LockPicking.send("Reset")
     LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
@@ -124,6 +120,7 @@ def initialize_room(player_info={}):
     LieButtons.send("Reset")
     WineBoxHolder.send("Reset")
     ShootingRange.send("Reset")
+    TimeBomb.send("Reset")
 
     SplitFlap.send("Disp", "  Camp Z   ")
 
@@ -182,6 +179,8 @@ def nextFailButton(button=None):
             break
         if currentFailButton > 20:
             break
+
+    # TODO: if the clock isn't running, start the clock according to the mean time for this point
 
 
 def display_status(device):
@@ -437,7 +436,7 @@ class LieDetectorOperationHandler(object):
             #     TvPi.send("PlayFile", self.CurrentFile)
 
         self.Scenes = [Scene(["B1.mov", "B2.mov", "B3.mov", "B4.mov",
-                              ["B5_1.mov", "B5_2.mov", "B5_3.mov", "B5_4.mov"], "B6.mov"], 0, 14),
+                              ["B5_1.mov", "B5_2.mov", "B5_3.mov"], "B6.mov"], 0, 14),
                        Scene(["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
                               ["PP5_1.mov", "PP5_2.mov", "PP5_3.mov", "PP5_4.mov"], "PP6.mov"], 1, 15),
                        Scene(["GB1.mov", "GB2.mov", "GB3.mov", "GB4.mov",
@@ -470,11 +469,17 @@ class LieDetectorOperationHandler(object):
             if incoming["SenderName"] == "Lie2Buttons":
                 if StealthActive:
                     StealthRetry()
+
                 elif incoming["Command"] == "Button1Press":
                     # Players pass the question
                     if self.CurrentScene is None:
                         return
+                    prev_file = str(self.CurrentScene.CurrentFile)
                     self.CurrentScene.next_file()
+                    gui.notify("Scene({}) file('{}') passed, now playing '{}'"
+                               "".format(self.CurrentScene.N + 1,
+                                         prev_file,
+                                         self.CurrentScene.CurrentFile), solved=True)
                     if self.CurrentScene.Done:
 
                         time.sleep(5)
@@ -491,11 +496,15 @@ class LieDetectorOperationHandler(object):
                     # Players fail the Scene, Go back to Scene selection
                     if self.CurrentScene is None:
                         return
+
+                    gui.notify("Scene({}) file('{}') failed, resetting..."
+                               "".format(self.CurrentScene.N + 1,
+                                         self.CurrentScene.CurrentFile), fail=True)
                     self.CurrentScene.reset()
                     self.CurrentScene = None
 
                     TvPi.send("Reset")
-                    Send2SplitFlapThread("Try again!", 10)
+                    Send2SplitFlapThread("Try again", 10)
                     LieButtons.send("IncorrectLightShow")
 
                     run_after(self.disp_scenes_available, seconds=3)
@@ -509,10 +518,11 @@ class LieDetectorOperationHandler(object):
                             if self.ScenesAvailable[incoming["Button"]]:
                                 self.CurrentScene = self.Scenes[incoming["Button"]]
                                 self.CurrentScene.next_file()
+                                gui.notify("Player selected Scene({})".format(self.CurrentScene.N + 1))
                                 self.disp_only(incoming["Button"])
 
 
-LieDetectorHandler = LieDetectorOperationHandler(4)  # TODO: this should be NofPlayers
+LieDetectorHandler = LieDetectorOperationHandler(NofPlayers)
 LieButtons.bind(receive=LieDetectorHandler.handle)
 Lie2Buttons.bind(receive=LieDetectorHandler.handle)
 
@@ -679,8 +689,8 @@ def BombActivated():
         RoomTimeLeft = 10*60  # 10 minutes
     else:
         RoomTimeLeft = MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
-    TimeLeft = max(min(10*60, RoomTimeLeft), 1*60)  # max 10 minute, min 1 minute
-    gui.notify("Bomb Activated, Time to solve: {}:{0:02d}"
+    TimeLeft = max(min(MaxBombTime, RoomTimeLeft), MinBombTime)  # max 10 minute, min 1 minute
+    gui.notify("Bomb Activated, Time to solve: {}:{}"
                "".format(int(TimeLeft/60), int(TimeLeft) % 60), solved=True)
     TimeBomb.send("SetExplosionTime", Time=TimeLeft*1000)
 
@@ -906,6 +916,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     print "Dropped out of mainloop"
-    p.save()
+    perri.save()
     exit()
 
