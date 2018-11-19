@@ -1,12 +1,42 @@
-
 /*
-   12.9.2016. Steina Dögg steina.dogg@gmail.com
-   Sketch sem les pinna, ákvarðar hvort input sé dot eða dash, og safnar innslögum í innsláttar fylki.
-   Eftir hverja lesningu eru gildin sem hafa safnast borin saman við lausnar kóða.
-   Ef lausnarfylki er eins og innsláttarfylki þá sendir moteino kóða á páfann sem svo tengist rás sem opnar segullás.
+höf: Karl Birkir
+Forritið notar interrupt til að fylgjast með spennunni á morse lyklinum.
+Þegar spennan breytist (CHANGE) mælir forritið stöðuna, HIGH/LOW.
+Ef HIGH, skra timann, merkja að það hafi verið lyklað.
+Ef LOW, tekka hvort hafi verið lyklað, maela hversu langt sidan
+Maelingarnar eru settar í fylki, timi[]. 
+Finna stystu og lengstu lyklanir og skilgreina sem stutt/langt, 
+radad inni annað fylki, dashDot[] eftir hlutföllum af min/max.
+dashDot[] sidan borid saman vid solution[] til ad athuga hvort rett hafi verid lyklad.
+
+HARDWARE:
+  Morse lykill. 
+  - Þarf gott debounce á takkana:
+  -- ~100 nF thettir hlidtengt yfir rofa, eda milli 5v og D3 a arduino
+  -- Lika debounce i software
+  
+ D3 pin er external interrupt 1.
+
+
+Morse standard:
+  dot = 1 unit
+  dash = 3 units
+  dotSpace = 1 unit
+  charSpace = 3 units
+  wordSpace = 7 units
+  
+  Mogulegt framtidardot:
+  - Nota sveigjanlegann tima til ad athuga hvenar bokstaf er lokid, t.d. ef ekki lyklad i akvedinn tima (charSpace), 
+  kalla a vinnslufall og finna ut bokstaf. Sama fyrir ord?
+ 
 
 */
-boolean displayWinner = false;
+
+#define DashDotRatio 2      // timahlutfall milli dash dot. 2 er sveigjanlegra en 3.
+#define spaceDashRatio 3    // timahlutfall milli dash og space, milli stafa. Onotad i thessu samhengi.
+#define debounce 20         // debounce, millisec
+#define timeArrayLength 9   // fjoldi staka fylkis timamaelinga, þ.e. fjoldi morse lyklana (SOS=9)
+#define resetDelay      2000 // millisec. timi thartil reset.
 
 //Radio tings
 #include <RFM69.h>
@@ -14,138 +44,168 @@ boolean displayWinner = false;
 #define NETWORKID 7
 #define FREQUENCY RF69_433MHZ
 #define ENCRYPTKEY "HugiBogiHugiBogi"
-#define SERIAL_BAUD 9600
+#define SERIAL_BAUD 115200
 #define BaseID 1
 RFM69 radio;
 
 
+// ISR breytur
+volatile boolean triggered = 0;                    // heldur utan um hvort lyklad hafi verid yfirhofud
+unsigned long int timi[timeArrayLength];           // tekur vid maeldum tima milli interrupta
+volatile int m = 0;                                // stak counter i timi[m], isr 
 
-int indicator = 9; //built in led
-int inputPin = 7;
-int ditLength = 150; //Max length for a dit.
-boolean previousState;
-unsigned long lastChangeToHigh;
-unsigned long currentLedOnTime;
 
-byte dit = 1;
-byte dah = 2;
+// tima utanumhald. millis() skilar unsigned long int
+unsigned long int lastRelease = 0;       // timinn fra sidustu lyklun
+unsigned long int lastKey = 20;          // software debounce a takka
+unsigned long int timer = 100;           // timi fra high til low
+unsigned long int now = 0;
 
-int arrayLength = 7; // how many are relevant
-const int MaxArrayLength = 15;
-byte solution[] = {dit, dit, dah, dah, dah, dit, dit, 0, 0, 0, 0, 0, 0, 0, 0};
-int input[MaxArrayLength]; // 15 total
+// adrar breytur
+byte dashDot[timeArrayLength];      // Dot==0, Dash==1.
+boolean key = 0;                    // morse-lykill uppi eda nidri
+boolean unprocessedData = 0;
+byte solution[] = {0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};   // 0==Dot, 1==Dash.
+boolean globalWin = false;
 
-void setup() {
-  pinMode(inputPin,INPUT);
-  pinMode(indicator,OUTPUT);
+
+
+/* Interrupt function + soft debounce */
+void irFunc(){
+  now = millis();
+  if(now - lastKey >= debounce){
+      triggered = 1;            // enablar vinnslufall
+  }
+  lastKey = now;
+}
+
+void setup(){
+  Serial.begin(SERIAL_BAUD);
+  Serial.println("Serial begin");
+  // arduino pinni D3 = interrupt 1
+  attachInterrupt(1, irFunc, CHANGE);
+  pinMode(3, INPUT);
 
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   radio.setHighPower();
   radio.encrypt(ENCRYPTKEY);
-
-  Serial.begin(115200);
-  Serial.println("HELLO");
-   
 }
 
-void loop() {
+void loop(){
 
   checkOnRadio();
-
-  //Stuff to do when input goes from LOW to HIGH.
-  if (digitalRead(inputPin) == HIGH && previousState == LOW)
-  {
-    delay(10);//debounce
-    lastChangeToHigh = millis();
-    previousState = HIGH;
-  }
-
-  //Stuff to do when input goes from HIGH to LOW.
-  if (digitalRead(inputPin) == LOW && previousState == HIGH)
-  {
-    delay(10);//Debounce
-
-    //Serial.println("Seinni");
-    unsigned long difference = millis() - lastChangeToHigh;
-    if (difference <= ditLength)
-    {
-      insertIntoArray(dit);
-      Serial.println("dit");
-    }
-    else
-    {
-      insertIntoArray(dah);
-      Serial.println("dat");
-    }
-    previousState = LOW;
-  }
-
-//Smá kóði sem má fara út eftir prufanir. Hægt að nota lyklaborð til að gefa morse merki.
-  if (Serial.available() > 0) {
-    int incomingByte = Serial.parseInt();
-    if (incomingByte == 1) insertIntoArray(dit);
-    else if (incomingByte == 2) insertIntoArray(dah);
-    else if (incomingByte == 3) printInput();
-  }
-
-  if (checkWinner()) {
-    //Reset the input array.
-    digitalWrite(indicator,HIGH);
-    sendMessageAboutCorrect();
-    displayWinner = true;
-    currentLedOnTime = millis();
-    resetArray();
-  }
-
- if (displayWinner)
- {
-  if (millis()-currentLedOnTime > 1000)
-  {
-    digitalWrite(indicator,LOW);
-    displayWinner = false;
-  }
- }
-
- if (millis()-lastChangeToHigh>2000)
- {
-  resetArray();
-  lastChangeToHigh = millis();
- }
   
-}
-//End of loop
-
-void insertIntoArray (byte ditOrDah) { //
-  for (int x = arrayLength - 1; x > 0; x--)
-  {
-    //Rotate the array for all x except [0]
-    input[x] = input[x - 1];
+  // fall sem vinnur ur interruptinu, tekkar hvort high/low, radar tima i fylki
+  if(triggered){    
+    triggered = 0;
+    //  Serial.println("Trigger reset");
+    interruptHandler();
   }
-  input[0] = ditOrDah;
-}
+  
+  // Vinnslufall() : vinnur ur heilum vigri af timamaelingum, thegar hann er fullur: 
+  // : finnur max/min, skiptir timi[] nidur i dashDot[], nullar timi[]
+  // Ef ounnin gogn til stadar, lykillinn er nidri og sidasta stakid i sample fylkinu er != 0,
+
+  if((unprocessedData) &&  !(key) &&  (timi[timeArrayLength-1] != 0)){
+  unprocessedData = 0;
+  vinnslufall();
+       
+  globalWin = winCheck();     // tekkar a hvort lyklad hafi verid rettu ordi
+  //  Serial.println(globalWin);
+  }
+
+  // 16. dec: breyta, þannig að ef timinn sem er lidinn er c.a. 7x einhver timi[]: -> urvinnsla
+
+  // reset fall. Ef buid ad lykla, en resetDelay timi lidinn fra lyklun, resetta allt. ~1.3 sek?
+  if(unprocessedData && (millis() - lastRelease >= resetDelay)){
+    nullstilla();
+    Serial.println("too slow, reset!");
+  }
+
+}           // -- ## -- END LOOP
 
 
-void resetArray() {
-  for (int x = 0; x<arrayLength; x++)
-  {
-    input[x] = 0;
+void nullstilla(){
+  m = 0;
+  unprocessedData = 0;
+  key=0;
+  triggered=0;
+  for(int i=0; i<timeArrayLength; i++){  
+    timi[i] = 0;
+    dashDot[i] = 0;     
   }
-}
-boolean checkWinner () {
-  for (int x = 0; x < arrayLength; x++)
-  {
-    if (solution[x] != input[x]) return false;
-  }
-  return true;
+  // dataDump();
 }
 
-void printInput () {
-  for (int x = 0; x < arrayLength; x++)
-  {
-    Serial.println(input[x]);
+// vinnur ur gognunum fyrir hvert interrupt
+void interruptHandler(){
+ // Serial.println("interruptHandler"); 
+  boolean pinValue = digitalRead(3);
+
+  unsigned long int now = millis();
+ 
+  if(pinValue && (key==0)){
+    timer = now;
+    key = 1;          // lykill uppi
   }
-  Serial.println("---");
+
+  if(!pinValue && (key==1)){
+    if(m > timeArrayLength-1) {m = 0;}  
+
+    timi[m] = now - timer;     // timi sidan HIGH
+    key = 0;                   // lykli nidri
+    lastRelease = now;  
+    unprocessedData = 1; 
+    if(m >= 0 && m < timeArrayLength) {m = m + 1;}   
+  } 
 }
+
+boolean winCheck(){
+  boolean win = true;
+  for(int i=0; i<timeArrayLength; i++){
+    if(dashDot[i] != solution[i]){
+      win = false;
+    }
+  }
+  if(win){ 
+  Serial.println("Morse correct!");
+  sendMessageAboutCorrect();                // transmit
+}
+  if(!win) Serial.println("Morse fail!");
+
+  return win;
+}
+
+void vinnslufall(){
+  int tempMax = 0;
+    int tempMin = 0;
+
+   for(int i=0; i<timeArrayLength; i++){    // finna max gildi
+      if (timi[i] > tempMax) 
+         tempMax = timi[i];
+    }
+    tempMin = tempMax;
+
+    for(int i=0; i<timeArrayLength; i++){   // finna min gildi
+      if(timi[i] < tempMin)
+          tempMin = timi[i];
+    }
+
+    for(int i=0; i<timeArrayLength; i++){     // skipta nidur i dash/dot. heiltoludeiling.
+      if( int(timi[i]/tempMin) >= DashDotRatio) dashDot[i] = 1;         
+        if(timi[i] != 0){                              // passa ad deila ekki med nulli
+          if( int(tempMax/timi[i]) >= DashDotRatio) dashDot[i] = 0;          
+      }
+    }
+     dataDump();     // godur stadur til ad tekka a breytum
+    // resetta timi[] og m (timi index)
+    for(int i=0; i<timeArrayLength; i++){  
+      timi[i] = 0;   // debug
+    }
+    m=0;  
+}
+
+// ----- ## Her fyrir nedan eru bara atridi tengd radio rx/tx
 
 typedef struct{
   int Command;
@@ -162,24 +222,19 @@ const int DataLen = sizeof(OutgoingData);
 const int Status = 99;
 const int Reset = 98;
 const int SetPasscode = 1505;
-const int CorrectPasscode = 1501;
+const int CorrectPasscode = 1501;       // kodinn sem er sendur ef rett morse
 
-void checkOnRadio()
-{
-  if (radio.receiveDone())
-  {
-    if (radio.SENDERID == BaseID)
-    {
+void checkOnRadio(){
+  if (radio.receiveDone()){
+    if (radio.SENDERID == BaseID){
       IncomingData = *(Payload*)radio.DATA;
-      if (radio.ACKRequested())
-      {
+      if (radio.ACKRequested()){
         radio.sendACK();
       }
       Serial.print("Received: command: ");
       Serial.println(IncomingData.Command);
 
-      switch (IncomingData.Command)
-      {
+      switch (IncomingData.Command){
         case Status:
           sendStatus();
           break;
@@ -201,12 +256,10 @@ void reset()
 
 void setPasscode()
 {
-  for (byte i = 0; i < MaxArrayLength; i++)
-  {
+  for (byte i = 0; i < MaxArrayLength; i++){
     solution[i] = IncomingData.Passcode[i];
     OutgoingData.Passcode[i] = IncomingData.Passcode[i];
-    if (IncomingData.Passcode[i] > 0)
-    {
+    if (IncomingData.Passcode[i] > 0){
       arrayLength = i+1;
     }
   }
@@ -220,7 +273,7 @@ void sendStatus()
   OutgoingData.Temperature = getTemperature();
   for (int i = 0; i < MaxArrayLength; i++)
   {
-    OutgoingData.Passcode[i] = solution[i];
+    OutgoingData.sendWin = globalWin;
   }
   if (!sendOutgoing())
     Serial.println("No ack recieved");
@@ -246,7 +299,31 @@ void sendMessageAboutCorrect()
   }
 }
 
-bool sendOutgoing()
-{
+bool sendOutgoing(){
   return radio.sendWithRetry(BaseID, (const void*)(&OutgoingData), DataLen);
 }
+
+/*       // --- ## DEBUG fall, prentar breytur og fylki
+void dataDump(){   
+  Serial.println("DATADUMP:");
+
+  Serial.print("timi[]: ");
+  for(int i=0; i<timeArrayLength; i++){
+      Serial.print(timi[i]);
+      Serial.print(", ");
+  }
+  Serial.println("  ");
+  
+  Serial.print("dashDot[]: ");
+  for(int i=0; i<timeArrayLength; i++){
+      Serial.print(dashDot[i]);
+      Serial.print(", ");
+    }
+  Serial.println(" ... ");
+
+  Serial.print("m: ");
+  Serial.println(m);
+}
+
+
+*/
