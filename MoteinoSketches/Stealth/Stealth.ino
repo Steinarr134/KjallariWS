@@ -116,6 +116,9 @@ void checkOnRadio()
       case resetCommand:
         reset();
         break;
+      case thresholdCommand:
+        setThreshold();
+        break;
     }
   }
 }
@@ -182,6 +185,9 @@ int checkTrigger()//check if any movement has been detected, sends a message to 
   return 0;
 }
 
+void photoStatus()
+
+
 void sendBeat()//send the slaves 1 for ligth on, 0 for light off.
 {
   if (counter > sequenceSize - 1)
@@ -226,8 +232,10 @@ void sendStatus()
   OutgoingData.beat = beat;
   //Serial.println("Sending the status...");
   //delay(40);
+  photoStatus();
   radio.sendWithRetry(BaseID, (const void*)(&OutgoingData), sizeof(OutgoingData));
   //Serial.println("Status was sent");
+
 }
 
 void setBeat()

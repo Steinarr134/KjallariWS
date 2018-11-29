@@ -163,6 +163,15 @@ def display_status_all_devices():
     return ret
 
 
+def critical_send(towhom, *args, **kwargs):
+    n = kwargs["n"] if "n" in kwargs else 10
+    for _ in range(n):
+        if towhom.send(*args, **kwargs):
+            return True
+        time.sleep(0.3)
+    return False
+
+
 def nextFailButton(button=None):
     if button not in gui.FailButtonNames:
         print "{} not in {}".format(button, gui.FailButtonNames)
@@ -302,7 +311,7 @@ def ElevatorEscaped(fail=False):
         else:
             gui.notify("Elevator Successfully Escaped", solved=True)
         nextFailButton("Elevator Escape")
-        TapeRecorder.send(Command='Load', s="1.ogg" + "\0"*5, FileLength=50)
+        critical_send(TapeRecorder, Command='Load', s="1.ogg" + "\0"*5, FileLength=50)
         TapeRecorder.send("Pause")
 
 

@@ -26,7 +26,7 @@ LieDetector -	Fer í gang við 636.
 		Þegar einhver feilar vantar að stöðva sjónvarpið strax. - komið!
 		Og það þarf meiri tíma á milli SplitFlap skrifanna. - komið!
 		Þegar fólok klárar senu ætti að skrifa á Splitflap: 
-		Scene 2 Done eða eitthvað því um líkt
+		Scene 2 Done eða eitthvað því um líkt - komið
 
 Winebox -	Virkaði, nema að takkinn í páfranum varð ekki grayed out
 			Leyst 17.10.2018
@@ -49,7 +49,7 @@ Stealth -	virkar nokkuð vel, Slave 5 er stundum að trippa að óþörfu
 
 TimeBomb -	Fer í gang um leið og það er kveikt á henni, við höldum
 		að það sé ljósneminn sem er of næmur eða einhver tenging léleg
-		í honum. Hjálpar líklega að skipta um viðnám á ljósnemanum
+		í honum. Hjálpar líklega að skipta um viðnám á ljósnemanum - komið!
 		
 
 

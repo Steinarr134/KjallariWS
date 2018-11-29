@@ -11,3 +11,8 @@ Loka:
     Vínkassahaldara
     LockPick
 
+Skoða hvort Stelth er að trippa (hægt að henda inn í boot lokin af bootup
+
+Kveikja á sjónvarpinu
+
+

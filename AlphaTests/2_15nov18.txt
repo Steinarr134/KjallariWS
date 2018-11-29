@@ -3,25 +3,29 @@
 Ásgeir í herbergi Steinarr á páfanum
 
 Ljósið fyrir ofan lygamælinn:
-    Þarf að festa glerið og ganga frá kaplinum
+H - Þarf að festa glerið og ganga frá kaplinum
+
+TapeRecorder:
+H - Á eftir að setja glerið í en áður en það er gert þarf að taka hann niður, endurvíra ljósin og
+        lagfæra forrit á honum.
 
 LockPicking:
-    Vantar Lockpicking tool
-    Þarf að ganga frá hálsmeni þannig að ekki sé hægt að taka það í sundur og missa perlurnar út um allt
+H - Vantar Lockpicking tool
+H - Þarf að ganga frá hálsmeni þannig að ekki sé hægt að taka það í sundur og missa perlurnar út um allt
 
 
 Lygamælir:
     Það þarf að laga takkana (LieButtons), þeir eru ekki nógu responsive
-    Það þarf að fara yfir útprentuðu handritin
-    Það þarf að endurraða í myndavélakerfinu svo hægt sé að vera með view sem sýnir gröfin 2, sjónvarpið
+H - Það þarf að fara yfir útprentuðu handritin
+H - Það þarf að endurraða í myndavélakerfinu svo hægt sé að vera með view sem sýnir gröfin 2, sjónvarpið
         og framan í fólkið.
     Það vantar einhvers konar feedback fyrir hostinn til að vita að páfinn tók við því að
         ýtt hafi verið á lie2buttons takka.
 
 Shooting Range
-    Vantar byssu og lykil í vínkassann.
-    Það þarf að finna til skilabyssunnimechanismann.
-    Það vantar plagg inni í skápnum sem segir hvað eru mörg skot og svoleiðis
+H - Vantar byssu og lykil í vínkassann.
+H - Það þarf að finna til skilabyssunnimechanismann.
+H - Það vantar plagg inni í skápnum sem segir hvað eru mörg skot og svoleiðis
         spurning um að hafa lítið ljós sem lýsir það plagg upp svo það fari ekki framhjá fólki.
 
 
@@ -35,14 +39,16 @@ Morse:
                     Stealth eru útskýrðar, hægt að taka fram í leiðinni, "á bak við bókahilluna"
 
 
-    Vantar gamaldags snúru
+H - Vantar gamaldags snúru
 
 Stealth:
     Var með hellað vesen um daginn sem lagaðist upp úr þurru
     Virkaði núna vel
-    Vantar fangelsisrimla og hurð
+H - Vantar fangelsisrimla og hurð
 
 Sprengja:
     Virkaði vel eftir að við stilltum inn rétta lausn.
+H - Getur enn þá klemmt putta
+H - Vantar að bæta inn á þráðlausa kveikibúnaðinn (220v)
 
 
