@@ -54,8 +54,8 @@ const int SendSingleButtonPress = 5108;
 
 const byte N = 7;  // fjoldi takka
 
-byte Lights[] = {A0, 9, 7, 6, 5, 4, 3};
-byte Buttons[] = {A7, A6, A5, A4, A3, A2, A1};
+byte Lights[] = {A0, 9, 7, 6, 5, 3, 4};
+byte Buttons[] = {A7, A6, A5, A4, A3, A1, A2};
 byte ButtonPresses[] = {-1, -1, -1};
 
 unsigned long int lastbuttontime = 0;
@@ -199,7 +199,10 @@ void checkOnButtons(){
   if (now - lastbuttontime > 80){
     lastbuttontime = now;
     for (int i = 0; i< N; i++){
-      byte state = (analogRead(Buttons[i]) > 900);
+      int val = analogRead(Buttons[i]);
+      //Serial.print(val);
+      //Serial.print("\t");
+      byte state = (val > 900);
       //if (!dispOn){
       //  digitalWrite(Lights[i], state);
       //}
@@ -219,6 +222,7 @@ void checkOnButtons(){
      laststate[i] = state;
       
     }
+    //Serial.println();
   }
 }
 

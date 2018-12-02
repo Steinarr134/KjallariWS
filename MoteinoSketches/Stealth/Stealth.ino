@@ -23,6 +23,8 @@ const int resetCommand = 98;
 const int beatCommand = 73;
 const int sequenceCommand = 72;
 const int triggerCommand = 71;
+const int thresholdCommand = 74;
+const int sendPhotoValuesCommand = 75;
 
 int const sequenceSize = 50;
 int counter = 0;
@@ -32,7 +34,7 @@ bool firstRun = 1;
 char trigger = 'x';
 char slaveChar;
 int diodePin = 13;
-const int numberOfStations = 6;
+const int numberOfStations = 1;
 unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
 unsigned long lightmillis = 0;
@@ -58,8 +60,8 @@ void setup() {
   Wire.begin();
   
   Serial.begin(115200);
-  //Serial.println("adsfsfd");
-  
+  Serial.println("adsfsfd");
+  delay(10);
   radio.initialize(FREQUENCY, NODEID, NETWORKID);
   radio.setHighPower(); //only for RFM69HW!
   radio.encrypt(ENCRYPTKEY);
@@ -75,7 +77,7 @@ void setup() {
   //Retrieve the last sequence from the EEPROM memory
 
   for (int i = 0; i < sequenceSize; i++) {
-    sequence[i] = 127;
+    sequence[i] = 0xFF;
   }
 
   sendBeat();
@@ -119,6 +121,9 @@ void checkOnRadio()
       case thresholdCommand:
         setThreshold();
         break;
+      case sendPhotoValuesCommand:
+        sendPhotoValues();
+        break;
     }
   }
 }
@@ -126,6 +131,7 @@ void checkOnRadio()
 
 void loop() {
   checkOnRadio();
+  checkOnSerial();
   if (Run) {
     //this function asks the slaves if any movement has been detected
     int triggeredSlave = checkTrigger();
@@ -160,33 +166,59 @@ int checkTrigger()//check if any movement has been detected, sends a message to 
 {
   for (int i = 1; i <= numberOfStations; i++)
   {
-    Wire.requestFrom(i, 1);
-
-    // Steinarr added this part so that the radio can still be rensponsive while
-    // the master waits for a slave to communicate
-
-    unsigned long t0 = millis();    
-    while (!Wire.available())
+    slaveChar = slaveRead(i);
+    if (slaveChar == 0) // 0 means nothing was received
     {
-      checkOnRadio();
-      if (millis() - t0 < MaxSlaveWaitTime);
-      {
-        return i + 10; // +10 means that the slave doesn't respond over i2c
-      }
+      return i+10;
     }
-    
-    slaveChar = Wire.read();
     if (slaveChar == trigger && (millis() - slaveSendTimes[i] > 20))
     {
       return i;
-      //Serial.println(i);
     }
   }
   return 0;
 }
 
-void photoStatus()
+void sendPhotoValues()
+{
+  for (byte i = 0; i < sequenceSize; i++)
+  {
+    OutgoingData.sequence[i] = 0;
+  }
 
+  // tell all stations to turn on lights and lasers
+  for (int i = 1; i <= numberOfStations; i++)
+  {
+    i = 123;
+    Serial.print("Sending: '");
+    Serial.print("1");
+    Serial.print("' to slave: ");
+    Serial.println(i);
+    slaveSend(i, 1);
+  }
+
+  //wait for half a second to give them time to change
+  delay(500);
+  
+  for (int i = 1; i <= numberOfStations; i++)
+  {
+    i = 123;
+    Serial.print("Sending: '");
+    Serial.print("3");
+    Serial.print("' to slave: ");
+    Serial.println(i);
+    slaveSend(i, 3);
+    OutgoingData.sequence[i] = slaveRead(i); 
+
+    Serial.print("Read: '");
+    Serial.print(OutgoingData.sequence[i]);
+    Serial.print("' from slave: ");
+    Serial.println(i);
+  }
+
+  OutgoingData.command = sendPhotoValuesCommand;
+  sendOutgoingData();
+}
 
 void sendBeat()//send the slaves 1 for ligth on, 0 for light off.
 {
@@ -197,17 +229,42 @@ void sendBeat()//send the slaves 1 for ligth on, 0 for light off.
   for (int i = 1; i <= numberOfStations; i++)
   {
     checkOnRadio(); // Steinarr added this line to prevent lost packets while updating beat
-    slaveSend(i, counter);
+    slaveSend(i, getBit(counter, i));
     slaveSendTimes[i] = millis();
   }
   counter++;
 
 }
 
-void slaveSend(int slaveNumber, int counter)//i2c transmission to slave number i
+byte slaveRead(byte i)
 {
+  Wire.requestFrom((int)i, 1);
+
+    // Steinarr added this part so that the radio can still be rensponsive while
+    // the master waits for a slave to communicate
+
+    unsigned long t0 = millis();    
+    while (!Wire.available())
+    {
+      checkOnRadio();
+      if (millis() - t0 < MaxSlaveWaitTime);
+      {
+        return 0; // +10 means that the slave doesn't respond over i2c
+      }
+    }
+    
+    return Wire.read();
+}
+
+void slaveSend(int slaveNumber, int what)//i2c transmission to slave number i
+{
+  Serial.print("slavesend  -  ");
+  Serial.print("Sending: '");
+  Serial.print(what);
+  Serial.print("' to slave: ");
+  Serial.println(slaveNumber);
   Wire.beginTransmission(slaveNumber);
-  Wire.write(getBit(counter, slaveNumber));
+  Wire.write(what);
   Wire.endTransmission();
 
 }
@@ -232,10 +289,21 @@ void sendStatus()
   OutgoingData.beat = beat;
   //Serial.println("Sending the status...");
   //delay(40);
-  photoStatus();
-  radio.sendWithRetry(BaseID, (const void*)(&OutgoingData), sizeof(OutgoingData));
+  sendOutgoingData();
   //Serial.println("Status was sent");
+}
 
+void sendOutgoingData()
+{
+  radio.sendWithRetry(BaseID, (const void*)(&OutgoingData), sizeof(OutgoingData));
+}
+
+void setThreshold()
+{
+  for (byte i = 0; i < numberOfStations; i++)
+  {
+    slaveSend(i, IncomingData.sequence[i]);
+  }
 }
 
 void setBeat()
@@ -257,6 +325,14 @@ void setSequence() {
 
 }
 
+void checkOnSerial()
+{
+  if (Serial.available())
+  {
+    Serial.read();
+    sendPhotoValues();
+  }
+}
 void reset() {
   asm volatile("jmp 0");
 }
