@@ -108,7 +108,7 @@ bool bombExploded = false;
 bool smokeOn = true;
 int smokeTime;
 const int maxSmokeTime = 30000;
-const int PhotoResThreshold = 50;
+const int PhotoResThreshold = 20;
 
 bool buzzerOn;
 
@@ -246,6 +246,7 @@ void chestHasBeenOpened()
     //Serial.print("photores");
     //Serial.println(analogRead(PhotoRes));
     chestHasBeenOpenedLastCheckTime = millis();
+   // Serial.println(analogRead(PhotoRes));
     if (analogRead(PhotoRes)>PhotoResThreshold) {
       isChestOpen = true;
       ChestOpeningTime = millis();

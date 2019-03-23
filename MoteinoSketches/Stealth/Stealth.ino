@@ -25,6 +25,7 @@ const int sequenceCommand = 72;
 const int triggerCommand = 71;
 const int thresholdCommand = 74;
 const int sendPhotoValuesCommand = 75;
+const int setSkipDelayCommand = 76;
 
 int const sequenceSize = 50;
 int counter = 0;
@@ -34,14 +35,18 @@ bool firstRun = 1;
 char trigger = 'x';
 char slaveChar;
 int diodePin = 13;
-const int numberOfStations = 1;
+const int numberOfStations = 6;
 unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
 unsigned long lightmillis = 0;
 int beat = 2000;
 int triggerstatus = 0;
 unsigned long MaxSlaveWaitTime = 100;
-
+byte skipdelay = 40;
+bool lightson = false;
+unsigned long lightsontime = 0;
+bool lightsonnow = false;
+int lightsonblinktime = 250;
 
 //this is the package transmitted over RF
 struct Payload {
@@ -68,19 +73,14 @@ void setup() {
   radio.promiscuous(promiscuousMode);
 
 
-  //Serial.println("sdsdfsdfa");
-  /*while (false)
-  {
-    checkOnRadio();
-  }
-  */
   //Retrieve the last sequence from the EEPROM memory
 
   for (int i = 0; i < sequenceSize; i++) {
     sequence[i] = 0xFF;
   }
+  
+  sendPhotoValues();
 
-  sendBeat();
   Serial.println("Started");
 }
 
@@ -109,6 +109,7 @@ void checkOnRadio()
         setBeat();
         break;
       case sequenceCommand:
+        lightson = false;
         setSequence();
         setBeat();
         Run = 1;
@@ -124,6 +125,10 @@ void checkOnRadio()
       case sendPhotoValuesCommand:
         sendPhotoValues();
         break;
+
+      case setSkipDelayCommand:
+        skipdelay = IncomingData.sequence[0];
+        break;
     }
   }
 }
@@ -132,6 +137,7 @@ void checkOnRadio()
 void loop() {
   checkOnRadio();
   checkOnSerial();
+  runLightsOn();
   if (Run) {
     //this function asks the slaves if any movement has been detected
     int triggeredSlave = checkTrigger();
@@ -171,7 +177,7 @@ int checkTrigger()//check if any movement has been detected, sends a message to 
     {
       return i+10;
     }
-    if (slaveChar == trigger && (millis() - slaveSendTimes[i] > 20))
+    if (slaveChar == trigger && (millis() - slaveSendTimes[i-1] > skipdelay))
     {
       return i;
     }
@@ -189,7 +195,7 @@ void sendPhotoValues()
   // tell all stations to turn on lights and lasers
   for (int i = 1; i <= numberOfStations; i++)
   {
-    i = 123;
+    //i = 8;
     Serial.print("Sending: '");
     Serial.print("1");
     Serial.print("' to slave: ");
@@ -202,7 +208,7 @@ void sendPhotoValues()
   
   for (int i = 1; i <= numberOfStations; i++)
   {
-    i = 123;
+    //i = 8;
     Serial.print("Sending: '");
     Serial.print("3");
     Serial.print("' to slave: ");
@@ -222,15 +228,17 @@ void sendPhotoValues()
 
 void sendBeat()//send the slaves 1 for ligth on, 0 for light off.
 {
+  //Serial.println("send nudes");
   if (counter > sequenceSize - 1)
   {
     counter = 0;
   }
   for (int i = 1; i <= numberOfStations; i++)
   {
-    checkOnRadio(); // Steinarr added this line to prevent lost packets while updating beat
+    //i=8;
     slaveSend(i, getBit(counter, i));
-    slaveSendTimes[i] = millis();
+    slaveSendTimes[i-1] = millis();
+    int bla = millis();
   }
   counter++;
 
@@ -249,7 +257,7 @@ byte slaveRead(byte i)
       checkOnRadio();
       if (millis() - t0 < MaxSlaveWaitTime);
       {
-        return 0; // +10 means that the slave doesn't respond over i2c
+        return 0; // 0 if nothing is received
       }
     }
     
@@ -264,18 +272,32 @@ void slaveSend(int slaveNumber, int what)//i2c transmission to slave number i
   Serial.print("' to slave: ");
   Serial.println(slaveNumber);
   Wire.beginTransmission(slaveNumber);
+  //Serial.println("Not reaching here - 1234"); delay(10);
   Wire.write(what);
+  //Serial.println("Not reaching here - dgf"); delay(10);
   Wire.endTransmission();
-
+  //Serial.println("Not reaching here- sdgh"); delay(10);
 }
+
 
 void lightsOn()
 {
-  for (int i = 1; i <= numberOfStations; i++)
+  lightson = true;
+}
+
+void runLightsOn()
+{
+  if (lightson)
   {
-    Wire.beginTransmission(i);
-    Wire.write(2);
-    Wire.endTransmission();
+    if (millis() - lightsontime > lightsonblinktime)
+    {
+      lightsontime = millis();
+      for (byte i = 1; i <= numberOfStations; i++)
+      {
+        slaveSend(i, ((byte)lightsonnow)*2);
+      }
+      lightsonnow = !lightsonnow;
+    }
   }
 }
 
@@ -300,14 +322,15 @@ void sendOutgoingData()
 
 void setThreshold()
 {
-  for (byte i = 0; i < numberOfStations; i++)
+  for (byte i = 1; i <= numberOfStations; i++)
   {
-    slaveSend(i, IncomingData.sequence[i]);
+    slaveSend(i, IncomingData.sequence[i-1]);
   }
 }
 
 void setBeat()
 {
+  Serial.println("Setting beat to incoming");
   if (IncomingData.beat < 100) {
     return;
   }
@@ -317,12 +340,11 @@ void setBeat()
 }
 
 void setSequence() {
+  Serial.println("Setting sequence from IncomingData");
   for (int i = 0; i < sequenceSize; i++) {
     sequence[i] = IncomingData.sequence[i];
   }
   counter = 0;
-
-
 }
 
 void checkOnSerial()
