@@ -64,7 +64,7 @@ byte dtabs = 0;
 
 void debug(char *s)
 {
-  //return;
+  return;
   for (int i = 0; i<dtabs; i++)
   {
     Serial.print('\t');

@@ -2,6 +2,8 @@
 #include <EEPROM.h>
 
 
+#define STATION_NUMBER 123
+
 //----------------- EEPROM Stuff -----------------------------
 
 byte E_threshold = 101;
@@ -49,8 +51,8 @@ byte temperature = 20;
 
 void setup() {
   //sensors.begin();
-  Wire.begin(5);
-  Serial.begin(9600);
+  Wire.begin(STATION_NUMBER);
+  Serial.begin(115200);
   //i2c transmission
   Wire.onRequest(requestEvent);
   Wire.onReceive(receiveEvent);
@@ -60,11 +62,21 @@ void setup() {
   pinMode(photocellPin, INPUT);
   pinMode(laserPin1 , OUTPUT);
   pinMode(laserPin2 , OUTPUT);
+
+  Serial.println("Started");
 }
+
+unsigned long printtime = 0;
+
+bool bla = false;
 
 void loop() {
     photocellValue = analogRead(photocellPin);// read the value from the photocell
+    /*if (millis() - printtime > 500)
+    {
+      printtime = millis();
     Serial.println(photocellValue); 
+    }*/
     if(threshold < photocellValue) // if threshold is reached = movement
     {
       if(incoming == 1)// check if light is on
@@ -73,25 +85,32 @@ void loop() {
       trigger = 'x'; //sets the trigger to x, which is then sent to the master
       }
     }
+    if (bla){ Serial.println("sasdasd");}
 }
 
 void requestEvent()//when the master requests a status update on movement, sends the trigger value, and sets the trigger back to 'o'
 {
+  Serial.print("w:\t");
   if (SendValueNext)
   {
-    Wire.write(photocellValue);
+    Wire.write((byte)photocellValue/4);
+    Serial.println((byte)photocellValue/4);
   }
   else
   {
     Wire.write(trigger);
+    Serial.println(trigger);
     trigger = 'o';
     digitalWrite(diodePin, LOW);
   }
 }
-
 void receiveEvent(int numBytes)//receiving
 {
   incoming = Wire.read();
+  Serial.print("rec:\t");
+  Serial.println(incoming);
+  delay(10);
+  bla = true;
   if (incoming == 3) // next send should be photocell value
   {
     SendValueNext = true;
