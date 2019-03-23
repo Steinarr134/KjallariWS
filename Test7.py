@@ -1,11 +1,5 @@
-import serial
-import time
 
-s = serial.Serial("Com5", baudrate=115200)
-time.sleep(2)
+from Pope.MoteinoConfig import ShootingRange as sh
 
-while True:
-    s.write("010101\n")
-    resp = s.readline()
-    print("SUCCESS {}".format(int(resp[6:], base=16) - 0x7f) if resp[5] == "1" else "fail")
-    time.sleep(0.25)
+
+sh.send("NewSequence", Sequence=[1, 2, 3, 4, 5])

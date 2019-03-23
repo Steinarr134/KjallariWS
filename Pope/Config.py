@@ -12,6 +12,7 @@ Devices = [
     'WineBoxHolder',
     'WineBox',
     'ShootingRange',
+    'Sirens',
     'Morser',
     'Stealth',
     'TimeBomb',
@@ -33,9 +34,10 @@ def cumsum(l):
     return new_l
 
 
-MaxPlayingTime = 60*60*1.5  # an hour and a half
+# MaxPlayingTime = 60*60*1  # an hour
+MaxPlayingTime = 60*60
 
 MinBombTime = 3*60   # 3 minutes
 MaxBombTime = 10*60  # 10 minutes
 
-NofPlayers = 3
+NofPlayers = 4

@@ -97,10 +97,10 @@ def player_info(exit_button_callback, info={}):
 
     # closes this window and calls the exit_button_callback passing player info
     def exit_init_window(event=None):
-        window.destroy()
         # top.deiconify()
-        ret_player_info = {"NofPlayers": 3,
+        ret_player_info = {"NofPlayers": int(number_of_players_entry.get().strip()),
                            "more info": "some info"}
+        window.destroy()
         exit_button_callback(ret_player_info)
 
     AboutPlayersSubmitButton = tk.Button(window, text="Submit", command=exit_init_window)

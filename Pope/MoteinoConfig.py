@@ -26,9 +26,10 @@ Moteinos = ['GreenDude',
 
 MoteinoStructs = {
     'GreenDude':
-        "int Command;" +
+        "unsigned int Command;" +
         "byte Lights[7];" +
-        "int Temperature;",
+        "byte Temperature;" +
+        "byte PassCode[7];",
 
     'SplitFlap':
         "int Command;" +
@@ -213,7 +214,10 @@ Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
 Stealth.add_translation('Command',
                         ('SetTempo', 73),
                         ('SetSequence', 72),
-                        ("Triggered", 71))
+                        ("Triggered", 71),
+                        ("SetThresholds", 74),
+                        ("GetPhotovalues", 75),
+                        ("SetSkipdelay", 76))
 
 TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
                               MoteinoStructs['TimeBomb'],

@@ -93,10 +93,12 @@ class Send2SplitFlapThread(threading.Thread):
         with Send2SplitFlapLock:
             parts = self.Stuff2Send.split('\n')
             for i, part in enumerate(parts):
-                part = part.strip()
+                part = part.rstrip()
                 part += " "*(11 - len(part))
                 SplitFlap.send("Disp", part)
                 gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format(part))
+                if self.TimeBetween is None:
+                    return
                 time.sleep(self.TimeBetween)
             SplitFlap.send("Clear")
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
@@ -117,7 +119,6 @@ class Progressor(object):
         self.Checkpoints = [
             "Nothing",
             "Elevator",
-            "TapeRecorder",
             "LockPicking",
             "GreenDude",
             "LieDetectorStart",
