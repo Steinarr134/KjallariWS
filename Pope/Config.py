@@ -40,4 +40,4 @@ MaxPlayingTime = 60*60
 MinBombTime = 3*60   # 3 minutes
 MaxBombTime = 10*60  # 10 minutes
 
-NofPlayers = 4
+NofPlayers = 5

@@ -80,7 +80,7 @@ exitfunctions.append(join_threads)
 
 
 class Send2SplitFlapThread(threading.Thread):
-    def __init__(self, stuff2send, time_between=5):
+    def __init__(self, stuff2send, time_between=7):
         threading.Thread.__init__(self)
         # Threads.append(self)
         self.Stuff2Send = stuff2send

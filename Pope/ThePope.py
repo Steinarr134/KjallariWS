@@ -464,7 +464,7 @@ def LieDetectorActivated(fail=False):
         LieDetectorHandler.setnofplayers(NofPlayers)
         gui.notify("Lie Detector Activated", fail=fail, solved=not fail)
         TapeRecorder_play("Lie Detector Instructions")
-        BookDrawer.open()
+        run_after(BookDrawer.open, seconds=1)
         LieButtons.send("CorrectLightShow")
         nextFailButton("Start Lie Detector")
         run_after(LieDetectorHandler.start_lie_detector, seconds=5)
@@ -628,7 +628,7 @@ def LieDetectorCompleted(fail=False):
         nextFailButton("Lie Detector Fail")
         LiePiA.send("Reset")
         LiePiB.send("Reset")
-        run_after(OpenWineBoxHolder, seconds=5)
+        run_after(OpenWineBoxHolder, seconds=4)
 
 
 def liebuttons_receive(d):
@@ -700,6 +700,8 @@ def get_shootingrange_sequence(length):
     while len(ret) < length:
         r = random.randint(0, 4)
         if ret[-1] != r:
+            if len(ret) == 0 and r != 0:
+                continue
             ret.append(r)
     return ret
 
@@ -803,6 +805,29 @@ Morser.bind(receive=morse_receive)
 
 # Stealth
 StealthActive = False
+
+
+def CalibrateStealth():
+    if StealthActive:
+        gui.notify("CalibrateStealth() problem: Stealth is Active, can't calibrate", warning=True)
+        return
+
+    received = Stealth.send("Reset")
+    if not received:
+        gui.notify("CalibrateStealth() problem: Stealth didn't respond with ACK aborting calibration")
+        return
+    time.sleep(2)
+    d = Stealth.send_and_receive("GetPhotovalues")
+    if not d:
+        gui.notify("CalibrateStealth() problem: Didn't get photovalues from Stealth, aborting calibration")
+        return
+
+    pv = d["Sequence"][1:7]
+    thresholds = [min(255, v+20) for v in pv]
+
+    Stealth.send("SetThresholds", Sequence=thresholds)
+
+    s = "CalibrateStealth(): Thresholds calibrated to: {}".format(thresholds)
 
 
 def StealthStart():
