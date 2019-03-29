@@ -183,23 +183,42 @@ LogTextWidget.tag_configure("fail", foreground="#ff9900", font="helvetica 10 bol
 # ShootingFrame.place(x=100, y=500)
 # b1 = tk.Button()
 
-ShootingCanvas = tk.Canvas(top, height=200, width=200, bg='blue')
-ShootingCanvas.place(x=550, y=10)
-ShootingPositions = [
-    (135, 135, 195, 195),
-    (5, 135, 65, 195),
-    (5, 5, 65, 65),
-    (70, 70, 130, 130),
-    (135, 5, 195, 65)
-]
-ShootingCircles = []
-for position in ShootingPositions:
-    ShootingCircles.append(ShootingCanvas.create_oval(*position, fill='red'))
-# c2 = ShootingCanvas.create_oval()
+GreenDudeCanvas = tk.Canvas(top, height=200, width=400, bg='green4')
+GreenDudeCanvas.place(x=25, y=525)
+GreenDudePositions = []
+for i in range(7):
+    column = []
+    for j in range(3):
+        column.append((50*i + 30, 50*j+30, 50*i + 70, 50*j + 70))
+    GreenDudePositions.append(column)
+print GreenDudePositions
+GreenDudeCircles = []
+
+# for column in GreenDudePositions:
+#     for position in column:
+#         GreenDudeCircles.append(GreenDudeCanvas.create_oval(*position, fill='red'))
+
+correct = [2 - ((c + 1) % 256) for c in GreenDudeCorrectPassCode]
+for i in range(7):
+    column = []
+    for j in range(3):
+        if j == correct[i]:
+            column.append(GreenDudeCanvas.create_oval(GreenDudePositions[i][j], outline='DodgerBlue4', width=3))
+        else:
+            column.append(GreenDudeCanvas.create_oval(GreenDudePositions[i][j], outline='green4', width=3))
+    GreenDudeCircles.append(column)
 
 
-def ShootingCirclesSetColor(n, color):
-    ShootingCanvas.itemconfig(ShootingCircles[n], fill=color)
+def GreenDudeSetColors(positions):
+    print positions
+    ps = [2 - ((c + 1) % 256) for c in positions]
+    colors = ['yellow2', 'black', 'red']
+    for i in range(min(7, len(ps))):
+        for j in range(3):
+            if j == ps[i]:
+                GreenDudeCanvas.itemconfig(GreenDudeCircles[i][j], fill=colors[j])
+            else:
+                GreenDudeCanvas.itemconfig(GreenDudeCircles[i][j], fill="green4")
 
 # TapeRecorderControls
 TapeRecorderFrame = tk.Frame()
@@ -310,6 +329,8 @@ if __name__ == "__main__":
         ActionMenu.add_command(label=action)
 
     for submenu in DeviceSubmenus:
-        submenu.add_command(label="GetStatus")
+        submenu.add_command(label="example")
+
+    GreenDudeSetColors([1, 1, 0, 0, 255, 255, 255])
 
     top.mainloop()

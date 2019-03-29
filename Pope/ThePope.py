@@ -109,13 +109,12 @@ def initialize_room(player_info={}):
     elif progress == "RoomFinished":
         pass
 
-    LockPicking.send("Reset")
-    LockPicking.send("SetCorrectPickOrder", [0, 1, 2, 3, 4, 5])
 
     # TimeBomb.send("Reset")
 
     Elevator.send("SetActiveDoor", 1)
 
+    LockPicking.send("Reset")
     Stealth.send("Reset")
     LiePiA.send("Reset")
     LiePiB.send("Reset")
@@ -123,11 +122,13 @@ def initialize_room(player_info={}):
     WineBoxHolder.send("Reset")
     ShootingRange.send("Reset")
     TimeBomb.send("Reset")
-
-    Send2SplitFlapThread("  Camp Z   ", time_between=None)
-
     TapeRecorder.send("Reset")
-    GreenDude.send("SetPasscode", PassCode=[255, 1, 1, 255, 255, 1, 255])
+
+    GreenDude.send("SetPasscode", PassCode=GreenDudeCorrectPassCode)
+    LockPicking.send("SetCorrectPickOrder", LockPickCorrectPickOrder)
+
+    CalibrateStealth()
+
     # taperecorder load 1 and pauses
 
     failed = display_status_all_devices()
@@ -141,11 +142,10 @@ def initialize_room(player_info={}):
         display_status(device)
 
     ElevatorDoor.close()
+    Send2SplitFlapThread("  Camp Z   ", time_between=None)
     # ShootingRange.send("DispColors", Colors=[0]*5)
 
-    # gui.notify("Test warning", warning=True)
-    # gui.notify("Test solved", solved=True)
-    # gui.notify("Test Fail", fail=True)
+    gui.notify("Initialization complete")
 
     def printrssi():
         while True:
@@ -456,6 +456,37 @@ def green_dude_receive(d):
 GreenDude.bind(receive=green_dude_receive)
 
 
+class GreenDudeUpdaterClass(threading.Thread):
+    TimeBetween = 3
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.last_update_time = time.time()
+        self.UpdateEvent = threading.Event()
+        self.setDaemon(True)
+        self.start()
+
+    def run(self):
+        while True:  # daemonic so it's cool
+            self.UpdateEvent.wait()
+            self.UpdateEvent.clear()
+            self._update()
+
+    def update(self, event=None):
+        if time.time() - self.last_update_time > self.TimeBetween:
+            self.UpdateEvent.set()
+
+    def _update(self):
+        d = GreenDude.send_and_receive("Status")
+        print d
+        if d:
+            gui.GreenDudeSetColors(d["Lights"])
+
+
+GreenDudeUpdater = GreenDudeUpdaterClass()
+gui.GreenDudeCanvas.bind("<Button-1>", GreenDudeUpdater.update)
+
+
 # Lie Detector
 
 
@@ -693,6 +724,7 @@ def ShootingRangeCompleted(fail=False):
             ShootingRangeGame.game_over(lose=True)
         TvPi.send("PlayFile", s="SOS.mov")
         nextFailButton("Shooting Range Fail")
+        CalibrateStealth()
 
 
 def get_shootingrange_sequence(length):
@@ -823,11 +855,13 @@ def CalibrateStealth():
         return
 
     pv = d["Sequence"][1:7]
-    thresholds = [min(255, v+20) for v in pv]
-
-    Stealth.send("SetThresholds", Sequence=thresholds)
+    thresholds = [min(255, v + max(20, v/2)) for v in pv]
 
     s = "CalibrateStealth(): Thresholds calibrated to: {}".format(thresholds)
+
+    gui.notify(s)
+
+    Stealth.send("SetThresholds", Sequence=thresholds)
 
 
 def StealthStart():
@@ -1047,9 +1081,12 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
     if Device == "Stealth":
         DeviceSubmenu.add_command(label="Send LightShow",
                                   command=lambda: Stealth.send("SetSequence", Sequence=MorseSequence))
+        DeviceSubmenu.add_command(label="Calibrate Thresholds",
+                                  command=CalibrateStealth)
         subsubmenu = gui.tk.Menu(DeviceSubmenu, tearoff=False)
         DeviceSubmenu.add_cascade(label="Set Tempo", menu=subsubmenu)
-        for t in [200, 300, 400, 500, 600, 700, 800]:
+        for i in range(10):
+            t = 1000 + i*250
             subsubmenu.add_command(label=str(t),
                                    command=lambda _t=t: Stealth.send("SetTempo", Tempo=_t))
     if Device == "Sirens":
