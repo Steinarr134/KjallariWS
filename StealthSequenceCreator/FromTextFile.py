@@ -43,6 +43,6 @@ for i in range(3):
             if b:
                 replace(empty, i, (0, 0, 255))
         cv2.imshow("sdf", empty)
-        k = cv2.waitKey(400)
+        k = cv2.waitKey(1000)
         if k == 27:
             break

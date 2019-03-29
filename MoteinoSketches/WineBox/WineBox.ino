@@ -48,6 +48,9 @@ boolean can_be_solved = true;
 byte Sesam = 4;
 byte BatteryPin = A2;
 
+const bool OPEN = HIGH;
+const bool CLOSED = LOW;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
@@ -57,6 +60,7 @@ void setup() {
   pinMode(LED, OUTPUT);
   pinMode(BatteryPin, INPUT);
   digitalWrite(LED, HIGH);
+  digitalWrite(Sesam, CLOSED);
   
   delay(500);
   digitalWrite(LED, LOW);
@@ -136,9 +140,9 @@ void problemSolved()
 
 void open_lid()
 {
- digitalWrite(Sesam, HIGH);
+ digitalWrite(Sesam, OPEN);
  delayWithRadio(500);
- digitalWrite(Sesam, LOW);
+ digitalWrite(Sesam, CLOSED);
  
 }
 void delayWithRadio(unsigned long t){

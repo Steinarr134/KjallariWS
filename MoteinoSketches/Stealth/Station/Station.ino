@@ -1,32 +1,15 @@
+
 #include <Wire.h>
 #include <EEPROM.h>
 
 
-#define STATION_NUMBER 123
+#define STATION_NUMBER 6
 
 //----------------- EEPROM Stuff -----------------------------
 
 byte E_threshold = 101;
 
 
-//This function will write a 2 byte integer to the eeprom at the specified address and address + 1
-void EEPROMWriteInt(int p_address, int p_value)
-{
-  byte lowByte = ((p_value >> 0) & 0xFF);
-  byte highByte = ((p_value >> 8) & 0xFF);
-
-  EEPROM.write(p_address, lowByte);
-  EEPROM.write(p_address + 1, highByte);
-}
-
-//This function will read a 2 byte integer from the eeprom at the specified address and address + 1
-unsigned int EEPROMReadInt(int p_address)
-{
-  byte lowByte = EEPROM.read(p_address);
-  byte highByte = EEPROM.read(p_address + 1);
-
-  return ((lowByte << 0) & 0xFF) + ((highByte << 8) & 0xFF00);
-}
 
 // for the temperature sensor: - not active yet
 #include <OneWire.h>
@@ -34,6 +17,7 @@ unsigned int EEPROMReadInt(int p_address)
 #define ONE_WIRE_BUS 6  // ÞArf að stilla rétt!
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+
 
 // operating variables
 int ledPin = 4;
@@ -43,7 +27,7 @@ int photocellPin = A0;
 int photocellValue = 0;
 int diodePin = 13;
 char trigger = 'o';
-int threshold = EEPROMReadInt(E_threshold);
+byte threshold = EEPROM.read(E_threshold);
 int counter = 0;
 int incoming = 0;
 bool SendValueNext = false;
@@ -63,7 +47,9 @@ void setup() {
   pinMode(laserPin1 , OUTPUT);
   pinMode(laserPin2 , OUTPUT);
 
-  Serial.println("Started");
+  Serial.print("station number ");
+  Serial.print(STATION_NUMBER);
+  Serial.println(" started");
 }
 
 unsigned long printtime = 0;
@@ -71,7 +57,7 @@ unsigned long printtime = 0;
 bool bla = false;
 
 void loop() {
-    photocellValue = analogRead(photocellPin);// read the value from the photocell
+    photocellValue = analogRead(photocellPin)/4;// read the value from the photocell
     /*if (millis() - printtime > 500)
     {
       printtime = millis();
@@ -85,7 +71,7 @@ void loop() {
       trigger = 'x'; //sets the trigger to x, which is then sent to the master
       }
     }
-    if (bla){ Serial.println("sasdasd");}
+    //if (bla){ Serial.println("sasdasd");}
 }
 
 void requestEvent()//when the master requests a status update on movement, sends the trigger value, and sets the trigger back to 'o'
@@ -93,8 +79,17 @@ void requestEvent()//when the master requests a status update on movement, sends
   Serial.print("w:\t");
   if (SendValueNext)
   {
-    Wire.write((byte)photocellValue/4);
-    Serial.println((byte)photocellValue/4);
+    if (photocellValue == 0)
+    {
+      Wire.write(1);
+    }
+    else
+    {
+      Wire.write(photocellValue);
+    }
+    
+    Serial.println(photocellValue);
+    SendValueNext = false;
   }
   else
   {
@@ -136,7 +131,7 @@ void receiveEvent(int numBytes)//receiving
   else // else master is sending a new threshold value
   {
     threshold = incoming;
-    EEPROMWriteInt(E_threshold, threshold);
+    EEPROM.write(E_threshold, threshold);
   }
    
 }
