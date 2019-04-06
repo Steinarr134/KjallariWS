@@ -200,6 +200,7 @@ void checkOnSerial()
         sendTheStuff();
       }
       SerialCounter = 0;
+      FirstHexDone = false;
     }
     else if (incoming == 'X')
     {
