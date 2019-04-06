@@ -196,31 +196,55 @@ void sendPhotoValues()
   for (int i = 1; i <= numberOfStations; i++)
   {
     //i = 8;
-    Serial.print("Sending: '");
-    Serial.print("1");
-    Serial.print("' to slave: ");
-    Serial.println(i);
+    //Serial.print("Sending: '");
+    //Serial.print("1");
+    //Serial.print("' to slave: ");
+    //Serial.println(i);
     slaveSend(i, 1);
   }
 
   //wait for half a second to give them time to change
-  delay(500);
-  
-  for (int i = 1; i <= numberOfStations; i++)
-  {
-    //i = 8;
-    Serial.print("Sending: '");
-    Serial.print("3");
-    Serial.print("' to slave: ");
-    Serial.println(i);
-    slaveSend(i, 3);
-    OutgoingData.sequence[i] = slaveRead(i); 
+  delay(100);
 
-    Serial.print("Read: '");
-    Serial.print(OutgoingData.sequence[i]);
-    Serial.print("' from slave: ");
-    Serial.println(i);
+  int sums[numberOfStations] = {0};
+  int devs[numberOfStations] = {0};
+  byte maxs[numberOfStations] = {0};
+
+  byte N = 100;
+
+  for (int j = 0; j < N; j++)
+  {
+      for (int i = 1; i <= numberOfStations; i++)
+      {
+        //Serial.print("Sending: '");
+        //Serial.print("3");
+        //Serial.print("' to slave: ");
+        //Serial.println(i);
+        slaveSend(i, 3);
+        byte value = slaveRead(i);
+
+        sums[i] += value;
+
+        int mean = sums / (j+1);
+        devs[i] += abs(value - mean);
+
+        if (value > maxs[i])
+            maxs[i] = value;
+
+        //Serial.print("Read: '");
+        //Serial.print(OutgoingData.sequence[i]);
+        //Serial.print("' from slave: ");
+        //Serial.println(i);
+      }
   }
+
+  for (int i = 0; i < numberOfStations; i++)
+  {
+    OutgoingData.sequence[i] = sums[i]/N;
+    OutgoingData.sequence[i+10] = devs[i]/N;
+    OutgoingData.sequence[i+20] = maxs[i];
+  }
+
 
   OutgoingData.command = sendPhotoValuesCommand;
   sendOutgoingData();

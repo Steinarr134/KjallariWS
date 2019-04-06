@@ -67,7 +67,7 @@ def initialize_room(player_info={}):
     """
     t = time.time()
     if player_info == {} and \
-            gui.askquestion("Reload Previous Group", "Do you want to reload previous group?") == "yes":
+                    gui.askquestion("Reload Previous Group", "Do you want to reload previous group?") == "yes":
         perri.load()
     else:
         perri.reset()
@@ -126,8 +126,8 @@ def initialize_room(player_info={}):
 
     GreenDude.send("SetPasscode", PassCode=GreenDudeCorrectPassCode)
     LockPicking.send("SetCorrectPickOrder", LockPickCorrectPickOrder)
+    gui.notify("Sending pickorder:{}".format(LockPickCorrectPickOrder) )
 
-    CalibrateStealth()
 
     # taperecorder load 1 and pauses
 
@@ -144,6 +144,7 @@ def initialize_room(player_info={}):
     ElevatorDoor.close()
     Send2SplitFlapThread("  Camp Z   ", time_between=None)
     # ShootingRange.send("DispColors", Colors=[0]*5)
+    CalibrateStealth()
 
     gui.notify("Initialization complete")
 
@@ -153,9 +154,9 @@ def initialize_room(player_info={}):
             stuff = "RSSI={}".format(mynetwork.Base.report()[0])
             gui.notify(stuff)
 
-    # t = threading.Thread(target=printrssi)
-    # t.setDaemon(True)
-    # t.start()
+            # t = threading.Thread(target=printrssi)
+            # t.setDaemon(True)
+            # t.start()
 # Some helper functions
 
 def display_status_all_devices():
@@ -384,18 +385,23 @@ Elevator.bind(receive=elevator_receive)
 # TapeRecorder
 
 TapeRecorderIntroMessageStarted = False
-TapeRecorderFiles = [("1b.ogg", 58, "Room Intro"),
-                     ("2.ogg", 24, "Rod Hint"),
-                     ("3.ogg", 24, "Lie Detector Instructions"),
-                     ("4.ogg", 35, "WineBox Hint"),
-                     ("5.ogg", 30, "Successfully Completed"),
-                     ("6.ogg", 30, "Bomb Go Boom!"),
-                     ("8.ogg", 31, "Time Ran Out")]
+TapeRecorderFiles = [("1b.ogg", 58, "Room Intro", 2),
+                     ("2.ogg", 24, "Rod Hint", 4.2),
+                     ("3.ogg", 24, "Lie Detector Instructions", 3.7),
+                     ("4.ogg", 35, "WineBox Hint", 4.1),
+                     ("5.ogg", 30, "Successfully Completed", 3.2),
+                     ("6.ogg", 30, "Bomb Go Boom!", 1.4),
+                     ("8.ogg", 31, "Time Ran Out", 2.3),
+                     ("a.ogg", 17, "Shooting Range Instructions", 2.3),
+                     ("b.ogg", 6, "Colored Circles", 0),
+                     ("c.ogg", 18, "Stealth Rules", 0)]
+
 
 def TapeRecorder_play(filehandle):
     index = [t[2] for t in TapeRecorderFiles].index(filehandle)
     f = TapeRecorderFiles[index][0]
-    TapeRecorder.send(Command='Load', s=f + "\0"*(10 - len(f)), FileLength=TapeRecorderFiles[index][1])
+    TapeRecorder.send(Command='Load', s=f + "\0"*(10 - len(f)), FileLength=TapeRecorderFiles[index][1],
+                                                                StartPos=int(TapeRecorderFiles[index][3]*10))
 
 
 def StartTapeRecorderIntroMessage(timeout=False, fail=False):
@@ -478,7 +484,7 @@ class GreenDudeUpdaterClass(threading.Thread):
 
     def _update(self):
         d = GreenDude.send_and_receive("Status")
-        print d
+        # print d
         if d:
             gui.GreenDudeSetColors(d["Lights"])
 
@@ -492,10 +498,12 @@ gui.GreenDudeCanvas.bind("<Button-1>", GreenDudeUpdater.update)
 
 def LieDetectorActivated(fail=False):
     if progressor.log("LieDetectorStart"):
+        global StealthActive
+        StealthActive = False
         LieDetectorHandler.setnofplayers(NofPlayers)
         gui.notify("Lie Detector Activated", fail=fail, solved=not fail)
         TapeRecorder_play("Lie Detector Instructions")
-        run_after(BookDrawer.open, seconds=1)
+        run_after(BookDrawer.open, seconds=8.3,)
         LieButtons.send("CorrectLightShow")
         nextFailButton("Start Lie Detector")
         run_after(LieDetectorHandler.start_lie_detector, seconds=5)
@@ -538,7 +546,7 @@ class LieDetectorOperationHandler(object):
                               ["B5_1.mov", "B5_2.mov", "B5_3.mov"], "B6.mov"], 0, 14),
                        Scene(["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
                               ["PP5_1.mov", "PP5_2.mov", "PP5_3.mov", "PP5_4.mov"], "PP6.mov"], 1, 15),
-                       Scene(["GB1.mov", "GB3.mov",
+                       Scene(["GB1_SJ.mov", "GB3_J.mov",
                               ["GB5_1.mov", "GB5_2.mov", "GB5_3.mov"], "GB6.mov"], 2, 20)]
                        # Scene(["GB1.mov", "GB2.mov", "GB3.mov", "GB4.mov",
                        #        ["GB5_1.mov", "GB5_2.mov", "GB5_3.mov", "GB5_4.mov"], "GB6.mov"], 2, 20)]
@@ -579,7 +587,7 @@ class LieDetectorOperationHandler(object):
             print incoming
             if incoming["SenderName"] == "Lie2Buttons":
                 if StealthActive:
-                    StealthRetry()
+                    StealthButton(incoming["Command"])
 
                 elif incoming["Command"] == "Button1Press":
                     # Players pass the question
@@ -594,8 +602,7 @@ class LieDetectorOperationHandler(object):
                     if self.CurrentScene.Done:
 
                         time.sleep(5)
-                        Send2SplitFlapThread("Mission {}\n Completed".format(self.CurrentScene.N + 1),
-                                             (self.CurrentScene.OutroLength - 5 )/2)
+                        Send2SplitFlapThread("Mission {}\n Completed".format(self.CurrentScene.N + 1))#, (self.CurrentScene.OutroLength - 5 )/2)
                         LieButtons.send("CorrectLightShow")
                         time.sleep(self.CurrentScene.OutroLength - 5)
 
@@ -659,7 +666,7 @@ def LieDetectorCompleted(fail=False):
         nextFailButton("Lie Detector Fail")
         LiePiA.send("Reset")
         LiePiB.send("Reset")
-        run_after(OpenWineBoxHolder, seconds=4)
+        run_after(OpenWineBoxHolder, seconds=3.5)
 
 
 def liebuttons_receive(d):
@@ -825,6 +832,7 @@ def MorseCompleted(fail=False):
         # TvPi.send("")
         StealthDoor.open()
         StealthStart()
+        TapeRecorder_play("Stealth Rules")
 
 
 def morse_receive(d):
@@ -836,13 +844,14 @@ Morser.bind(receive=morse_receive)
 
 
 # Stealth
-StealthActive = False
+StealthActive = True
 
 
 def CalibrateStealth():
-    if StealthActive:
-        gui.notify("CalibrateStealth() problem: Stealth is Active, can't calibrate", warning=True)
-        return
+    # if StealthActive:
+    #     if not gui.askquestion("Stealth Active", "Stealth is active do you still want to calibrate?"):
+    #         gui.notify("CalibrateStealth() problem: Stealth is Active, can't calibrate", warning=True)
+    #         return
 
     received = Stealth.send("Reset")
     if not received:
@@ -855,7 +864,7 @@ def CalibrateStealth():
         return
 
     pv = d["Sequence"][1:7]
-    thresholds = [min(255, v + max(20, v/2)) for v in pv]
+    thresholds = [min(255, v + max(30, int(v*0.8))) for v in pv]
 
     s = "CalibrateStealth(): Thresholds calibrated to: {}".format(thresholds)
 
@@ -870,10 +879,13 @@ def StealthStart():
     StealthActive = True
 
 
-def StealthRetry():
-    Stealth.send("SetSequence", Sequence=MorseSequence)
-    Sirens.send("SetPin2Low")
-    gui.notify("Stealth has been reset")
+def StealthButton(press):
+    if press == "Button1Press":
+        Stealth.send("SetSequence", Sequence=MorseSequence)
+        Sirens.send("SetPin2Low")
+        gui.notify("Stealth has been reset")
+    elif press == "Button2Press":
+        Sirens.send("SetPin2High")
 
 
 def StealthTripped(lasernr):

@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 import time
 from Config import *
 
+
 # Possibly Persistant values
 class P(object):
     def __init__(self):
@@ -170,7 +171,7 @@ def update_progress_plot(times):
 
 # Log Text
 LogTextWidget = tk.Text(top, height=20, width=75, font="helvetica 10")
-LogTextWidget.place(x=550, y=225)
+LogTextWidget.place(x=500, y=25)
 LogTextWidget.insert('end', " System starting...")
 LogTextWidget['state'] = 'disabled'
 LogTextWidget.tag_configure("warning", foreground="#ff0000", font="helvetica 10 bold")
@@ -191,7 +192,7 @@ for i in range(7):
     for j in range(3):
         column.append((50*i + 30, 50*j+30, 50*i + 70, 50*j + 70))
     GreenDudePositions.append(column)
-print GreenDudePositions
+# print GreenDudePositions
 GreenDudeCircles = []
 
 # for column in GreenDudePositions:
@@ -210,7 +211,7 @@ for i in range(7):
 
 
 def GreenDudeSetColors(positions):
-    print positions
+    # print positions
     ps = [2 - ((c + 1) % 256) for c in positions]
     colors = ['yellow2', 'black', 'red']
     for i in range(min(7, len(ps))):
@@ -226,7 +227,7 @@ TapeRecorderPlayButton = tk.Button(TapeRecorderFrame, text="Play")
 TapeRecorderPlayButton.pack()
 TapeRecorderPauseButton = tk.Button(TapeRecorderFrame, text="Pause")
 TapeRecorderPauseButton.pack()
-TapeRecorderFrame.place(x=100, y=15)
+TapeRecorderFrame.place(x=50, y=15)
 
 
 def notify(text, warning=False, solved=False, fail=False):
@@ -268,7 +269,7 @@ for name in DoorNameList:
 
 # Mission Failures
 MissionFailFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
-MissionFailFrame.place(x=850, y=10)
+MissionFailFrame.place(x=1200, y=10)
 MissionFailButtons = []
 for bname in FailButtonNames:
     b = tk.Button(MissionFailFrame, text=bname, width=15, state=tk.NORMAL)
@@ -278,7 +279,7 @@ for bname in FailButtonNames:
 
 # Clock
 ClockLabel = tk.Label(top, text="0:00:00", font="Verdana 28 bold")
-ClockLabel.place(x=350, y=50)
+ClockLabel.place(x=200, y=15)
 
 
 def clock_make_text(sec):

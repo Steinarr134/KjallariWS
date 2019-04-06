@@ -1,10 +1,15 @@
 import serial
 import threading
+from SocketCom import Client
 
 OPEN = 0
 CLOSED = 1
 
-    
+
+# class RemoteSerial(object):
+#     def __init__(self):
+#         self.Clien
+
 class Door(object):
     OPEN = 0
     CLOSED = 1

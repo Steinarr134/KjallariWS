@@ -43,4 +43,4 @@ MaxBombTime = 10*60  # 10 minutes
 NofPlayers = 5
 
 GreenDudeCorrectPassCode = [255, 1, 1, 255, 255, 1, 255]
-LockPickCorrectPickOrder = [1, 2, 3, 4, 5]
+LockPickCorrectPickOrder = [0, 1, 2, 3, 4, 5]

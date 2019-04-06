@@ -104,7 +104,8 @@ MoteinoStructs = {
         "int Command;"
         "char s[10];"
         "int FileLength;"
-        "int LightValue;",
+        "int LightValue;"
+        "int StartPos",
 
     'LieButtons':
         "int Command;"
@@ -372,11 +373,11 @@ def moteino_status(device):
     elif device == "Stealth":
         tripped = d["Tripped"]
         if tripped == 0:
-            ret += "Stealth is up and running, all lasers working"
+            ret += "Stealth is up and running, all lasers working {}".format(d["Sequence"][1:7])
         elif 10 < tripped < 20:
             ret = "Stealth: Slave {} is not answering over i2c".format(tripped-10)
         else:
-            ret += "Stealth is running but slave {} is tripping".format(tripped)
+            ret += "Stealth: slave{} is tripping {}".format(tripped, d["Sequence"][1:7])
     else:
         ret += device + " is up and running"
 
