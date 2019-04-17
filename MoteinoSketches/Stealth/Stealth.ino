@@ -214,18 +214,18 @@ void sendPhotoValues()
 
   for (int j = 0; j < N; j++)
   {
-      for (int i = 1; i <= numberOfStations; i++)
+      for (int i = 0; i < numberOfStations; i++)
       {
         //Serial.print("Sending: '");
         //Serial.print("3");
         //Serial.print("' to slave: ");
         //Serial.println(i);
-        slaveSend(i, 3);
-        byte value = slaveRead(i);
+        slaveSend(i+1, 3);
+        byte value = slaveRead(i+1);
 
         sums[i] += value;
 
-        int mean = sums / (j+1);
+        int mean = sums[i] / (j+1);
         devs[i] += abs(value - mean);
 
         if (value > maxs[i])
@@ -235,6 +235,7 @@ void sendPhotoValues()
         //Serial.print(OutgoingData.sequence[i]);
         //Serial.print("' from slave: ");
         //Serial.println(i);
+        delay(1);
       }
   }
 
