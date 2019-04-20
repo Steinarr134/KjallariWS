@@ -4,10 +4,8 @@ import pygame
 import time
 from Tkinter import *
 import tkMessageBox
-#from Tkinter import messagebox
 
 pygame.init()
-#size = (500, 500)
 sngtime = 0
 sngtime2 = 0
 sngtime3 = 0
@@ -95,14 +93,14 @@ text1.set("All is quiet")
 text2.set("Music not playing")
 #---------------------------------------------------------------------#
 
-def StartAudio():
+def StartAudio():           # BAKGRUNNSHLJÓÐ
     text1.set("Footsteps...")
     Status3Label.configure(bg=frmbgd)
     sndCh2.set_volume(0.8)
     pygame.mixer.music.play(-1) #LOOP PLAYBACK
 
 
-def StartMusic():
+def StartMusic():           # RÆSA SÍSPILANDI BAKGRUNNS-TÓNLIST
     global audioBusy
     global MusicOn
     global sngtime
@@ -116,7 +114,7 @@ def StartMusic():
     sngtime = time.time()
 
 
-def MusicUnmute():
+def MusicUnmute():          # EFTIR LIE DETECTOR / SHOOTING RANGE
     global MusicOn
     global audioBusy
     text3.set("")
@@ -138,7 +136,7 @@ def MusicUnmute():
     else:
         text2.set("Music not playing")
     #-------- FADE-IN -----------------
-    pygame.mixer.music.play(-1)                                                                # Athuga ad nota while luppu
+    pygame.mixer.music.play(-1)
     sndCh2.set_volume(0.1)
     pygame.mixer.music.set_volume(0.1)
     time.sleep(0.2)
@@ -156,7 +154,7 @@ def MusicUnmute():
     time.sleep(0.2)
 
 
-def StartLie():
+def StartLie():             # LIE DETECTOR START
     Status3Label.configure(bg="red")
     text3.set("ALL MUTED")
     if pygame.mixer.music.get_busy():
@@ -177,7 +175,7 @@ def StartLie():
     time.sleep(0.2)
 
 
-def StartShooting():
+def StartShooting():            # SHOOTING RANGE
     global audioBusy
     audioBusy = 1
     text1.set("")
@@ -200,7 +198,7 @@ def StartShooting():
     sndCh8.play(snd5)
 
 
-def StartStealth():
+def StartStealth():             # STEALTH MODE
     global audioBusy
     audioBusy = 1
     text1.set("")
@@ -212,7 +210,7 @@ def StartStealth():
     sndCh8.play(snd6)
 
 
-def StartBomb():
+def StartBomb():                # KABOOM
     global audioBusy
     audioBusy = 1
     pygame.mixer.music.stop()
@@ -224,7 +222,7 @@ def StartBomb():
     Status3Label.configure(bg=frmbgd)
 
 
-def StartWin():
+def StartWin():                 # VICTORY!!!
     global audioBusy
     audioBusy = 1
     text1.set("")
@@ -237,7 +235,7 @@ def StartWin():
     sndCh3.play(sndWSwin)
 
 
-def StartLose():
+def StartLose():                # YOU LOSE!
     global audioBusy
     audioBusy = 1
     text1.set("")
@@ -250,7 +248,7 @@ def StartLose():
     sndCh3.play(sndWSLose)
 
 
-def StartTimeout():
+def StartTimeout():             #TIME RAN OUT
     global audioBusy
     audioBusy = 1
     text1.set("")
@@ -263,7 +261,7 @@ def StartTimeout():
     sndCh3.play(sndWStimeout)
 
 
-def KillAudio():
+def KillAudio():                # KILL ALL AUDIO
     global audioBusy
     audioBusy = 0
     text2.set("Music not playing")
@@ -307,7 +305,7 @@ LoseBtn.pack(side=BOTTOM)
 TimeBtn.pack(side=BOTTOM)
 
 
-def playMusic():
+def playMusic():                # SONG QUEUE
     global audioBusy
     global MusicOn
     global sngtime
@@ -351,7 +349,7 @@ def playMusic():
 
 playMusic()
 
-def on_closing():
+def on_closing():               # QUIT WARNING WINDOW
     if tkMessageBox.askokcancel("Stop ALL audio...", "Quitting program will stop all background audio, /n Do you REALLY want to quit?"):
         root.destroy()
 
