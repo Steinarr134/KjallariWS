@@ -106,6 +106,7 @@ def StartMusic():           # RÆSA SÍSPILANDI BAKGRUNNS-TÓNLIST
     global sngtime
     text2.set("Playing Song #1")
     print ("song 1")
+    print time.strftime('%H:%M:%S')
     MusicOn = 1
     audioBusy = 0
     Status3Label.configure(bg=frmbgd)
@@ -283,7 +284,7 @@ BombBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="BOMB!!!"
 WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="VICTORY", fg="gray", bg="forestgreen", command=StartWin)
 LoseBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="YOU LOSE", fg="gray", bg="forestgreen", command=StartLose)
 TimeBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="OUT OF TIME", fg="gray", bg="forestgreen", command=StartTimeout)
-killBtn =  Button(topFrame, font=("Comic Sans MS", 14), text="KILL AUDIO", fg="gray", bg="red", command=KillAudio)
+killBtn =  Button(topFrame, font=("Comic Sans MS", 14, "bold"), text="KILL AUDIO", fg="black", bg="red", command=KillAudio)
 mussik = Label(root, font=('times', 20, 'bold'), bg='green')
 
 Status3Label.configure(bg=frmbgd)
@@ -316,6 +317,7 @@ def playMusic():                # SONG QUEUE
         if audioBusy == 0:
             text2.set("Playing Song #2")
             print ("song 2")
+            print time.strftime('%H:%M:%S')
         sndCh2.play(snd2)
         sngtime2 = time.time()
         MusicOn = 2
@@ -324,6 +326,7 @@ def playMusic():                # SONG QUEUE
         if audioBusy == 0:
             text2.set("Playing Song #3")
             print ("song 3")
+            print time.strftime('%H:%M:%S')
         sndCh2.play(snd3)
         sngtime3 = time.time()
         MusicOn = 3
@@ -333,6 +336,7 @@ def playMusic():                # SONG QUEUE
             if audioBusy == 0:
                 text2.set("Playing Song #4")
                 print ("song 4")
+                print time.strftime('%H:%M:%S')
             sndCh2.play(snd4)
             sngtime4 = time.time()
 
@@ -341,6 +345,7 @@ def playMusic():                # SONG QUEUE
             if audioBusy == 0:
                 text2.set("Playing Song #1.... again!")
                 print ("song 1 again")
+                print time.strftime('%H:%M:%S')
             sndCh2.play(snd1)
             sngtime = time.time()
     # LOOP FUNCTION
@@ -350,7 +355,7 @@ def playMusic():                # SONG QUEUE
 playMusic()
 
 def on_closing():               # QUIT WARNING WINDOW
-    if tkMessageBox.askokcancel("Stop ALL audio...", "Quitting program will stop all background audio, /n Do you REALLY want to quit?"):
+    if tkMessageBox.askokcancel("!!WARNING - WARNING - WARNING!!", "Quitting program will stop all background audio,\n Do you REALLY want to quit?"):
         root.destroy()
 
 root.protocol("WM_DELETE_WINDOW", on_closing)
