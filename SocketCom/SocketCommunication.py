@@ -11,7 +11,7 @@ PORT = 3010
 
 
 class Server(SocketServer.TCPServer):
-    def __init__(self, handle_shit):
+    def __init__(self, handle_shit, port=PORT):
 
         class RequestHandler(SocketServer.BaseRequestHandler):
             def handle(self):
@@ -25,7 +25,7 @@ class Server(SocketServer.TCPServer):
                     # print data
                     handle_shit(data.strip())
 
-        address = ("localhost", PORT)
+        address = ("localhost", port)
         SocketServer.TCPServer.__init__(self, address, RequestHandler)
 
         self.Thread = threading.Thread(target=self.serve_forever)

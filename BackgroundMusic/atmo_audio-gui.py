@@ -1,5 +1,5 @@
 # coding=utf-8
-#from SocketCommunication import Server
+from SocketCommunication import Server
 import pygame
 import time
 from Tkinter import *
@@ -14,7 +14,7 @@ MusicOn = 0
 sngLength = 0
 
 
-#---------- LOAD AUDIOFILES -----------------------------#
+# ---------- LOAD AUDIOFILES ----------------------------- #
 pygame.mixer.music.load("audio/bgndNoise.ogg")
 snd1 = pygame.mixer.Sound('audio/warMusic1.ogg')
 snd2 = pygame.mixer.Sound('audio/warMusic2.ogg')
@@ -55,7 +55,7 @@ buzzer.set_volume(0.6)  # Timeout buzzer
 sndWSwin.set_volume(1.0)  # WIN voice-over
 sndWSLose.set_volume(1.0)  # LOSE voice-over
 sndWStimeout.set_volume(1.0)  # Time ran out voice-over
-#----------- SET CHANNEL LEVELS --------------#
+# ----------- SET CHANNEL LEVELS -------------- #
 sndCh1.set_volume(0.3)  # value 0.0 - 1.0
 sndCh2.set_volume(0.8)  # value 0.0 - 1.0
 sndCh3.set_volume(1.0)  # value 0.0 - 1.0
@@ -65,12 +65,12 @@ sndCh6.set_volume(1.0)  # value 0.0 - 1.0
 sndCh7.set_volume(1.0)  # value 0.0 - 1.0
 sndCh8.set_volume(1.0)  # value 0.0 - 1.0
 
-frmbgd = "dim gray"   #Background colour
-#---------------------------------------------------------------------------------
+frmbgd = "dim gray"   # Background colour
+# --------------------------------------------------------------------------------- #
 root = Tk()
 root.title('CAMP-Z AUDIO')
 root.geometry("500x550")
-#root.overrideredirect(1) #Remove border
+# root.overrideredirect(1) # Remove border
 root.configure(bg=frmbgd)
 root.resizable(width=False, height=False)
 
@@ -91,13 +91,14 @@ status = ""
 status2 = ""
 text1.set("All is quiet")
 text2.set("Music not playing")
-#---------------------------------------------------------------------#
+# --------------------------------------------------------------------- #
+
 
 def StartAudio():           # BAKGRUNNSHLJÓÐ
     text1.set("Footsteps...")
     Status3Label.configure(bg=frmbgd)
     sndCh2.set_volume(0.8)
-    pygame.mixer.music.play(-1) #LOOP PLAYBACK
+    pygame.mixer.music.play(-1)  # LOOP PLAYBACK
 
 
 def StartMusic():           # RÆSA SÍSPILANDI BAKGRUNNS-TÓNLIST
@@ -136,7 +137,7 @@ def MusicUnmute():          # EFTIR LIE DETECTOR / SHOOTING RANGE
         text2.set("Playing Song #4")
     else:
         text2.set("Music not playing")
-    #-------- FADE-IN -----------------
+    # -------- FADE-IN ----------------- #
     pygame.mixer.music.play(-1)
     sndCh2.set_volume(0.1)
     pygame.mixer.music.set_volume(0.1)
@@ -160,7 +161,7 @@ def StartLie():             # LIE DETECTOR START
     text3.set("ALL MUTED")
     if pygame.mixer.music.get_busy():
         text1.set("Shhhh....")
-    #-------- FADE-OUT --------------
+    # -------- FADE-OUT -------------- #
     sndCh2.set_volume(0.5)
     time.sleep(0.2)
     pygame.mixer.music.set_volume(0.0)
@@ -270,21 +271,72 @@ def KillAudio():                # KILL ALL AUDIO
     pygame.mixer.fadeout(1000)
 
 
+pairing = {}
 StatusLabel = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text1, fg="black", bg=frmbgd)
 Status2Label = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text2, fg="black", bg=frmbgd)
 Status3Label = Label(bottomFrame, font=("Arial", 16, "bold"), textvariable=text3, fg="black")
-StartBtn = Button(topFrame, font=("Comic Sans MS", 14), text="BACKGROUND NOISE", fg="gray", bg="forestgreen", command=StartAudio)
-MusicBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="START/RESTART MUSIC", fg="gray", bg="forestgreen", command=StartMusic)
-LieBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR START", fg="gray", bg="forestgreen", command=StartLie)
-MusicUnmuteBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR COMPLETE", fg="gray", bg="forestgreen", command=MusicUnmute)
-ShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE", fg="gray", bg="forestgreen", command=StartShooting)
-StopShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE DONE", fg="gray", bg="forestgreen", command=MusicUnmute)
-StealthBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="STEALTH", fg="gray", bg="forestgreen", command=StartStealth)
-BombBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="BOMB!!!", fg="gray", bg="forestgreen", command=StartBomb)
-WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="VICTORY", fg="gray", bg="forestgreen", command=StartWin)
-LoseBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="YOU LOSE", fg="gray", bg="forestgreen", command=StartLose)
-TimeBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="OUT OF TIME", fg="gray", bg="forestgreen", command=StartTimeout)
-killBtn =  Button(topFrame, font=("Comic Sans MS", 14, "bold"), text="KILL AUDIO", fg="black", bg="red", command=KillAudio)
+
+StartBtn = Button(topFrame, font=("Comic Sans MS", 14), text="BACKGROUND NOISE", fg="gray",
+                  bg="forestgreen", command=StartAudio)
+pairing["StartAudio"] = StartAudio
+pairing["BACKGROUND NOISE"] = StartAudio
+
+MusicBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="START/RESTART MUSIC", fg="gray",
+                  bg="forestgreen", command=StartMusic)
+pairing["StartMusic"] = StartMusic
+pairing["START/RESTART MUSIC"] = StartMusic
+
+LieBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR START", fg="gray",
+                bg="forestgreen", command=StartLie)
+pairing["StartLie"] = StartLie
+pairing["LIE DETECTOR START"] = StartLie
+
+MusicUnmuteBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR COMPLETE",
+                        fg="gray", bg="forestgreen", command=MusicUnmute)
+pairing["MusicUnmute"] = MusicUnmute
+pairing["LIE DETECTOR COMPLETE"] = MusicUnmute
+
+ShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE", fg="gray",
+                  bg="forestgreen", command=StartShooting)
+pairing["StartShooting"] = StartShooting
+pairing["SHOOTING RANGE"] = StartShooting
+
+StopShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE DONE",
+                      fg="gray", bg="forestgreen", command=MusicUnmute)
+pairing["MusicUnmute"] = MusicUnmute
+pairing["SHOOTING RANGE DONE"] = MusicUnmute
+
+StealthBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="STEALTH", fg="gray",
+                    bg="forestgreen", command=StartStealth)
+pairing["StartStealth"] = StartStealth
+pairing["STEALTH"] = StartStealth
+
+BombBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="BOMB!!!", fg="gray",
+                 bg="forestgreen", command=StartBomb)
+pairing["StartBomb"] = StartBomb
+pairing["BOMB!!!"] = StartBomb
+pairing["BOMB"] = StartBomb
+
+WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="VICTORY", fg="gray",
+                bg="forestgreen", command=StartWin)
+pairing["StartWin"] = StartWin
+pairing["VICTORY"] = StartWin
+
+LoseBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="YOU LOSE", fg="gray",
+                 bg="forestgreen", command=StartLose)
+pairing["StartLose"] = StartLose
+pairing["YOU LOSE"] = StartLose
+
+TimeBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="OUT OF TIME", fg="gray",
+                 bg="forestgreen", command=StartTimeout)
+pairing["StartTimeout"] = StartTimeout
+pairing["OUT OF TIME"] = StartTimeout
+
+killBtn = Button(topFrame, font=("Comic Sans MS", 14, "bold"), text="KILL AUDIO", fg="black",
+                 bg="red", command=KillAudio)
+pairing["KillAudio"] = KillAudio
+pairing["KILL AUDIO"] = KillAudio
+
 mussik = Label(root, font=('times', 20, 'bold'), bg='green')
 
 Status3Label.configure(bg=frmbgd)
@@ -313,7 +365,7 @@ def playMusic():                # SONG QUEUE
     global sngtime2
     global sngtime3
     global sngtime4
-    if MusicOn == 1 and time.time() - sngtime > 1128:        #1128:
+    if MusicOn == 1 and time.time() - sngtime > 1128:        # 1128:
         if audioBusy == 0:
             text2.set("Playing Song #2")
             print ("song 2")
@@ -322,7 +374,7 @@ def playMusic():                # SONG QUEUE
         sngtime2 = time.time()
         MusicOn = 2
 
-    if MusicOn == 2 and time.time() - sngtime2 > 1046:       #1046:
+    if MusicOn == 2 and time.time() - sngtime2 > 1046:       # 1046:
         if audioBusy == 0:
             text2.set("Playing Song #3")
             print ("song 3")
@@ -331,7 +383,7 @@ def playMusic():                # SONG QUEUE
         sngtime3 = time.time()
         MusicOn = 3
 
-    if MusicOn == 3 and time.time() - sngtime3 > 1102:       #1102
+    if MusicOn == 3 and time.time() - sngtime3 > 1102:       # 1102
             MusicOn = 4
             if audioBusy == 0:
                 text2.set("Playing Song #4")
@@ -340,7 +392,7 @@ def playMusic():                # SONG QUEUE
             sndCh2.play(snd4)
             sngtime4 = time.time()
 
-    if MusicOn == 4 and time.time() - sngtime4 > 1226:      #1226
+    if MusicOn == 4 and time.time() - sngtime4 > 1226:      # 1226
             MusicOn = 1
             if audioBusy == 0:
                 text2.set("Playing Song #1.... again!")
@@ -352,13 +404,23 @@ def playMusic():                # SONG QUEUE
     mussik.after(200, playMusic)
 
 
-playMusic()
-
 def on_closing():               # QUIT WARNING WINDOW
-    if tkMessageBox.askokcancel("!!WARNING - WARNING - WARNING!!", "Quitting program will stop all background audio,\n Do you REALLY want to quit?"):
+    if tkMessageBox.askokcancel("!!WARNING - WARNING - WARNING!!",
+                                "Quitting program will stop all background audio,\n Do you REALLY want to quit?"):
         root.destroy()
 
-root.protocol("WM_DELETE_WINDOW", on_closing)
 
-root.mainloop()
-#---------------------------------------------------------------------------------
+def handle(msg):
+    if msg.upper() in pairing:
+        pairing[msg.upper]()
+    if msg in pairing:
+        pairing[msg]()
+
+
+if __name__ == '__main__':
+    server = Server(handle, port=3011)
+    playMusic()
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
+    root.mainloop()
+# ---------------------------------------------------------------------------------#
