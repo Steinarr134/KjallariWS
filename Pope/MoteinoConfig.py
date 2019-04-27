@@ -358,7 +358,7 @@ def moteino_status(device):
         ret += "Elevator up and running, passcode is: {}".format(d['PassCode1'])
 
     elif device == "GreenDude":
-        passcode = str(d['Lights']).replace('255', 'Red').replace('0', 'White').replace('1', 'Green')
+        passcode = str(d['Lights']).replace('255', 'Red').replace('0', 'Black').replace('1', 'Yellow')
         
         ret += "GreenDude is up and running, currently showing: {}".format(passcode)
     elif device == "SplitFlap":
@@ -373,11 +373,11 @@ def moteino_status(device):
     elif device == "Stealth":
         tripped = d["Tripped"]
         if tripped == 0:
-            ret += "Stealth is up and running, all lasers working {}".format(d["Sequence"][1:7])
+            ret += "Stealth is up and running, all lasers working {}".format(d["Sequence"][:6])
         elif 10 < tripped < 20:
             ret = "Stealth: Slave {} is not answering over i2c".format(tripped-10)
         else:
-            ret += "Stealth: slave{} is tripping {}".format(tripped, d["Sequence"][1:7])
+            ret += "Stealth: slave{} is tripping {}".format(tripped, d["Sequence"][:6])
     else:
         ret += device + " is up and running"
 

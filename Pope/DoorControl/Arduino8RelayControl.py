@@ -1,6 +1,7 @@
 import serial
 import threading
 from SocketCom import Client
+import json
 
 OPEN = 0
 CLOSED = 1
@@ -38,7 +39,6 @@ class EmptyDoorSlot(object):
 class DoorController(object):
     def __init__(self, port):
         print "Door Control starting on port {}".format(port)
-        self.Serial = serial.Serial(port, 115200)
         self.Doors = [EmptyDoorSlot(),
                       EmptyDoorSlot(),
                       EmptyDoorSlot(),
@@ -47,9 +47,16 @@ class DoorController(object):
                       EmptyDoorSlot(),
                       EmptyDoorSlot(),
                       EmptyDoorSlot()]
+
+        self.Serial = None
+        self.SerialWriteLock = None
+        self._aquire_serial(port)
+
+    def _aquire_serial(self, port):
+        self.Serial = serial.Serial(port, 115200)
         self.SerialWriteLock = threading.Lock()
 
-    def _send_(self):
+    def _send(self):
         s = ''
         for door in self.Doors:
             s += str(door.State)
@@ -58,29 +65,29 @@ class DoorController(object):
         with self.SerialWriteLock:
             self.Serial.write(s + '\n')
 
-    def _set_(self, door, state):
+    def _set(self, door, state):
         if not isinstance(door, Door):
             raise ValueError("Expected a Door instance, but got a " + str(type(door)))
         door.State = state
-        self._send_()
+        self._send()
 
     def open(self, door):
         print "opening door"
-        self._set_(door, OPEN)
+        self._set(door, OPEN)
 
     def close(self, door):
         print "closing door"
-        self._set_(door, CLOSED)
+        self._set(door, CLOSED)
 
     def open_all(self):
         for door in self.Doors:
             door.State = OPEN
-        self._send_()
+        self._send()
 
     def close_all(self):
         for door in self.Doors:
             door.State = CLOSED
-        self._send_()
+        self._send()
 
     def add_door(self, door):
         if not isinstance(door, Door):

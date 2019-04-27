@@ -25,9 +25,12 @@ CurrentPlayerInfo = perri.get("CurrentPlayerInfo", {})
 """
 TODO:
 
+WinBoxHOlder tharf ekki ad opnast i byrjun
+
+gera thannig ad haegt se ad breyta timanum on the fly
 
 
-Control the lights
+
 
 Set up Database
 
@@ -646,15 +649,6 @@ Lie2Buttons.bind(receive=LieDetectorHandler.handle)
 
 
 LieDetectorHasBeenActivated = False
-LieDetectorVideos = ["B1.mov", "B2.mov", "B3.mov"]
-
-TvPiFiles = ["B1.mov",
-             "B2.mov",
-             "B3.mov",
-             "PP1.mov",
-             "PP2.mov",
-             "PP3.mov",
-             "SOS.mov"]
 
 
 def LieDetectorCompleted(fail=False):
@@ -667,36 +661,6 @@ def LieDetectorCompleted(fail=False):
         LiePiA.send("Reset")
         LiePiB.send("Reset")
         run_after(OpenWineBoxHolder, seconds=3.5)
-
-
-def liebuttons_receive(d):
-    if d['Command'] == "CorrectPassCode":
-        LieDetectorActivated()
-
-
-# LieButtons.bind(receive=liebuttons_receive)
-
-
-def lie_2_buttons_receive(d):
-    print "lie_2_buttons_receive reacting to : " + str(d)
-    if progressor.current_cp() == "LieDetector":
-        if d['Command'] == "Button1Press":
-            # PLay last video again
-            if LieDetectorVideoPosition >= 0:
-                TvPi.send("PlayFile", LieDetectorVideos[LieDetectorVideoPosition])
-        elif d['Command'] == "Button2Press":
-            global LieDetectorVideoPosition
-            LieDetectorVideoPosition += 1
-            if LieDetectorVideoPosition >= len(LieDetectorVideos):
-                LieDetectorCompleted(fail=False)
-            else:
-                TvPi.send("PlayFile", LieDetectorVideos[LieDetectorVideoPosition])
-    else:
-        print "Progressor doesn't want to do stuff for lie_2_buttons_receive, " \
-              "current progress was: {}".format(progressor.current_cp())
-
-
-# Lie2Buttons.bind(receive=lie_2_buttons_receive)
 
 
 # WineBox
@@ -735,7 +699,7 @@ def ShootingRangeCompleted(fail=False):
 
 
 def get_shootingrange_sequence(length):
-    ret = [random.randint(0, 4)]
+    ret = [random.randint(1, 4)]
     while len(ret) < length:
         r = random.randint(0, 4)
         if ret[-1] != r:
@@ -847,24 +811,28 @@ Morser.bind(receive=morse_receive)
 StealthActive = True
 
 
+def run_CalibrateStealth():
+    t = threading.Thread(target=CalibrateStealth)
+    t.setDaemon(True)
+    t.start()
+
+
 def CalibrateStealth():
     # if StealthActive:
     #     if not gui.askquestion("Stealth Active", "Stealth is active do you still want to calibrate?"):
     #         gui.notify("CalibrateStealth() problem: Stealth is Active, can't calibrate", warning=True)
     #         return
 
-    received = Stealth.send("Reset")
-    if not received:
-        gui.notify("CalibrateStealth() problem: Stealth didn't respond with ACK aborting calibration")
-        return
-    time.sleep(2)
-    d = Stealth.send_and_receive("GetPhotovalues")
+    d = Stealth.send_and_receive("GetPhotovalues", max_wait=4000)
     if not d:
         gui.notify("CalibrateStealth() problem: Didn't get photovalues from Stealth, aborting calibration")
         return
 
-    pv = d["Sequence"][1:7]
-    thresholds = [min(255, v + max(30, int(v*0.8))) for v in pv]
+    pvs = d["Sequence"][:6]
+    devs = d["Sequence"][10:16]
+    maxs = d["Sequence"][20:26]
+
+    thresholds = [min(255, maxs[i] + devs[i] + 20) for i in range(6)]
 
     s = "CalibrateStealth(): Thresholds calibrated to: {}".format(thresholds)
 
@@ -1094,7 +1062,7 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
         DeviceSubmenu.add_command(label="Send LightShow",
                                   command=lambda: Stealth.send("SetSequence", Sequence=MorseSequence))
         DeviceSubmenu.add_command(label="Calibrate Thresholds",
-                                  command=CalibrateStealth)
+                                  command=run_CalibrateStealth)
         subsubmenu = gui.tk.Menu(DeviceSubmenu, tearoff=False)
         DeviceSubmenu.add_cascade(label="Set Tempo", menu=subsubmenu)
         for i in range(10):
@@ -1130,11 +1098,26 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
                                   command=lambda: LieButtons.send("IncorrectLightShow"))
 
     if Device == "TvPi":
-        subsubmenu = gui.tk.Menu(DeviceSubmenu, tearoff=False)
-        DeviceSubmenu.add_cascade(label="Play file", menu=subsubmenu)
-        for f in TvPiFiles:
-            subsubmenu.add_command(label=f,
-                                   command=lambda _f=f: TvPi.send("PlayFile", s=_f))
+        for i, scene in enumerate(LieDetectorHandler.Scenes):
+            subsubmenu = gui.tk.Menu(DeviceSubmenu, tearoff=False)
+            DeviceSubmenu.add_cascade(label="Scene {}".format(i+1), menu=subsubmenu)
+            fs = []
+            # print scene.Files
+            for f in scene.Files:
+                if type(f) is str:
+                    # print "found string"
+                    fs.append(f)
+                elif type(f) is list:
+                    # print "found list"
+                    for ff in f:
+                        if type(ff) is str:
+                            # print "found string in list"
+                            fs.append(ff)
+            for f in fs:
+                subsubmenu.add_command(label=f,
+                                       command=lambda _f=f: TvPi.send("PlayFile", s=_f))
+            subsubmenu.add_command(label="SOS.mov",
+                                   command=lambda _f="SOS.mov": TvPi.send("PlayFile", s=_f))
 
     if Device == "WineBox":
         DeviceSubmenu.add_command(label="Open",

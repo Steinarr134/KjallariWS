@@ -3,7 +3,7 @@ from MoteinoConfig import mynetwork, GreenDude, SplitFlap, \
      WineBox, TapeRecorder, LieButtons, moteino_status, \
      ShootingRange, Stealth, Sirens, LiePiA, LiePiB, Lie2Buttons, \
      TvPi, ProbablyDoorSerialPort
-from DoorControl import Door as _Door, DoorController as _Dctrl, \
+from DoorControl import Door as _Door, SocketDoorController as _Dctrl, \
      RemoteDoor as _RemoteDoor
 import threading
 import logging

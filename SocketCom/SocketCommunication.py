@@ -11,7 +11,7 @@ PORT = 3010
 
 
 class Server(SocketServer.TCPServer):
-    def __init__(self, handle_shit):
+    def __init__(self, handle_shit, port):
 
         class RequestHandler(SocketServer.BaseRequestHandler):
             def handle(self):
@@ -25,7 +25,7 @@ class Server(SocketServer.TCPServer):
                     # print data
                     handle_shit(data.strip())
 
-        address = ("localhost", PORT)
+        address = ("localhost", port)
         SocketServer.TCPServer.__init__(self, address, RequestHandler)
 
         self.Thread = threading.Thread(target=self.serve_forever)
@@ -38,8 +38,9 @@ class Server(SocketServer.TCPServer):
 
 
 class Client(object):
-    def __init__(self):
+    def __init__(self, port):
         self.s = socket.socket()
+        self.port = port
 
     def send(self, shit):
         try:
@@ -53,7 +54,7 @@ class Client(object):
 
     def _connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect(("localhost", PORT))
+        self.s.connect(("localhost", self.port))
 
 
 if __name__ == '__main__':
@@ -94,7 +95,7 @@ if __name__ == '__main__':
     def h(data):
         print "received: " + str(data)
 
-    server = Server(h)
+    server = Server(h, PORT)
 
     client = Client()
 
