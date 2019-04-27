@@ -8,6 +8,7 @@ from DoorControl import Door as _Door, SocketDoorController as _Dctrl, \
 import threading
 import logging
 import time
+from SocketCom import Client
 import random
 import HostInterface as gui
 from Config import *
@@ -174,6 +175,8 @@ perri = Perri()
 
 DeviceSubmenus = []
 
+Music = Client(3011)
+
 
 class Object(object):
     pass        # I do realize this seems pointless but it actually does something
@@ -186,6 +189,7 @@ def cumsum(l):
         s += number
         new_l.append(s)
     return new_l
+
 
 if __name__ == '__main__':
     exit()

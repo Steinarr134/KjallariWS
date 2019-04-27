@@ -97,11 +97,11 @@ if __name__ == '__main__':
 
     server = Server(h, PORT)
 
-    client = Client()
+    client = Client(PORT)
 
     time.sleep(1)
     client.send("Hello there")
     time.sleep(1)
     client.send("Hello some more")
-    time.sleep(10000)
+    time.sleep(10)
     server.shutdown()

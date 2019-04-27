@@ -1,5 +1,5 @@
 # coding=utf-8
-from SocketCommunication import Server
+from SocketCom import Server
 import pygame
 import time
 from Tkinter import *
@@ -12,6 +12,7 @@ sngtime3 = 0
 sngtime4 = 0
 MusicOn = 0
 sngLength = 0
+audioBusy = False
 
 
 # ---------- LOAD AUDIOFILES ----------------------------- #
@@ -94,6 +95,13 @@ text2.set("Music not playing")
 # --------------------------------------------------------------------- #
 
 
+def audio_busy(truefalse):
+    global audioBusy
+    audioBusy = truefalse
+    if not audioBusy:
+        playMusic()
+        
+
 def StartAudio():           # BAKGRUNNSHLJÓÐ
     text1.set("Footsteps...")
     Status3Label.configure(bg=frmbgd)
@@ -102,25 +110,23 @@ def StartAudio():           # BAKGRUNNSHLJÓÐ
 
 
 def StartMusic():           # RÆSA SÍSPILANDI BAKGRUNNS-TÓNLIST
-    global audioBusy
     global MusicOn
     global sngtime
     text2.set("Playing Song #1")
     print ("song 1")
     print time.strftime('%H:%M:%S')
     MusicOn = 1
-    audioBusy = 0
     Status3Label.configure(bg=frmbgd)
     sndCh2.set_volume(0.6)
     sndCh2.play(snd1)
     sngtime = time.time()
+    audio_busy(False)
 
 
 def MusicUnmute():          # EFTIR LIE DETECTOR / SHOOTING RANGE
     global MusicOn
-    global audioBusy
     text3.set("")
-    audioBusy = 0
+    audio_busy(False)
     if pygame.mixer.music.get_busy():
         text1.set("Footsteps...")
     Status3Label.configure(bg=frmbgd)
@@ -178,8 +184,7 @@ def StartLie():             # LIE DETECTOR START
 
 
 def StartShooting():            # SHOOTING RANGE
-    global audioBusy
-    audioBusy = 1
+    audio_busy(True)
     text1.set("")
     text2.set("SHOOT 'EM UP!!")
     text3.set("")
@@ -201,8 +206,7 @@ def StartShooting():            # SHOOTING RANGE
 
 
 def StartStealth():             # STEALTH MODE
-    global audioBusy
-    audioBusy = 1
+    audio_busy(True)
     text1.set("")
     text2.set("SNEAKY...")
     text3.set("")
@@ -213,8 +217,7 @@ def StartStealth():             # STEALTH MODE
 
 
 def StartBomb():                # KABOOM
-    global audioBusy
-    audioBusy = 1
+    audio_busy(True)
     pygame.mixer.music.stop()
     sndCh2.stop()
     sndCh8.play(snd7)
@@ -225,8 +228,7 @@ def StartBomb():                # KABOOM
 
 
 def StartWin():                 # VICTORY!!!
-    global audioBusy
-    audioBusy = 1
+    audio_busy(True)
     text1.set("")
     text2.set("VICTORIOUS!")
     text3.set("")
@@ -238,8 +240,7 @@ def StartWin():                 # VICTORY!!!
 
 
 def StartLose():                # YOU LOSE!
-    global audioBusy
-    audioBusy = 1
+    audio_busy(True)
     text1.set("")
     text2.set("YOU LOSE!")
     text3.set("")
@@ -251,8 +252,7 @@ def StartLose():                # YOU LOSE!
 
 
 def StartTimeout():             #TIME RAN OUT
-    global audioBusy
-    audioBusy = 1
+    audio_busy(True)
     text1.set("")
     text2.set("OUT OF TIME!")
     text3.set("")
@@ -264,14 +264,15 @@ def StartTimeout():             #TIME RAN OUT
 
 
 def KillAudio():                # KILL ALL AUDIO
-    global audioBusy
-    audioBusy = 0
+    audio_busy(False)
     text2.set("Music not playing")
     Status3Label.configure(bg=frmbgd)
     pygame.mixer.fadeout(1000)
 
 
 pairing = {}
+
+
 StatusLabel = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text1, fg="black", bg=frmbgd)
 Status2Label = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text2, fg="black", bg=frmbgd)
 Status3Label = Label(bottomFrame, font=("Arial", 16, "bold"), textvariable=text3, fg="black")
@@ -359,13 +360,12 @@ TimeBtn.pack(side=BOTTOM)
 
 
 def playMusic():                # SONG QUEUE
-    global audioBusy
     global MusicOn
     global sngtime
     global sngtime2
     global sngtime3
     global sngtime4
-    if MusicOn == 1 and time.time() - sngtime > 1128:        # 1128:
+    if MusicOn == 1 and time.time() - sngtime > 10:        # 1128:
         if audioBusy == 0:
             text2.set("Playing Song #2")
             print ("song 2")
@@ -374,7 +374,7 @@ def playMusic():                # SONG QUEUE
         sngtime2 = time.time()
         MusicOn = 2
 
-    if MusicOn == 2 and time.time() - sngtime2 > 1046:       # 1046:
+    if MusicOn == 2 and time.time() - sngtime2 > 15:       # 1046:
         if audioBusy == 0:
             text2.set("Playing Song #3")
             print ("song 3")
@@ -383,7 +383,7 @@ def playMusic():                # SONG QUEUE
         sngtime3 = time.time()
         MusicOn = 3
 
-    if MusicOn == 3 and time.time() - sngtime3 > 1102:       # 1102
+    if MusicOn == 3 and time.time() - sngtime3 > 20:       # 1102
             MusicOn = 4
             if audioBusy == 0:
                 text2.set("Playing Song #4")
@@ -401,7 +401,8 @@ def playMusic():                # SONG QUEUE
             sndCh2.play(snd1)
             sngtime = time.time()
     # LOOP FUNCTION
-    mussik.after(200, playMusic)
+    if not audioBusy:
+        mussik.after(200, playMusic)
 
 
 def on_closing():               # QUIT WARNING WINDOW
@@ -412,8 +413,8 @@ def on_closing():               # QUIT WARNING WINDOW
 
 def handle(msg):
     if msg.upper() in pairing:
-        pairing[msg.upper]()
-    if msg in pairing:
+        pairing[msg.upper()]()
+    elif msg in pairing:
         pairing[msg]()
 
 

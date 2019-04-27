@@ -6,6 +6,7 @@ import pickle
 path = "/home/campz/PopePersistance/"
 filename = path + "PreviousGroupState.pkl"
 
+
 class Perri(object):
     def __init__(self):
         self.vars = []
