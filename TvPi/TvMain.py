@@ -65,6 +65,8 @@ class PopenThread(threading.Thread):
         self.Running = subprocess.Popen(self.Command.split(" "), stdin=subprocess.PIPE)
 
     def die(self):
+	if self.Running is None:
+	    return
         if self.Running.poll() is None:
             #print "Killing myself #######################"
             self.Running.stdin.write('q')
@@ -79,7 +81,10 @@ Threads = []
 
 done = False
 while not done:
-    time.sleep(0.1)
+    try:
+        time.sleep(0.1)
+    except KeyboardInterrupt:
+        break
     t2remove = []
     for thread in Threads:
         if thread.Done:
@@ -100,7 +105,7 @@ while not done:
             for thread in Threads:
                 thread.die()
             #print("---------------------Play event, doing: " + "omxplayer " + event.message)
-            Threads.append(PopenThread("omxplayer " + event.message + " -o local"))
+            Threads.append(PopenThread("omxplayer " + event.message + " -o local --win 0,0,720,440"))
         
 
 

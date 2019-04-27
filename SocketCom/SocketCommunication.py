@@ -11,7 +11,7 @@ PORT = 3010
 
 
 class Server(SocketServer.TCPServer):
-    def __init__(self, handle_shit, port):
+    def __init__(self, handle_shit, port=PORT):
 
         class RequestHandler(SocketServer.BaseRequestHandler):
             def handle(self):
