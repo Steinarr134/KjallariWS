@@ -67,31 +67,36 @@ sndCh7.set_volume(1.0)  # value 0.0 - 1.0
 sndCh8.set_volume(1.0)  # value 0.0 - 1.0
 
 frmbgd = "dim gray"   # Background colour
+btnfg = "black"       # Button text color
+btnbg = "ivory2"      # Button background color
+btnactbg = "gold"     # Button color when mouse over
+noAudioBtnactbg = "tomato"
+
 # --------------------------------------------------------------------------------- #
 root = Tk()
-root.title('CAMP-Z AUDIO')
-root.geometry("500x550")
-# root.overrideredirect(1) # Remove border
-root.configure(bg=frmbgd)
-root.resizable(width=False, height=False)
+root.title('CAMP-Z AUDIO')                  # Window title
+root.geometry("500x550")                    # Window size
+root.configure(bg=frmbgd)                   # Window fill color
+root.resizable(width=False, height=False)   # Window not resizable
 
+# ------------ SET FRAME SIZES / PLACE FRAMES ---------#
 topFrame = Frame(root, bg=frmbgd, width=500, height=50, pady=3)
 topFrame.pack(side=TOP)
 bottomFrame = Frame(root, bg=frmbgd, width=500, height=50, pady=3)
 bottomFrame.pack(side=BOTTOM)
-
 leftFrame = Frame(root)
 leftFrame.pack(side=LEFT)
 rightFrame = Frame(root)
 rightFrame.pack(side=RIGHT)
+# -----------------------------------------------------#
 
 text1 = StringVar()
 text2 = StringVar()
 text3 = StringVar()
 status = ""
 status2 = ""
-text1.set("All is quiet")
-text2.set("Music not playing")
+text1.set("All is quiet")           # INFO TEXT1 DEFAULT
+text2.set("Music not playing")      # INFO TEXT2 DEFAULT
 # --------------------------------------------------------------------- #
 
 
@@ -277,64 +282,64 @@ StatusLabel = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text1,
 Status2Label = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text2, fg="black", bg=frmbgd)
 Status3Label = Label(bottomFrame, font=("Arial", 16, "bold"), textvariable=text3, fg="black")
 
-StartBtn = Button(topFrame, font=("Comic Sans MS", 14), text="BACKGROUND NOISE", fg="gray",
-                  bg="forestgreen", command=StartAudio)
+StartBtn = Button(topFrame, font=("Comic Sans MS", 14), text="BACKGROUND NOISE", fg=btnfg,
+                  bg=btnbg, activebackground=btnactbg, command=StartAudio)
 pairing["StartAudio"] = StartAudio
 pairing["BACKGROUND NOISE"] = StartAudio
 
-MusicBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="START/RESTART MUSIC", fg="gray",
-                  bg="forestgreen", command=StartMusic)
+MusicBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="START/RESTART MUSIC", fg=btnfg,
+                  bg=btnbg, activebackground=btnactbg, command=StartMusic)
 pairing["StartMusic"] = StartMusic
 pairing["START/RESTART MUSIC"] = StartMusic
 
-LieBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR START", fg="gray",
-                bg="forestgreen", command=StartLie)
+LieBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR START", fg=btnfg,
+                bg=btnbg, activebackground=btnactbg, command=StartLie)
 pairing["StartLie"] = StartLie
 pairing["LIE DETECTOR START"] = StartLie
 
 MusicUnmuteBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR COMPLETE",
-                        fg="gray", bg="forestgreen", command=MusicUnmute)
+                        fg=btnfg, activebackground=btnactbg, bg=btnbg, command=MusicUnmute)
 pairing["MusicUnmute"] = MusicUnmute
 pairing["LIE DETECTOR COMPLETE"] = MusicUnmute
 
-ShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE", fg="gray",
-                  bg="forestgreen", command=StartShooting)
+ShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE", fg=btnfg,
+                  bg=btnbg, activebackground=btnactbg, command=StartShooting)
 pairing["StartShooting"] = StartShooting
 pairing["SHOOTING RANGE"] = StartShooting
 
 StopShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE DONE",
-                      fg="gray", bg="forestgreen", command=MusicUnmute)
+                      fg=btnfg, activebackground=btnactbg, bg=btnbg, command=MusicUnmute)
 pairing["MusicUnmute"] = MusicUnmute
 pairing["SHOOTING RANGE DONE"] = MusicUnmute
 
-StealthBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="STEALTH", fg="gray",
-                    bg="forestgreen", command=StartStealth)
+StealthBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="STEALTH", fg=btnfg,
+                    bg=btnbg, activebackground=btnactbg, command=StartStealth)
 pairing["StartStealth"] = StartStealth
 pairing["STEALTH"] = StartStealth
 
-BombBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="BOMB!!!", fg="gray",
-                 bg="forestgreen", command=StartBomb)
+BombBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="BOMB!!!", fg=btnfg,
+                 bg=btnbg, activebackground=btnactbg, command=StartBomb)
 pairing["StartBomb"] = StartBomb
 pairing["BOMB!!!"] = StartBomb
 pairing["BOMB"] = StartBomb
 
-WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="VICTORY", fg="gray",
-                bg="forestgreen", command=StartWin)
+WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="VICTORY", fg=btnfg,
+                bg=btnbg, activebackground=btnactbg, command=StartWin)
 pairing["StartWin"] = StartWin
 pairing["VICTORY"] = StartWin
 
-LoseBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="YOU LOSE", fg="gray",
-                 bg="forestgreen", command=StartLose)
+LoseBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="YOU LOSE", fg=btnfg,
+                 bg=btnbg, activebackground=btnactbg, command=StartLose)
 pairing["StartLose"] = StartLose
 pairing["YOU LOSE"] = StartLose
 
-TimeBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="OUT OF TIME", fg="gray",
-                 bg="forestgreen", command=StartTimeout)
+TimeBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="OUT OF TIME", fg=btnfg,
+                 bg=btnbg, activebackground=btnactbg, command=StartTimeout)
 pairing["StartTimeout"] = StartTimeout
 pairing["OUT OF TIME"] = StartTimeout
 
 killBtn = Button(topFrame, font=("Comic Sans MS", 14, "bold"), text="KILL AUDIO", fg="black",
-                 bg="red", command=KillAudio)
+                 bg="red", activebackground=noAudioBtnactbg, command=KillAudio)
 pairing["KillAudio"] = KillAudio
 pairing["KILL AUDIO"] = KillAudio
 
