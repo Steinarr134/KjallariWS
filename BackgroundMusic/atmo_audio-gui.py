@@ -370,7 +370,7 @@ def playMusic():                # SONG QUEUE
     global sngtime2
     global sngtime3
     global sngtime4
-    if MusicOn == 1 and time.time() - sngtime > 10:        # 1128:
+    if MusicOn == 1 and time.time() - sngtime > 1128:        # 1128:
         if audioBusy == 0:
             text2.set("Playing Song #2")
             print ("song 2")
@@ -379,7 +379,7 @@ def playMusic():                # SONG QUEUE
         sngtime2 = time.time()
         MusicOn = 2
 
-    if MusicOn == 2 and time.time() - sngtime2 > 15:       # 1046:
+    if MusicOn == 2 and time.time() - sngtime2 > 1046:       # 1046:
         if audioBusy == 0:
             text2.set("Playing Song #3")
             print ("song 3")
@@ -388,7 +388,7 @@ def playMusic():                # SONG QUEUE
         sngtime3 = time.time()
         MusicOn = 3
 
-    if MusicOn == 3 and time.time() - sngtime3 > 20:       # 1102
+    if MusicOn == 3 and time.time() - sngtime3 > 1102:       # 1102
             MusicOn = 4
             if audioBusy == 0:
                 text2.set("Playing Song #4")
@@ -424,7 +424,7 @@ def handle(msg):
 
 
 if __name__ == '__main__':
-    server = Server(handle, port=3011)
+    server = Server(handle, port=3022)
     playMusic()
     root.protocol("WM_DELETE_WINDOW", on_closing)
 

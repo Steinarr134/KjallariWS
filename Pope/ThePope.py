@@ -149,6 +149,8 @@ def initialize_room(player_info={}):
     # ShootingRange.send("DispColors", Colors=[0]*5)
     CalibrateStealth()
 
+    DoorController.close_all()
+    music_send("KILL AUDIO")
     gui.notify("Initialization complete")
 
     def printrssi():
@@ -349,8 +351,13 @@ class ScoreKeeping(object):
         return score - deductions + timeleft/60
 
 
+def music_send(what):
+    gui.notify("Sending: '{}' to Background Music".format(what))
+    Music.send(what)
+
+
 def start_music():
-    Music.send("StartMusic")
+    music_send("StartMusic")
 
 
 # Elevator
@@ -378,7 +385,7 @@ def ElevatorEscaped(fail=False):
         nextFailButton("Elevator Escape")
         TapeRecorder_play("Room Intro")
         TapeRecorder.send("Pause")
-        Music.send("BACKGROUND NOISE")
+        music_send("BACKGROUND NOISE")
         run_after(start_music, seconds=15)
 
 
@@ -511,7 +518,7 @@ def LieDetectorActivated(fail=False):
         StealthActive = False
         LieDetectorHandler.setnofplayers(NofPlayers)
         gui.notify("Lie Detector Activated", fail=fail, solved=not fail)
-        Music.send("LIE DETECTOR START")
+        music_send("LIE DETECTOR START")
         TapeRecorder_play("Lie Detector Instructions")
         run_after(BookDrawer.open, seconds=8.3,)
         LieButtons.send("CorrectLightShow")
@@ -660,7 +667,7 @@ LieDetectorHasBeenActivated = False
 def LieDetectorCompleted(fail=False):
     if progressor.log("LieDetectorFinish"):
         gui.notify("Lie Detector Completed", fail=fail, solved=not fail)
-        Music.send("LIE DETECTOR COMPLETE")
+        music_send("LIE DETECTOR COMPLETE")
         Send2SplitFlapThread("Well Done!", 10)
         time.sleep(5)
         TapeRecorder_play("WineBox Hint")
@@ -729,7 +736,7 @@ class ShootingRangeGameClass(object):
         self.send_next_target_to_shootingrange()
         self.send_next_target_to_splitflap()
         splitflaptimer.not_now()
-        Music.send("SHOOTING RANGE")
+        music_send("SHOOTING RANGE")
 
     def send_next_target_to_shootingrange(self):
         ShootingRange.send("NewSequence", Sequence=[self.TargetSequence[self.hitnr]]*5)
@@ -760,7 +767,7 @@ class ShootingRangeGameClass(object):
     def game_over(self, win=False, lose=False):
         self.GameOver = True
         splitflaptimer.ok_now()
-        Music.send("SHOOTING RANGE DONE")
+        music_send("SHOOTING RANGE DONE")
         if win:
             ShootingRangeCompleted()
             Send2SplitFlapThread("Well Done!", time_between=10)
@@ -804,8 +811,7 @@ def MorseCompleted(fail=False):
         nextFailButton("Morse Fail")
         # TvPi.send("")
         StealthDoor.open()
-        StealthStart()
-        TapeRecorder_play("Stealth Rules")
+        StealthSensor.send("MonitorTrigger")
 
 
 def morse_receive(d):
@@ -814,6 +820,21 @@ def morse_receive(d):
 
 
 Morser.bind(receive=morse_receive)
+
+
+StealthSensorREceivedAlreadyJustShutTheF_UP = False
+
+def stealthsensor_receive(d):
+    global StealthSensorREceivedAlreadyJustShutTheF_UP
+    if d['Command'] == "Triggered":
+        StealthSensor.send("StopMonitoring")
+        if not StealthSensorREceivedAlreadyJustShutTheF_UP:
+            StealthSensorREceivedAlreadyJustShutTheF_UP = True
+            StealthStart()
+            TapeRecorder_play("Stealth Rules")
+
+
+StealthSensor.bind(receive=stealthsensor_receive)
 
 
 # Stealth
@@ -854,7 +875,7 @@ def StealthStart():
     Stealth.send("SetSequence", Sequence=MorseSequence)
     global StealthActive
     StealthActive = True
-    Music.send("STEALTH")
+    music_send("STEALTH")
 
 
 def StealthButton(press):
@@ -895,7 +916,7 @@ def BombActivated():
     gui.notify( "Bomb Activated, Time to solve: {}:{}"
                "".format(int(TimeLeft/60), int(TimeLeft) % 60), solved=True)
     TimeBomb.send("SetExplosionTime", Time=int(TimeLeft*1000))
-    Music.send("BOMB!!!")
+    music_send("BOMB!!!")
     seconds = int(TimeLeft) % 60
     seconds = "0" + str(seconds) if len(str(seconds)) == 1 else str(seconds)
 
@@ -905,19 +926,19 @@ def BombActivated():
 def BombDiffused():
     gui.notify("Bomb Diffused ", solved=True)
     gui.notify("Room Completed!!!", solved=True)
-    Music.send("VICTORY")
+    music_send("VICTORY")
     FinalExitDoor.open()
 
 
 def BombExploded():
     gui.notify("Bomb Exploded!", fail=True)
-    Music.send("YOU LOSE")
+    music_send("YOU LOSE")
     FinalExitDoor.open()
 
 
 def TimeRunsOut():
     gui.notify("Time's Up! They have lost. MuHAHAH!", fail=True)
-    Music.send("OUT OF TIME")
+    music_send("OUT OF TIME")
 
 
 def timebomb_receive(d):
