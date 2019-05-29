@@ -1,3 +1,9 @@
+import sys
+sys.path.append("/home/campz/KjallariWS")
+with open("/home/campz/itworks.txt" , "w+") as f:
+    f.write("title")
+
+
 from SocketCom import Server, Client
 import serial
 import threading
@@ -63,11 +69,19 @@ if __name__ == '__main__':
 
     print "serving forever..."
 
+    def fun():
+        while True:
+            time.sleep(1)
+            with open("/home/campz/itworks.txt", "a+") as f:
+                f.write("{}\n".format(time.time()))
 
-    t = threading.Thread(target=server.serve_forever())
-    t.start()
+    tlkjt = threading.Thread(target=fun)
+    tlkjt.start()
+
+    # t = threading.Thread(target=server.serve_forever())
+    # t.start()
     time.sleep(10)
-    quit()
+    # quit()
 
     try:
         server.serve_forever()

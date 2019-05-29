@@ -116,6 +116,11 @@ MoteinoStructs = {
     'Lie2Buttons':
         "int Command;"
         "byte Temperature;",
+
+    'StealthSensor':
+        "int Command;"
+        "byte Trigger;"
+        "long Uptime;",
 }
 
 MoteinoIDs = {
@@ -138,6 +143,7 @@ MoteinoIDs = {
     'Lie2Buttons': 54,
     'LiePiA': 53,
     'LiePiB': 52,
+    'StealthSensor': 63
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -334,6 +340,14 @@ Lie2Buttons.add_translation("Command",
                             ('Button1Press', 5401),
                             ('Button2Press', 5402))
 
+StealthSensor = mynetwork.add_node(MoteinoIDs['StealthSensor'],
+                                   MoteinoStructs['StealthSensor'],
+                                   'StealthSensor')
+StealthSensor.add_translation("Command",
+                              ('Triggered', 6301),
+                              ('MonitorTrigger', 6302),
+                              ('StopMonitoring', 6303))
+
 
 def StealthRec(d):
     if d['Command'] == 'Triggered':
@@ -378,6 +392,11 @@ def moteino_status(device):
             ret = "Stealth: Slave {} is not answering over i2c".format(tripped-10)
         else:
             ret += "Stealth: slave{} is tripping {}".format(tripped, d["Sequence"][:6])
+    elif device == "StealthSensor":
+        if d["Trigger"]:
+            ret = "Stealth Sensor is triggering"
+        else:
+            ret = "Stealth Sensor is not triggering"
     else:
         ret += device + " is up and running"
 

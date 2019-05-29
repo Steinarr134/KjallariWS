@@ -15,6 +15,7 @@ Devices = [
     'Sirens',
     'Morser',
     'Stealth',
+    'StealthSensor',
     'TimeBomb',
 ]
 
