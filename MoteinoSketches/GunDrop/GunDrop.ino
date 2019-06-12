@@ -85,9 +85,11 @@ void sendTriggered()
 {
   if (millis() - LastTimeTriggerSend > 1000)
   {
-    LastTimeTriggerSend = millis();
     OutgoingData.Command = Triggered;
-    sendOutgoingData();
+    if (sendOutgoingData())
+    {
+      LastTimeTriggerSend = millis();
+    }
   }
 }
 

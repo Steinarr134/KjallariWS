@@ -43,6 +43,7 @@ typedef struct{
   int smokeTime;
   byte smokeOn;
   byte buzzerOn;
+  int photovalue;
 } Payload;
 
 // Two instances of payload:
@@ -243,10 +244,10 @@ void chestHasBeenOpened()
     return;
   }
   else {
-    //Serial.print("photores");
+    //Serial.print("photores ");
     //Serial.println(analogRead(PhotoRes));
     chestHasBeenOpenedLastCheckTime = millis();
-   // Serial.println(analogRead(PhotoRes));
+    // Serial.println(analogRead(PhotoRes));
     if (analogRead(PhotoRes)>PhotoResThreshold) {
       isChestOpen = true;
       ChestOpeningTime = millis();
@@ -321,7 +322,7 @@ void controlLeds()
   }
   _Register[LightPos[leds_remaining-1]] = _controlLedsBlinkerLed;
   writeRegister();
-  printRegister();
+  //printRegister();
 }
 
 void writeRegister()
@@ -484,6 +485,7 @@ void sendStatus()
   OutgoingData.smokeTime = smokeTime;
   OutgoingData.smokeOn = smokeOn;
   OutgoingData.buzzerOn = buzzerOn;
+  OutgoingData.photovalue = analogRead(PhotoRes);
   sendOutgoingData();
 }
 
