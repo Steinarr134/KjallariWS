@@ -47,7 +47,7 @@ snd1.set_volume(0.1)  # Music #1
 snd2.set_volume(0.1)  # Music #2
 snd3.set_volume(0.1)  # Music #3
 snd4.set_volume(0.1)  # Music #4
-snd5.set_volume(0.3)  # Shooting Range Music
+snd5.set_volume(0.6)  # Shooting Range Music
 snd6.set_volume(0.6)  # Stealth Music
 snd7.set_volume(0.9)  # BOMB Music
 snd8.set_volume(0.6)  # WIN Music

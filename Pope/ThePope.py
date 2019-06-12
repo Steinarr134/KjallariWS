@@ -1,6 +1,11 @@
+import sys
+from datetime import datetime
+# outputfile = open(datetime.now().strftime("/home/campz/LogFiles/ThePopeLog__%Y_%d_%m__%H_%M"), 'w+')
+# sys.stdout = outputfile
+# sys.stderr = outputfile
+
 from Setup import *
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime
 import time
 
 # Initialize Scheduler
@@ -239,7 +244,7 @@ class SplitFlapTimeWarnerBro(threading.Thread):
         threading.Thread.__init__(self)
         self.setDaemon(True)
 
-        self.DispAt = [m*60 for m in [80, 70, 60, 50, 40, 30, 20, 10, 5, 4, 3, 2, 1]]
+        self.DispAt = [m*60 for m in TimeLeftWarnings]
         self.FinalCountdownAt = 10  # seconds
         self.StopCountdown = False
 
@@ -252,7 +257,6 @@ class SplitFlapTimeWarnerBro(threading.Thread):
         s = " " + str(m) if m < 10 else str(m)
         Send2SplitFlapThread("{} min left".format(s))
 
-
     # TODO: make this better
     def final_countdown(self):
         for s in range(self.FinalCountdownAt):
@@ -261,7 +265,6 @@ class SplitFlapTimeWarnerBro(threading.Thread):
             with Send2SplitFlapLock:
                     SplitFlap.send("Disp", "9876543210  "[:(s+1)].ljust(11))
             time.sleep(1)
-
 
     @staticmethod
     def minutes_left():
@@ -689,7 +692,7 @@ def WineBoxCompleted(fail=False):
             WineBox.send("Open")
         gui.notify("Wine Box opened", fail=fail, solved=not fail)
         nextFailButton("Open WineBox")
-        ShootingRangeGame.start()
+        GunDrop.send("MonitorTrigger")
 
 
 def winebox_receive(d):
@@ -698,6 +701,19 @@ def winebox_receive(d):
 
 
 WineBox.bind(receive=winebox_receive)
+
+
+def GunDropped():
+    ShootingRangeGame.start()
+
+
+def gundrop_receive(d):
+    if d['Command'] == "Triggered":
+        GunDropped()
+        GunDrop.send("StopMonitoring")
+
+
+GunDrop.bind(receive=gundrop_receive)
 
 # Shooting Range
 
@@ -812,6 +828,7 @@ def MorseCompleted(fail=False):
         # TvPi.send("")
         StealthDoor.open()
         StealthSensor.send("MonitorTrigger")
+        TapeRecorder_play("Stealth Rules")
 
 
 def morse_receive(d):
@@ -822,16 +839,16 @@ def morse_receive(d):
 Morser.bind(receive=morse_receive)
 
 
-StealthSensorREceivedAlreadyJustShutTheF_UP = False
+StealthSensorReceivedAlreadyJustShutTheF_UP = False
+
 
 def stealthsensor_receive(d):
-    global StealthSensorREceivedAlreadyJustShutTheF_UP
+    global StealthSensorReceivedAlreadyJustShutTheF_UP
     if d['Command'] == "Triggered":
         StealthSensor.send("StopMonitoring")
-        if not StealthSensorREceivedAlreadyJustShutTheF_UP:
-            StealthSensorREceivedAlreadyJustShutTheF_UP = True
+        if not StealthSensorReceivedAlreadyJustShutTheF_UP:
+            StealthSensorReceivedAlreadyJustShutTheF_UP = True
             StealthStart()
-            TapeRecorder_play("Stealth Rules")
 
 
 StealthSensor.bind(receive=stealthsensor_receive)
@@ -862,7 +879,7 @@ def CalibrateStealth():
     devs = d["Sequence"][10:16]
     maxs = d["Sequence"][20:26]
 
-    thresholds = [min(255, maxs[i] + devs[i] + 20) for i in range(6)]
+    thresholds = [min(255, maxs[_i] + devs[_i] + 20) for _i in range(6)]
 
     s = "CalibrateStealth(): Thresholds calibrated to: {}".format(thresholds)
 
@@ -872,6 +889,7 @@ def CalibrateStealth():
 
 
 def StealthStart():
+    gui.notify("Stealth Started")
     Stealth.send("SetSequence", Sequence=MorseSequence)
     global StealthActive
     StealthActive = True
@@ -913,7 +931,7 @@ def BombActivated():
     else:
         RoomTimeLeft = MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
     TimeLeft = max(min(MaxBombTime, RoomTimeLeft), MinBombTime)  # max 10 minute, min 1 minute
-    gui.notify( "Bomb Activated, Time to solve: {}:{}"
+    gui.notify("Bomb Activated, Time to solve: {}:{}"
                "".format(int(TimeLeft/60), int(TimeLeft) % 60), solved=True)
     TimeBomb.send("SetExplosionTime", Time=int(TimeLeft*1000))
     music_send("BOMB!!!")

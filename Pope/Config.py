@@ -11,6 +11,7 @@ Devices = [
     'TvPi',
     'WineBoxHolder',
     'WineBox',
+    'GunDrop',
     'ShootingRange',
     'Sirens',
     'Morser',
@@ -40,6 +41,7 @@ MaxPlayingTime = 60*60
 
 MinBombTime = 3*60   # 3 minutes
 MaxBombTime = 10*60  # 10 minutes
+TimeLeftWarnings = [80, 70, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 4, 3, 2, 1]
 
 NofPlayers = 5
 

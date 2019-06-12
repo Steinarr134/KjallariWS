@@ -16,13 +16,6 @@ ToDo:
 
 """
 
-Moteinos = ['GreenDude',
-            'SplitFlap',
-            'TimeBomb',
-            'Morser',
-            'Stealth',
-            'LockPicking']
-
 
 MoteinoStructs = {
     'GreenDude':
@@ -121,6 +114,11 @@ MoteinoStructs = {
         "int Command;"
         "byte Trigger;"
         "long Uptime;",
+
+    'GunDrop':
+        "int Command;"
+        "byte Trigger;"
+        "long Uptime;"
 }
 
 MoteinoIDs = {
@@ -143,7 +141,8 @@ MoteinoIDs = {
     'Lie2Buttons': 54,
     'LiePiA': 53,
     'LiePiB': 52,
-    'StealthSensor': 63
+    'StealthSensor': 63,
+    'GunDrop': 64
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -348,6 +347,14 @@ StealthSensor.add_translation("Command",
                               ('MonitorTrigger', 6302),
                               ('StopMonitoring', 6303))
 
+GunDrop = mynetwork.add_node(MoteinoIDs['GunDrop'],
+                                   MoteinoStructs['GunDrop'],
+                                   'GunDrop')
+GunDrop.add_translation("Command",
+                              ('Triggered', 6401),
+                              ('MonitorTrigger', 6402),
+                              ('StopMonitoring', 6403))
+
 
 def StealthRec(d):
     if d['Command'] == 'Triggered':
@@ -397,6 +404,11 @@ def moteino_status(device):
             ret = "Stealth Sensor is triggering"
         else:
             ret = "Stealth Sensor is not triggering"
+    elif device == "GunDrop":
+        if d["Trigger"]:
+            ret = "GunDrop is triggering"
+        else:
+            ret = "GunDrop is not triggering"
     else:
         ret += device + " is up and running"
 
