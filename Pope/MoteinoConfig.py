@@ -5,8 +5,9 @@ else:
     sys.path.append("/home/campz/moteinopy")
 from moteinopy import MoteinoNetwork, look_for_base
 import logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 import os
+
 
 """
 ToDo:
@@ -174,7 +175,7 @@ if port is None:
     print("No Base found, using fake base")
 
 mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
-mynetwork.logger.setLevel(logging.DEBUG)
+# mynetwork.logger.setLevel(logging.DEBUG)
 mynetwork.default_max_wait = 1000
 
 mynetwork.add_global_translation('Command',

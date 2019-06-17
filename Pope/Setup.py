@@ -107,12 +107,14 @@ class Send2SplitFlapThread(threading.Thread):
 
 def no_ack_fun(d):
     print d
-    gui.notify("Oh, no! {} didn't hear us"
+    gui_notify("Oh, no! {} didn't hear us"
                "".format(d['Sender'].Name),
                warning=True)
 
 
 mynetwork.bind_default(no_ack=no_ack_fun)
+
+perri = Perri()
 
 
 class Progressor(object):
@@ -163,14 +165,19 @@ class Progressor(object):
                     self.StartTime = time.time()
                 self.ProgressTimes[self.Checkpoints.index(checkpoint)] = time.time() - self.StartTime
                 self.plot()
+                perri.save()
             else:
                 raise ValueError("Checkpoint was: {}".format(checkpoint))
         # print "Returning {}".format(temp)
         return temp
 
 
+def gui_notify(text, warning=False, solved=False, fail=False):
+    gui.NotifyQ.put((text, warning, solved, fail))
+    perri.save()
+
+
 progressor = Progressor()
-perri = Perri()
 
 
 DeviceSubmenus = []

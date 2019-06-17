@@ -77,92 +77,111 @@ def initialize_room(player_info={}):
     if player_info == {} and \
                     gui.askquestion("Reload Previous Group", "Do you want to reload previous group?") == "yes":
         perri.load()
+        reload_group = True
     else:
         perri.reset()
         player_info['room initialization time'] = t
+        reload_group = False
 
-    gui.o = perri.get("gui.o", default=gui.P())
+    gui.globals = perri.get("gui.globals", default=gui.GlobalValues())
     global progressor
     progressor = perri.get("progressor", Progressor())
     if progressor.progress > 1:
         nextFailButton(gui.FailButtonNames[progressor.progress - 1])
     progressor.plot()
 
-    # TODO: fix states of things if progress was loaded from previous group
-    progress = progressor.current_cp()
-    if progress == "Nothing":
-        pass
-    elif progress == "Elevator":
-        pass
-    elif progress == "TapeRecorder":
-        pass
-    elif progress == "LockPicking":
-        pass
-    elif progress == "GreenDude":
-        pass
-    elif progress == "LieDetectorStart":
-        pass
-    elif progress == "LieDetectorFinish":
-        pass
-    elif progress == "WineBox":
-        pass
-    elif progress == "ShootingRange":
-        pass
-    elif progress == "Morser":
-        pass
-    elif progress == "Stealth":
-        pass
-    elif progress == "TimeBomb":
-        pass
-    elif progress == "RoomFinished":
-        pass
+    # global LieDetectorHandler
+    global LieDetectorHandler
+    LieDetectorHandler = perri.get("LieDetectorHandler", default=LieDetectorOperationHandler())
+    LieButtons.bind(receive=LieDetectorHandler.handle)
+    Lie2Buttons.bind(receive=LieDetectorHandler.handle)
+
+    global ShootingRangeGame
+    print "%%%%%%%%%%%%%%%%%%  " + str(ShootingRangeGame.hitnr)
+    ShootingRangeGame = perri.get("ShootingRangeGame", default=ShootingRangeGameClass())
+    ShootingRange.bind(receive=ShootingRangeGame.receive)
+    print "%%%%%%%%%%%%%%%%%%  " + str(ShootingRangeGame.hitnr)
+
+    if reload_group:
+        progress = progressor.current_cp()
+        print "Loaded progress is {}".format(progress)
+        if progress == "Nothing":
+            pass
+        elif progress == "Elevator":
+            pass
+        elif progress == "TapeRecorder":
+            pass
+        elif progress == "LockPicking":
+            pass
+        elif progress == "GreenDude":
+            pass
+        # elif progress == "LieDetectorStart":
+        #     LieDetectorHandler.ScenesAvailable = gui.persistant.LieDetectorScenesAvailable
+        #     if gui.persistant.LieDetectorCurrentSceneNumber is not None:
+        #         LieDetectorHandler.CurrentScene = LieDetectorHandler.Scenes[gui.persistant.LieDetectorCurrentSceneNumber]
+        #         LieDetectorHandler.CurrentScene.CurrentFileNumber = gui.persistant.LieDetectorCurrentSceneCurrentFileNumber
+        #         LieDetectorHandler.CurrentScene.CurrentFile = LieDetectorHandler.CurrentScene.Files[LieDetectorHandler.CurrentScene.CurrentFileNumber]
+
+        elif progress == "LieDetectorFinish":
+            pass
+        elif progress == "WineBox":
+            pass
+        elif progress == "ShootingRange":
+            pass
+        elif progress == "Morser":
+            pass
+        elif progress == "Stealth":
+            pass
+        elif progress == "TimeBomb":
+            pass
+        elif progress == "RoomFinished":
+            pass
 
 
-    # TimeBomb.send("Reset")
+    else:
+        Elevator.send("SetActiveDoor", 1)
 
-    Elevator.send("SetActiveDoor", 1)
+        LockPicking.send("Reset")
+        Stealth.send("Reset")
+        LiePiA.send("Reset")
+        LiePiB.send("Reset")
+        LieButtons.send("Reset")
+        WineBoxHolder.send("Reset")
+        ShootingRange.send("Reset")
+        TimeBomb.send("Reset")
+        TapeRecorder.send("Reset")
 
-    LockPicking.send("Reset")
-    Stealth.send("Reset")
-    LiePiA.send("Reset")
-    LiePiB.send("Reset")
-    LieButtons.send("Reset")
-    WineBoxHolder.send("Reset")
-    ShootingRange.send("Reset")
-    TimeBomb.send("Reset")
-    TapeRecorder.send("Reset")
-
-    GreenDude.send("SetPasscode", PassCode=GreenDudeCorrectPassCode)
-    LockPicking.send("SetCorrectPickOrder", LockPickCorrectPickOrder)
-    gui.notify("Sending pickorder:{}".format(LockPickCorrectPickOrder) )
+        GreenDude.send("SetPasscode", PassCode=GreenDudeCorrectPassCode)
+        LockPicking.send("SetCorrectPickOrder", LockPickCorrectPickOrder)
+        gui_notify("Sending pickorder:{}".format(LockPickCorrectPickOrder) )
 
 
-    # taperecorder load 1 and pauses
+        # taperecorder load 1 and pauses
 
-    failed = display_status_all_devices()
+        failed = display_status_all_devices()
 
-    # give gui time to print all the stuff??
-    dt = time.time() - t
-    if dt < 10:
-        time.sleep(10 - dt)
+        # give gui time to print all the stuff??
+        dt = time.time() - t
+        if dt < 10:
+            time.sleep(10 - dt)
 
-    for device in failed:
-        display_status(device)
+        for device in failed:
+            display_status(device)
 
-    ElevatorDoor.close()
-    Send2SplitFlapThread("  Camp Z   ", time_between=None)
-    # ShootingRange.send("DispColors", Colors=[0]*5)
-    CalibrateStealth()
+        ElevatorDoor.close()
+        Send2SplitFlapThread("  Camp Z   ", time_between=None)
+        # ShootingRange.send("DispColors", Colors=[0]*5)
+        CalibrateStealth()
 
-    DoorController.close_all()
-    music_send("KILL AUDIO")
-    gui.notify("Initialization complete")
+        DoorController.close_all()
+        music_send("KILL AUDIO")
+    gui_notify("Initialization complete")
 
     def printrssi():
         while True:
             time.sleep(2)
             stuff = "RSSI={}".format(mynetwork.Base.report()[0])
-            gui.notify(stuff)
+            gui_notify(stuff)
 
             # t = threading.Thread(target=printrssi)
             # t.setDaemon(True)
@@ -221,7 +240,7 @@ def display_status(device):
     for _i in range(len(gui.DeviceSubmenus)):
         if gui.DeviceMenu.entrycget(_i, 'label') == device:
             gui.DeviceMenu.entryconfig(_i, background=color)
-    gui.notify(status)
+    gui_notify(status)
     return ret
 
 
@@ -232,7 +251,7 @@ def send_to_split_flap(event):
     print "I want to send this to splitflap: " + stuff2send
     Send2SplitFlapThread(str(stuff2send))
     gui.SplitFlapEntry.delete(0., float(len(stuff2send)))
-    gui.notify("'" + stuff2send.replace('\n', ' / ') + "' sent to SplitFlap", fail=True)
+    gui_notify("'" + stuff2send.replace('\n', ' / ') + "' sent to SplitFlap", fail=True)
 
 
 # gui.SplitFlapEntry.bind("<Return>", send_to_split_flap)
@@ -275,9 +294,9 @@ class SplitFlapTimeWarnerBro(threading.Thread):
 
     @staticmethod
     def seconds_left():
-        if gui.o.ClockStartTime is None:
+        if gui.globals.ClockStartTime is None:
             return None
-        return MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
+        return MaxPlayingTime - (time.time() - gui.globals.ClockStartTime)
 
     def not_now(self):
         self.wait = True
@@ -355,7 +374,7 @@ class ScoreKeeping(object):
 
 
 def music_send(what):
-    gui.notify("Sending: '{}' to Background Music".format(what))
+    gui_notify("Sending: '{}' to Background Music".format(what))
     Music.send(what)
 
 
@@ -377,14 +396,14 @@ def ElevatorEscaped(fail=False):
 
         ElevatorDoor.open()
         # run_after(StartTapeRecorderIntroMessage, seconds=20)
-        gui.o.ClockStartTime = time.time()
-        gui.o.ClockHasStarted = True
+        gui.globals.ClockStartTime = time.time()
+        gui.globals.ClockHasStarted = True
         logging.debug("starting clock")
         run_after(ElevatorDoor.close, seconds=15)
         if fail:
-            gui.notify("Elevator failed, opened manually", fail=True)
+            gui_notify("Elevator failed, opened manually", fail=True)
         else:
-            gui.notify("Elevator Successfully Escaped", solved=True)
+            gui_notify("Elevator Successfully Escaped", solved=True)
         nextFailButton("Elevator Escape")
         TapeRecorder_play("Room Intro")
         TapeRecorder.send("Pause")
@@ -429,13 +448,13 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
         if progressor.current_cp() == "Elevator":
             TapeRecorderIntroMessageStarted = True
             TapeRecorder.send("Play")
-            gui.notify("TapeRecorder Intro Message Started")
+            gui_notify("TapeRecorder Intro Message Started")
             # run_after(PlayLockPickingHint, seconds=5+50)
             nextFailButton("Start TapeRecorder")
 
 
 # def PlayLockPickingHint(fail=False):
-#     gui.notify("LockPicking hint started playing")
+#     gui_notify("LockPicking hint started playing")
 #     TapeRecorder.send(Command='Load', s="3.ogg" + "\0"*5, FileLength=17)
 
 
@@ -445,10 +464,10 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
 def LockPickingCompleted(fail=False):
     if progressor.log("LockPicking"):
         if fail:
-            gui.notify("LockPicking failed, opened manually", fail=True)
+            gui_notify("LockPicking failed, opened manually", fail=True)
             LockPicking.send("OpenYourself")
         else:
-            gui.notify("LockPicking Successfully Completed", solved=True)
+            gui_notify("LockPicking Successfully Completed", solved=True)
         nextFailButton("Open Safe")
 
 
@@ -465,7 +484,7 @@ LockPicking.bind(receive=lockpicking_receive)
 
 def GreenDudeCompleted(fail=False):
     if progressor.log("GreenDude"):
-        gui.notify("GreenDude Correct Passcode entered", fail=fail, solved=not fail)
+        gui_notify("GreenDude Correct Passcode entered", fail=fail, solved=not fail)
         TapeRecorder_play("Rod Hint")
         # run_after(BookDrawer.open, seconds=12)
         nextFailButton("GreenDude Fail")
@@ -517,10 +536,9 @@ gui.GreenDudeCanvas.bind("<Button-1>", GreenDudeUpdater.update)
 
 def LieDetectorActivated(fail=False):
     if progressor.log("LieDetectorStart"):
-        global StealthActive
-        StealthActive = False
+        gui.globals.StealthActive = False
         LieDetectorHandler.setnofplayers(NofPlayers)
-        gui.notify("Lie Detector Activated", fail=fail, solved=not fail)
+        gui_notify("Lie Detector Activated", fail=fail, solved=not fail)
         music_send("LIE DETECTOR START")
         TapeRecorder_play("Lie Detector Instructions")
         run_after(BookDrawer.open, seconds=8.3,)
@@ -529,38 +547,39 @@ def LieDetectorActivated(fail=False):
         run_after(LieDetectorHandler.start_lie_detector, seconds=5)
 
 
+class Scene(object):
+    def __init__(self, Files, Number, Outlength):
+        self.Files = Files
+        self.N = Number
+        self.CurrentFile = None
+        self.Done = False
+        self.CurrentFileNumber = -1
+        self.OutroLength = Outlength
+
+    def reset(self):
+        self.CurrentFileNumber = -1
+        self.CurrentFile = None
+
+    def next_file(self):
+        if self.Done:
+            return
+        self.CurrentFileNumber += 1
+        self.CurrentFile = self.Files[self.CurrentFileNumber]
+        if type(self.CurrentFile) is list:
+            self.CurrentFile = random.choice(self.CurrentFile)
+        if self.CurrentFileNumber == len(self.Files) - 1:
+            self.Done = True
+        TvPi.send("PlayFile", self.CurrentFile)
+
+
+LieDetectorOperationLock = threading.Lock()
+
+
 class LieDetectorOperationHandler(object):
     def __init__(self):
         self.P = None
+        self.ScenesAvailable = [None, None, None]
         self.setnofplayers(random.randint(3, 5))
-
-        class Scene(object):
-            def __init__(self, Files, Number, Outlength):
-                self.Files = Files
-                self.N = Number
-                self.CurrentFile = None
-                self.Done = False
-                self.CurrentFileNumber = -1
-                self.OutroLength = Outlength
-
-            def reset(self):
-                self.CurrentFileNumber = -1
-                self.CurrentFile = None
-
-            def next_file(self):
-                if self.Done:
-                    return
-                self.CurrentFileNumber += 1
-                self.CurrentFile = self.Files[self.CurrentFileNumber]
-                if type(self.CurrentFile) is list:
-                    self.CurrentFile = random.choice(self.CurrentFile)
-                if self.CurrentFileNumber == len(self.Files) - 1:
-                    self.Done = True
-                TvPi.send("PlayFile", self.CurrentFile)
-
-            # def replay_file(self):
-            #     TvPi.send("PlayFile", self.CurrentFile)
-
         self.Scenes = [Scene(["B1.mov", "B2.mov", "B3.mov", "B4.mov",
                               ["B5_1.mov", "B5_2.mov", "B5_3.mov"], "B6.mov"], 0, 14),
                        Scene(["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
@@ -570,7 +589,6 @@ class LieDetectorOperationHandler(object):
                        # Scene(["GB1.mov", "GB2.mov", "GB3.mov", "GB4.mov",
                        #        ["GB5_1.mov", "GB5_2.mov", "GB5_3.mov", "GB5_4.mov"], "GB6.mov"], 2, 20)]
         self.CurrentScene = None
-        self.Lock = threading.Lock()
 
     def setnofplayers(self, NP):
         self.P = NP
@@ -600,28 +618,29 @@ class LieDetectorOperationHandler(object):
         LieButtons.send("Disp", Lights=bla)
 
     def handle(self, incoming):
-        if self.Lock.locked():
+        if LieDetectorOperationLock.locked():
             return
-        with self.Lock:
+        with LieDetectorOperationLock:
             print incoming
             if incoming["SenderName"] == "Lie2Buttons":
-                if StealthActive:
+                if gui.globals.StealthActive:
                     StealthButton(incoming["Command"])
 
                 elif incoming["Command"] == "Button1Press":
                     # Players pass the question
                     if self.CurrentScene is None:
+                        print "No CurrentScene, byebye"
                         return
                     prev_file = str(self.CurrentScene.CurrentFile)
                     self.CurrentScene.next_file()
-                    gui.notify("Scene({}) file('{}') passed, now playing '{}'"
+                    gui_notify("Scene({}) file('{}') passed, now playing '{}'"
                                "".format(self.CurrentScene.N + 1,
                                          prev_file,
                                          self.CurrentScene.CurrentFile), solved=True)
                     if self.CurrentScene.Done:
 
                         time.sleep(5)
-                        Send2SplitFlapThread("Mission {}\n Completed".format(self.CurrentScene.N + 1))#, (self.CurrentScene.OutroLength - 5 )/2)
+                        Send2SplitFlapThread("Mission {}\n Completed".format(self.CurrentScene.N + 1))  #, (self.CurrentScene.OutroLength - 5 )/2)
                         LieButtons.send("CorrectLightShow")
                         time.sleep(self.CurrentScene.OutroLength - 5)
 
@@ -634,7 +653,7 @@ class LieDetectorOperationHandler(object):
                     if self.CurrentScene is None:
                         return
 
-                    gui.notify("Scene({}) file('{}') failed, resetting..."
+                    gui_notify("Scene({}) file('{}') failed, resetting..."
                                "".format(self.CurrentScene.N + 1,
                                          self.CurrentScene.CurrentFile), fail=True)
                     self.CurrentScene.reset()
@@ -655,7 +674,7 @@ class LieDetectorOperationHandler(object):
                             if self.ScenesAvailable[incoming["Button"]]:
                                 self.CurrentScene = self.Scenes[incoming["Button"]]
                                 self.CurrentScene.next_file()
-                                gui.notify("Player selected Scene({})".format(self.CurrentScene.N + 1))
+                                gui_notify("Player selected Scene({})".format(self.CurrentScene.N + 1))
                                 self.disp_only(incoming["Button"])
 
 
@@ -669,7 +688,7 @@ LieDetectorHasBeenActivated = False
 
 def LieDetectorCompleted(fail=False):
     if progressor.log("LieDetectorFinish"):
-        gui.notify("Lie Detector Completed", fail=fail, solved=not fail)
+        gui_notify("Lie Detector Completed", fail=fail, solved=not fail)
         music_send("LIE DETECTOR COMPLETE")
         Send2SplitFlapThread("Well Done!", 10)
         time.sleep(5)
@@ -690,7 +709,7 @@ def WineBoxCompleted(fail=False):
     if progressor.log("WineBox"):
         if fail:
             WineBox.send("Open")
-        gui.notify("Wine Box opened", fail=fail, solved=not fail)
+        gui_notify("Wine Box opened", fail=fail, solved=not fail)
         nextFailButton("Open WineBox")
         GunDrop.send("MonitorTrigger")
 
@@ -720,7 +739,7 @@ GunDrop.bind(receive=gundrop_receive)
 
 def ShootingRangeCompleted(fail=False):
     if progressor.log("ShootingRange"):
-        gui.notify("Shooting Range Completed", fail=fail, solved=not fail)
+        gui_notify("Shooting Range Completed", fail=fail, solved=not fail)
         if fail:
             ShootingRangeGame.game_over(lose=True)
         TvPi.send("PlayFile", s="SOS.mov")
@@ -769,7 +788,7 @@ class ShootingRangeGameClass(object):
         if self.hitnr >= self.SequenceLength:
             self.game_over(win=True)
             return
-        gui.notify("Target {} was hit!, next target: {}"
+        gui_notify("Target {} was hit!, next target: {}"
                    "".format(target, self.TargetNames[self.TargetSequence[self.hitnr]])
                    ,solved=True)
         time.sleep(1)
@@ -803,7 +822,7 @@ class ShootingRangeGameClass(object):
             # Send2SplitFlapThread("not {},  {}!".format(d['Target'], self.TargetSequence[self.hitnr]))
             # time.sleep(6)
             # self.send_next_target_to_splitflap()
-            # gui.notify("Wrong Target, {} was hit, target is {}".format(d['Target'],
+            # gui_notify("Wrong Target, {} was hit, target is {}".format(d['Target'],
             #                                                            self.TargetSequence[self.hitnr]))
             pass
         elif d['Command'] == "MissionComplete" or d['Command'] == "PuzzleFinished":
@@ -815,6 +834,11 @@ ShootingRangeGame = ShootingRangeGameClass()
 ShootingRange.bind(receive=ShootingRangeGame.receive)
 
 
+def register_hit_fun():
+    print "register_hit_fun"
+    ShootingRangeGame.target_hit()
+
+
 # Morser
 
 MorseSequence = [63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38,
@@ -823,7 +847,7 @@ MorseSequence = [63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63,
 
 def MorseCompleted(fail=False):
     if progressor.log("Morser"):
-        gui.notify("Morse Completed", fail=fail, solved=not fail)
+        gui_notify("Morse Completed", fail=fail, solved=not fail)
         nextFailButton("Morse Fail")
         # TvPi.send("")
         StealthDoor.open()
@@ -854,8 +878,6 @@ def stealthsensor_receive(d):
 StealthSensor.bind(receive=stealthsensor_receive)
 
 
-# Stealth
-StealthActive = True
 
 
 def run_CalibrateStealth():
@@ -867,12 +889,12 @@ def run_CalibrateStealth():
 def CalibrateStealth():
     # if StealthActive:
     #     if not gui.askquestion("Stealth Active", "Stealth is active do you still want to calibrate?"):
-    #         gui.notify("CalibrateStealth() problem: Stealth is Active, can't calibrate", warning=True)
+    #         gui_notify("CalibrateStealth() problem: Stealth is Active, can't calibrate", warning=True)
     #         return
 
     d = Stealth.send_and_receive("GetPhotovalues", max_wait=4000)
     if not d:
-        gui.notify("CalibrateStealth() problem: Didn't get photovalues from Stealth, aborting calibration")
+        gui_notify("CalibrateStealth() problem: Didn't get photovalues from Stealth, aborting calibration")
         return
 
     pvs = d["Sequence"][:6]
@@ -883,16 +905,15 @@ def CalibrateStealth():
 
     s = "CalibrateStealth(): Thresholds calibrated to: {}".format(thresholds)
 
-    gui.notify(s)
+    gui_notify(s)
 
     Stealth.send("SetThresholds", Sequence=thresholds)
 
 
 def StealthStart():
-    gui.notify("Stealth Started")
+    gui_notify("Stealth Started")
     Stealth.send("SetSequence", Sequence=MorseSequence)
-    global StealthActive
-    StealthActive = True
+    gui.globals.StealthActive = True
     music_send("STEALTH")
 
 
@@ -900,18 +921,18 @@ def StealthButton(press):
     if press == "Button1Press":
         Stealth.send("SetSequence", Sequence=MorseSequence)
         Sirens.send("SetPin2Low")
-        gui.notify("Stealth has been reset")
+        gui_notify("Stealth has been reset")
     elif press == "Button2Press":
         Sirens.send("SetPin2High")
 
 
 def StealthTripped(lasernr):
     Sirens.send("SetPin2High")
-    gui.notify("Stealth tripped on laser {}".format(lasernr))
+    gui_notify("Stealth tripped on laser {}".format(lasernr))
 
 
 def StealthCompleted(fail=False):
-    gui.notify("Stealth Completed", fail=fail, solved=not fail)
+    gui_notify("Stealth Completed", fail=fail, solved=not fail)
     nextFailButton("Stealth Fail")
 
 
@@ -926,12 +947,12 @@ Stealth.bind(receive=stealth_receive)
 # TimeBomb
 
 def BombActivated():
-    if gui.o.ClockStartTime is None:
+    if gui.globals.ClockStartTime is None:
         RoomTimeLeft = 10*60  # 10 minutes
     else:
-        RoomTimeLeft = MaxPlayingTime - (time.time() - gui.o.ClockStartTime)
+        RoomTimeLeft = MaxPlayingTime - (time.time() - gui.globals.ClockStartTime)
     TimeLeft = max(min(MaxBombTime, RoomTimeLeft), MinBombTime)  # max 10 minute, min 1 minute
-    gui.notify("Bomb Activated, Time to solve: {}:{}"
+    gui_notify("Bomb Activated, Time to solve: {}:{}"
                "".format(int(TimeLeft/60), int(TimeLeft) % 60), solved=True)
     TimeBomb.send("SetExplosionTime", Time=int(TimeLeft*1000))
     music_send("BOMB!!!")
@@ -942,20 +963,20 @@ def BombActivated():
 
 
 def BombDiffused():
-    gui.notify("Bomb Diffused ", solved=True)
-    gui.notify("Room Completed!!!", solved=True)
+    gui_notify("Bomb Diffused ", solved=True)
+    gui_notify("Room Completed!!!", solved=True)
     music_send("VICTORY")
     FinalExitDoor.open()
 
 
 def BombExploded():
-    gui.notify("Bomb Exploded!", fail=True)
+    gui_notify("Bomb Exploded!", fail=True)
     music_send("YOU LOSE")
     FinalExitDoor.open()
 
 
 def TimeRunsOut():
-    gui.notify("Time's Up! They have lost. MuHAHAH!", fail=True)
+    gui_notify("Time's Up! They have lost. MuHAHAH!", fail=True)
     music_send("OUT OF TIME")
 
 
@@ -1016,10 +1037,10 @@ def door_button_callback(event=None):
     door = Doors[gui.DoorNameList.index(doorname)]
     if door.is_open():
         door.close()
-        gui.notify("Closing " + doorname)
+        gui_notify("Closing " + doorname)
     else:
         door.open()
-        gui.notify("Opening " + doorname)
+        gui_notify("Opening " + doorname)
     update_door_button_colors(recall=False)
 
 
@@ -1032,7 +1053,7 @@ update_door_button_colors(recall=True)
 def tape_recorder_buttons_callback(event=None):
     button = event.widget
     b_text = button.config("text")[-1]
-    gui.notify("Tape Recorder: Host pressed " + b_text)
+    gui_notify("Tape Recorder: Host pressed " + b_text)
     TapeRecorder.send(b_text)
 
 
@@ -1082,9 +1103,9 @@ def mission_fail_callback(event=None):
         if result == 'yes':
             MorseCompleted(fail=True)
     elif b_text == "Stealth Fail":
-        gui.notify("Stealth Fail --- Dont know what you want me to do here")
+        gui_notify("Stealth Fail --- Dont know what you want me to do here")
     elif b_text == "TimeBomb Fail":
-        gui.notify("TimeBomb Fail --- Dont know what you want me to do here")
+        gui_notify("TimeBomb Fail --- Dont know what you want me to do here")
     else:
         print "Don't know what happened but b_text was: " + b_text
 
@@ -1171,7 +1192,7 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
 
     if Device == "ShootingRange":
         DeviceSubmenu.add_command(label="Register Hit",
-                                  command=ShootingRangeGame.target_hit)
+                                  command=register_hit_fun)
 
 
 gui.ActionMenu.add_command(label="Check All Device Status", command=display_status_all_devices)
@@ -1187,6 +1208,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     print "Dropped out of mainloop"
-    perri.save()
     exit()
 

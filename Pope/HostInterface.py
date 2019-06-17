@@ -10,13 +10,17 @@ from Config import *
 
 
 # Possibly Persistant values
-class P(object):
+class GlobalValues(object):
     def __init__(self):
         self.ClockHasStarted = False
         self.ClockStartTime = None
+        self.StealthActive = True
+        # self.LieDetectorScenesAvailable = [None, None, None]
+        # self.LieDetectorCurrentSceneNumber = None
+        # self.LieDetectorCurrentSceneCurrentFileNumber = None
 
 
-o = P()
+globals = GlobalValues()
 
 
 top = tk.Tk()
@@ -234,10 +238,6 @@ TapeRecorderFrame.place(x=50, y=15)
 NotifyQ = Queue.Queue()
 
 
-def notify(text, warning=False, solved=False, fail=False):
-    NotifyQ.put((text, warning, solved, fail))
-
-
 def _notify():
     # print NotifyQ.qsize()
     while not NotifyQ.empty():
@@ -261,7 +261,7 @@ def _notify():
         if fail:
             line = str(int(LogTextWidget.index("end").split('.')[0])-1)
             LogTextWidget.insert(line+".10", "FAIL: ")
-            LogTextWidget.tag_add("fail", line+".9", line+".16")
+            LogTextWidget.tag_add("fail", line + ".9", line + ".16")
         LogTextWidget['state'] = 'disabled'
     top.after(100, _notify)
 
@@ -306,14 +306,14 @@ def clock_make_text(sec):
 
 
 def get_clock_text_now():
-    if o.ClockStartTime is None:
+    if globals.ClockStartTime is None:
         return "00:00:00"
-    displaytime = round(time.time() - o.ClockStartTime)
+    displaytime = round(time.time() - globals.ClockStartTime)
     return clock_make_text(displaytime)
 
 
 def update_clock(event=None):
-    if o.ClockHasStarted:
+    if globals.ClockHasStarted:
         ClockLabel.configure(text=get_clock_text_now())
     top.after(999, update_clock)
 
