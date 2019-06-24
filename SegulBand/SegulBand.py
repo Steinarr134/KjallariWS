@@ -4,11 +4,7 @@
 
 import sys
 import time
-<<<<<<< HEAD
-sys.stderr = open("/home/pi/logs/" + str(time.time())+"_errrrr.txt", 'w+')
-=======
-# sys.stderr = open("/home/pi/logs/" + str(time.time())+"_err.txt", 'w+')
->>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
+#sys.stderr = open("/home/pi/logs/" + str(time.time())+"_errrrr.txt", "w+")
 import RPi.GPIO as GPIO
 from arduino import Motor
 import atexit
@@ -29,6 +25,7 @@ motor = Motor()
 
 mixer.init()
 m = mixer.music
+m.set_volume(0.5)
 
 class File(object):
     def __init__(self):
@@ -37,7 +34,7 @@ class File(object):
         self.FileLength = 10
 
 f = File()
-
+global StupidState
 StupidState = True
 ScrollSpeed = 4
 last_press = None
@@ -210,7 +207,7 @@ class ExecutionThread(threading.Thread):
     def __init__(self, fun):
         threading.Thread.__init__(self)
         self.fun = fun
-
+        
     def run(self):
         self.fun()
 
@@ -229,7 +226,7 @@ def reverse_button_press(channel):
         print "reverse was depressed"
         e = ExecutionThread(release)
         e.start()
-
+        
 GPIO.setup(reverse_button_pin, GPIO.IN)
 GPIO.add_event_detect(reverse_button_pin,
                       GPIO.BOTH,
@@ -254,7 +251,7 @@ def forward_button_press(channel):
         print "forward was depressed"
         e = ExecutionThread(release)
         e.start()
-
+        
 GPIO.setup(forward_button_pin, GPIO.IN)
 GPIO.add_event_detect(forward_button_pin,
                       GPIO.BOTH,
@@ -280,7 +277,7 @@ GPIO.add_event_detect(play_button_pin,
 
 # endregion
 
-def load(filename, filelength):
+def load(filename, filelength, start_pos):
     f.FileName = filename
     f.PosOffset = 0
     f.FileLength = float(filelength)-0.5
@@ -289,6 +286,7 @@ def load(filename, filelength):
     m.pause()
     global SomethingIsLoaded
     SomethingIsLoaded = True
+    skip(start_pos)
 
 def handle_command(stuff):
     logging.debug("handle_command received: " + str(stuff) + " (" + str(type(stuff)) + ")")
@@ -298,13 +296,10 @@ def handle_command(stuff):
         global StupidState
         StupidState = False
         print "loading: " + stuff['s'].strip("\0")
-        load(filename="/home/pi/KjallariWS/SegulBand/audio_files/" + stuff['s'].strip("\0").strip(),
-             filelength=stuff['FileLength'])
-<<<<<<< HEAD
-        if stuff['s'].strip("\0").strip() == "1.ogg":
-=======
-        if stuff['s'].strip("\0").strip() == "1.ogg"
->>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
+        load(filename="/home/pi/audio_files/" + stuff['s'].strip("\0").strip(),
+             filelength=stuff['FileLength'],
+             start_pos=stuff["StartPos"]/10.0)
+        if stuff['s'].strip("\0").strip()[0] == "1":
             motor.set_current_pos_as_zero()
         elif stuff['s'].strip():
             play()
@@ -314,13 +309,8 @@ def handle_command(stuff):
         stop()
     elif stuff['Command'] == "Forward":
         forward()
-<<<<<<< HEAD
     elif stuff['Command'] == "Rewind":
         rewind()
-=======
-    elif stuff['Command'] == "Reverse":
-        reverse()
->>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
     elif stuff['Command'] == "ShutDown":
         os.system("sudo shutdown -h now")
     elif stuff['Command'] == "Reboot":
@@ -348,17 +338,13 @@ if motor.Port == "/dev/ttyUSB0":
 else:
     Moteinos = MoteinoNetwork("/dev/ttyUSB0", base_id=42, baudrate=38400)
 
-Pope = Moteinos.add_node(1, "int Command;char s[10];int FileLength;int LightValue;", "Pope")
+Pope = Moteinos.add_node(1, "int Command;char s[10];int FileLength;int LightValue;int StartPos", "Pope")
 Pope.bind(receive=handle_command)
 Pope.add_translation("Command",
     ("Play", 4201),
     ("Pause", 4202),
     ("Forward", 4207),
-<<<<<<< HEAD
     ("Rewind", 4208),
-=======
-    ("Reverse", 4208),
->>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
     ("ShutDown", 4203),
     ("Reboot", 4204),
     ("Setlights", 4205),
@@ -369,7 +355,6 @@ Pope.add_translation("Command",
     ("SetStupidState", 4210))
 
 motor.set_params(3000, 800, 2200)
-<<<<<<< HEAD
 
 
 while True:
@@ -378,14 +363,4 @@ while True:
     # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
     # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))
     
-=======
-
-
-while True:
-    time.sleep(100)
-
-    # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
-    # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))
-
->>>>>>> c244b6121d9efbc178f7085e9bc9abb74a9ab50e
     # logging.debug(time.time())
