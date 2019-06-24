@@ -93,7 +93,7 @@ class Motor(object):
         self._send_command(self.ReturnToZero)
 
     def set_current_pos_as_zero(self):
-        self.send_command(self.SetCurrentPosAsZero)
+        self._send_command(self.SetCurrentPosAsZero)
 
     def set_params(self, acc, slow, fast):
         self._write(self.Struct.encode(
