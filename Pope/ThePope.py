@@ -1,8 +1,8 @@
 import sys
 from datetime import datetime
-# outputfile = open(datetime.now().strftime("/home/campz/LogFiles/ThePopeLog__%Y_%d_%m__%H_%M"), 'w+')
+outputfile = open(datetime.now().strftime("/home/campz/LogFiles/ThePopeLog__%Y_%d_%m__%H_%M"), 'w+')
 # sys.stdout = outputfile
-# sys.stderr = outputfile
+sys.stderr = outputfile
 
 from Setup import *
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -1148,8 +1148,9 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
         for i in range(len(TapeRecorderFiles)):
             subsubmenu.add_command(label=TapeRecorderFiles[i][2],
                                    command=lambda _i=i: TapeRecorder.send("Load",
-                                                                          s=TapeRecorderFiles[_i][0] + "\0"*5,
-                                                                          FileLength=TapeRecorderFiles[_i][1]))
+                                                                          s=TapeRecorderFiles[_i][0],
+                                                                          FileLength=TapeRecorderFiles[_i][1],
+                                                                          StartPos=TapeRecorderFiles[_i][3]*10))
         DeviceSubmenu.add_command(label="Set Zero Position",
                                   command=lambda: TapeRecorder.send("SetCurrentPosAsZero"))
         DeviceSubmenu.add_command(label="Engage Stupid State",
@@ -1213,6 +1214,8 @@ if __name__ == "__main__":
 
 
 #TODO:
+
 # Shooting range hit instructions should not be overwritten
 # SplitFlap if TimeLeft notification occurs.
 
+# Stop Time when room is finished
