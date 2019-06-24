@@ -1,3 +1,5 @@
+// CSMA_LIMIT  í RFM69.h breytt í -50!
+
 #include <SPIFlash.h>
 #include <Wire.h>
 #include <RFM69.h>
@@ -14,12 +16,16 @@
 RFM69 radio;
 bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
 
+
 // operating variables
 const int statusCommand = 99;
 const int resetCommand = 98;
 const int beatCommand = 73;
 const int sequenceCommand = 72;
 const int triggerCommand = 71;
+const int thresholdCommand = 74;
+const int sendPhotoValuesCommand = 75;
+const int setSkipDelayCommand = 76;
 
 int const sequenceSize = 50;
 int counter = 0;
@@ -35,7 +41,12 @@ unsigned long previousMillis = 0;
 unsigned long lightmillis = 0;
 int beat = 2000;
 int triggerstatus = 0;
-
+unsigned long MaxSlaveWaitTime = 100;
+byte skipdelay = 40;
+bool lightson = false;
+unsigned long lightsontime = 0;
+bool lightsonnow = false;
+int lightsonblinktime = 250;
 
 //this is the package transmitted over RF
 struct Payload {
@@ -54,26 +65,22 @@ void setup() {
   Wire.begin();
   
   Serial.begin(115200);
-  //Serial.println("adsfsfd");
-  
+  Serial.println("adsfsfd");
+  delay(10);
   radio.initialize(FREQUENCY, NODEID, NETWORKID);
   radio.setHighPower(); //only for RFM69HW!
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
 
-  //Serial.println("sdsdfsdfa");
-  /*while (false)
-  {
-    checkOnRadio();
-  }
-  */
+
   //Retrieve the last sequence from the EEPROM memory
 
   for (int i = 0; i < sequenceSize; i++) {
-    sequence[i] = 127;
+    sequence[i] = 0xFF;
   }
+  
+  sendPhotoValues();
 
-  sendBeat();
   Serial.println("Started");
 }
 
@@ -92,6 +99,7 @@ void checkOnRadio()
       radio.sendACK();
       //Serial.println(millis());
     }
+    Serial.println(IncomingData.command);
     switch (IncomingData.command)
     {
       case statusCommand:
@@ -101,6 +109,7 @@ void checkOnRadio()
         setBeat();
         break;
       case sequenceCommand:
+        lightson = false;
         setSequence();
         setBeat();
         Run = 1;
@@ -110,6 +119,16 @@ void checkOnRadio()
       case resetCommand:
         reset();
         break;
+      case thresholdCommand:
+        setThreshold();
+        break;
+      case sendPhotoValuesCommand:
+        sendPhotoValues();
+        break;
+
+      case setSkipDelayCommand:
+        skipdelay = IncomingData.sequence[0];
+        break;
     }
   }
 }
@@ -117,6 +136,8 @@ void checkOnRadio()
 
 void loop() {
   checkOnRadio();
+  checkOnSerial();
+  runLightsOn();
   if (Run) {
     //this function asks the slaves if any movement has been detected
     int triggeredSlave = checkTrigger();
@@ -151,70 +172,190 @@ int checkTrigger()//check if any movement has been detected, sends a message to 
 {
   for (int i = 1; i <= numberOfStations; i++)
   {
-    Wire.requestFrom(i, 1);
-
-    // Steinarr added this part so that the radio can still be rensponsive while
-    // the master waits for a slave to communicate
-    while (!Wire.available())
+    slaveChar = slaveRead(i);
+    if (slaveChar == 0) // 0 means nothing was received
     {
-      checkOnRadio();
+      return i+10;
     }
-    
-    slaveChar = Wire.read();
-    if (slaveChar == trigger && (millis() - slaveSendTimes[i] > 20))
+    if (slaveChar == trigger && (millis() - slaveSendTimes[i-1] > skipdelay))
     {
       return i;
-      //Serial.println(i);
     }
   }
   return 0;
 }
 
+void sendPhotoValues()
+{
+  for (byte i = 0; i < sequenceSize; i++)
+  {
+    OutgoingData.sequence[i] = 0;
+  }
+
+  // tell all stations to turn on lights and lasers
+  for (int i = 1; i <= numberOfStations; i++)
+  {
+    //i = 8;
+    //Serial.print("Sending: '");
+    //Serial.print("1");
+    //Serial.print("' to slave: ");
+    //Serial.println(i);
+    slaveSend(i, 1);
+  }
+
+  //wait for half a second to give them time to change
+  delay(100);
+
+  int sums[numberOfStations] = {0};
+  int devs[numberOfStations] = {0};
+  byte maxs[numberOfStations] = {0};
+
+  byte N = 100;
+
+  for (int j = 0; j < N; j++)
+  {
+      for (int i = 0; i < numberOfStations; i++)
+      {
+        //Serial.print("Sending: '");
+        //Serial.print("3");
+        //Serial.print("' to slave: ");
+        //Serial.println(i);
+        slaveSend(i+1, 3);
+        byte value = slaveRead(i+1);
+
+        sums[i] += value;
+
+        int mean = sums[i] / (j+1);
+        devs[i] += abs(value - mean);
+
+        if (value > maxs[i])
+            maxs[i] = value;
+
+        //Serial.print("Read: '");
+        //Serial.print(OutgoingData.sequence[i]);
+        //Serial.print("' from slave: ");
+        //Serial.println(i);
+        delay(1);
+      }
+  }
+
+  for (int i = 0; i < numberOfStations; i++)
+  {
+    OutgoingData.sequence[i] = sums[i]/N;
+    OutgoingData.sequence[i+10] = devs[i]/N;
+    OutgoingData.sequence[i+20] = maxs[i];
+  }
+
+
+  OutgoingData.command = sendPhotoValuesCommand;
+  sendOutgoingData();
+}
+
 void sendBeat()//send the slaves 1 for ligth on, 0 for light off.
 {
+  //Serial.println("send nudes");
   if (counter > sequenceSize - 1)
   {
     counter = 0;
   }
   for (int i = 1; i <= numberOfStations; i++)
   {
-    checkOnRadio(); // Steinarr added this line to prevent lost packets while updating beat
-    slaveSend(i, counter);
-    slaveSendTimes[i] = millis();
+    //i=8;
+    slaveSend(i, getBit(counter, i));
+    slaveSendTimes[i-1] = millis();
+    int bla = millis();
   }
   counter++;
 
 }
 
-void slaveSend(int slaveNumber, int counter)//i2c transmission to slave number i
+byte slaveRead(byte i)
 {
-  Wire.beginTransmission(slaveNumber);
-  Wire.write(getBit(counter, slaveNumber));
-  Wire.endTransmission();
+  Wire.requestFrom((int)i, 1);
 
+    // Steinarr added this part so that the radio can still be rensponsive while
+    // the master waits for a slave to communicate
+
+    unsigned long t0 = millis();    
+    while (!Wire.available())
+    {
+      checkOnRadio();
+      if (millis() - t0 < MaxSlaveWaitTime);
+      {
+        return 0; // 0 if nothing is received
+      }
+    }
+    
+    return Wire.read();
 }
+
+void slaveSend(int slaveNumber, int what)//i2c transmission to slave number i
+{
+  Serial.print("slavesend  -  ");
+  Serial.print("Sending: '");
+  Serial.print(what);
+  Serial.print("' to slave: ");
+  Serial.println(slaveNumber);
+  Wire.beginTransmission(slaveNumber);
+  //Serial.println("Not reaching here - 1234"); delay(10);
+  Wire.write(what);
+  //Serial.println("Not reaching here - dgf"); delay(10);
+  Wire.endTransmission();
+  //Serial.println("Not reaching here- sdgh"); delay(10);
+}
+
 
 void lightsOn()
 {
-  for (int i = 1; i <= numberOfStations; i++)
+  lightson = true;
+}
+
+void runLightsOn()
+{
+  if (lightson)
   {
-    Wire.beginTransmission(i);
-    Wire.write(2);
-    Wire.endTransmission();
+    if (millis() - lightsontime > lightsonblinktime)
+    {
+      lightsontime = millis();
+      for (byte i = 1; i <= numberOfStations; i++)
+      {
+        slaveSend(i, ((byte)lightsonnow)*2);
+      }
+      lightsonnow = !lightsonnow;
+    }
   }
 }
 
-void sendStatus()//not active
+void sendStatus()
 {
+  //Serial.println("sendStatus()");
   triggerstatus = checkTrigger();
+  //Serial.println("got past checkTrigger()");
   OutgoingData.trippedSlave = triggerstatus;
   OutgoingData.command = statusCommand;
   OutgoingData.beat = beat;
+  //Serial.println("Sending the status...");
+  //delay(40);
+  sendOutgoingData();
+  //Serial.println("Status was sent");
+}
+
+void sendOutgoingData()
+{
   radio.sendWithRetry(BaseID, (const void*)(&OutgoingData), sizeof(OutgoingData));
+}
+
+void setThreshold()
+{
+  for (byte i = 1; i <= numberOfStations; i++)
+  {
+    slaveSend(i, IncomingData.sequence[i-1]);
+  }
 }
 
 void setBeat()
 {
+  Serial.println("Setting beat to incoming");
   if (IncomingData.beat < 100) {
     return;
   }
@@ -224,14 +365,21 @@ void setBeat()
 }
 
 void setSequence() {
+  Serial.println("Setting sequence from IncomingData");
   for (int i = 0; i < sequenceSize; i++) {
     sequence[i] = IncomingData.sequence[i];
   }
   counter = 0;
-
-
 }
 
+void checkOnSerial()
+{
+  if (Serial.available())
+  {
+    Serial.read();
+    sendPhotoValues();
+  }
+}
 void reset() {
   asm volatile("jmp 0");
 }

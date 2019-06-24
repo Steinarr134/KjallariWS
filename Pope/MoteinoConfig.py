@@ -5,8 +5,9 @@ else:
     sys.path.append("/home/campz/moteinopy")
 from moteinopy import MoteinoNetwork, look_for_base
 import logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 import os
+
 
 """
 ToDo:
@@ -16,19 +17,13 @@ ToDo:
 
 """
 
-Moteinos = ['GreenDude',
-            'SplitFlap',
-            'TimeBomb',
-            'Morser',
-            'Stealth',
-            'LockPicking']
-
 
 MoteinoStructs = {
     'GreenDude':
-        "int Command;" +
+        "unsigned int Command;" +
         "byte Lights[7];" +
-        "int Temperature;",
+        "byte Temperature;" +
+        "byte PassCode[7];",
 
     'SplitFlap':
         "int Command;" +
@@ -37,10 +32,10 @@ MoteinoStructs = {
 
     'TimeBomb':
         "int Command;" +
-        "unsigned long TimeLeft;"
+        "unsigned long Time;"
         "int SmokeTime;"
-        "bool SmokeOn;"
-        "bool buzzerOn;",
+        "byte SmokeOn;"
+        "byte buzzerOn;",
 
     'Morser':
         "int Command;" +
@@ -103,15 +98,28 @@ MoteinoStructs = {
         "int Command;"
         "char s[10];"
         "int FileLength;"
-        "int LightValue;",
+        "int LightValue;"
+        "int StartPos",
 
     'LieButtons':
         "int Command;"
-        "byte PassCode[4];"
-        "byte Lights[7];",
+        "byte PassCode[3];"
+        "byte Lights[7];"
+        "byte Button",
+
     'Lie2Buttons':
         "int Command;"
         "byte Temperature;",
+
+    'StealthSensor':
+        "int Command;"
+        "byte Trigger;"
+        "long Uptime;",
+
+    'GunDrop':
+        "int Command;"
+        "byte Trigger;"
+        "long Uptime;"
 }
 
 MoteinoIDs = {
@@ -134,6 +142,8 @@ MoteinoIDs = {
     'Lie2Buttons': 54,
     'LiePiA': 53,
     'LiePiB': 52,
+    'StealthSensor': 63,
+    'GunDrop': 64
 }
 
 inv_MoteinoIDs = {v: k for k, v in MoteinoIDs.items()}
@@ -143,10 +153,12 @@ if "win" in sys.platform:
     port = raw_input("what port?")
     # mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
 else:
-    ports = os.popen("ls /dev/ttyUSB*").read()
+    ports = os.popen("ls /dev/ttyUSB*").read().split('\n')
     print ports
     if ports:
-        for p in ports.split('\n'):
+        for p in ports:
+            if not p:
+                continue
             ret, reason = look_for_base(p)
             if not ret:
                 print "No base on {} because: {}".format(p, reason)
@@ -154,13 +166,16 @@ else:
                 print "Found base on port: {}".format(p)
                 port = p
                 break
+        for p in ports:
+            print " are ProbablyDoors maybe on {}".format(p)
+            if p and p != port:
+                print "YES!"
+                ProbablyDoorSerialPort = p
 if port is None:
     print("No Base found, using fake base")
-else:
-    ProbablyDoorSerialPort = "/dev/ttyUSB1" if port == "/dev/ttyUSB0" else "/dev/ttyUSB0"
 
 mynetwork = MoteinoNetwork(port, network_id=7, encryption_key="HugiBogiHugiBogi")
-mynetwork.logger.setLevel(logging.DEBUG)
+# mynetwork.logger.setLevel(logging.DEBUG)
 mynetwork.default_max_wait = 1000
 
 mynetwork.add_global_translation('Command',
@@ -206,7 +221,10 @@ Stealth = mynetwork.add_node(MoteinoIDs['Stealth'],
 Stealth.add_translation('Command',
                         ('SetTempo', 73),
                         ('SetSequence', 72),
-                        ("Triggered", 71))
+                        ("Triggered", 71),
+                        ("SetThresholds", 74),
+                        ("GetPhotovalues", 75),
+                        ("SetSkipdelay", 76))
 
 TimeBomb = mynetwork.add_node(MoteinoIDs['TimeBomb'],
                               MoteinoStructs['TimeBomb'],
@@ -216,7 +234,8 @@ TimeBomb.add_translation('Command',
                          ("BombExploded", 17002),
                          ("SetExplosionTime", 17003),
                          ("BombActivated", 17004),
-                         ("SetOptions", 17005))
+                         ("SetOptions", 17005),
+                         ("CalibrateSolution", 17006))
 
 ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
                                    MoteinoStructs['ShootingRange'],
@@ -291,8 +310,8 @@ Sirens.add_translation("Command",
                        ("TogglePin2", 3702),
                        ("SetPin1High", 3703),
                        ("SetPin1Low", 3704),
-                       ("SetPin2High", 3706),
-                       ("SetPin2Low", 3705))
+                       ("SetPin2High", 3705),
+                       ("SetPin2Low", 3706))
 
 LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
                                 MoteinoStructs['LieButtons'],
@@ -300,9 +319,13 @@ LieButtons = mynetwork.add_node(MoteinoIDs['LieButtons'],
 LieButtons.add_translation("Command",
                            ("CorrectPassCode", 5101),
                            ("ChangePassCode", 5102),
+                           ("Disp", 5103),
+                           ("SetListenToPasscode", 5104),
+                           ("SetListenToButtonPresses", 5105),
                            ("CorrectLightShow", 5106),
                            ("IncorrectLightShow", 5107),
-                           ("Disp", 5103))
+                           ("ButtonPress", 5108)
+                           )
 
 LiePiA = mynetwork.add_node(MoteinoIDs['LiePiA'], "int Command;", "LiePiA")
 LiePiA.add_translation("Command", ("Start", 50))
@@ -316,6 +339,22 @@ Lie2Buttons = mynetwork.add_node(MoteinoIDs['Lie2Buttons'],
 Lie2Buttons.add_translation("Command",
                             ('Button1Press', 5401),
                             ('Button2Press', 5402))
+
+StealthSensor = mynetwork.add_node(MoteinoIDs['StealthSensor'],
+                                   MoteinoStructs['StealthSensor'],
+                                   'StealthSensor')
+StealthSensor.add_translation("Command",
+                              ('Triggered', 6301),
+                              ('MonitorTrigger', 6302),
+                              ('StopMonitoring', 6303))
+
+GunDrop = mynetwork.add_node(MoteinoIDs['GunDrop'],
+                                   MoteinoStructs['GunDrop'],
+                                   'GunDrop')
+GunDrop.add_translation("Command",
+                              ('Triggered', 6401),
+                              ('MonitorTrigger', 6402),
+                              ('StopMonitoring', 6403))
 
 
 def StealthRec(d):
@@ -341,7 +380,7 @@ def moteino_status(device):
         ret += "Elevator up and running, passcode is: {}".format(d['PassCode1'])
 
     elif device == "GreenDude":
-        passcode = str(d['Lights']).replace('255', 'Red').replace('0', 'White').replace('1', 'Green')
+        passcode = str(d['Lights']).replace('255', 'Red').replace('0', 'Black').replace('1', 'Yellow')
         
         ret += "GreenDude is up and running, currently showing: {}".format(passcode)
     elif device == "SplitFlap":
@@ -356,9 +395,21 @@ def moteino_status(device):
     elif device == "Stealth":
         tripped = d["Tripped"]
         if tripped == 0:
-            ret += "Stealth is up and running, all lasers working"
+            ret += "Stealth is up and running, all lasers working {}".format(d["Sequence"][:6])
+        elif 10 < tripped < 20:
+            ret = "Stealth: Slave {} is not answering over i2c".format(tripped-10)
         else:
-            ret += "Stealth is running but slave {} is tripping".format(tripped)
+            ret += "Stealth: slave{} is tripping {}".format(tripped, d["Sequence"][:6])
+    elif device == "StealthSensor":
+        if d["Trigger"]:
+            ret = "Stealth Sensor is triggering"
+        else:
+            ret = "Stealth Sensor is not triggering"
+    elif device == "GunDrop":
+        if d["Trigger"]:
+            ret = "GunDrop is triggering"
+        else:
+            ret = "GunDrop is not triggering"
     else:
         ret += device + " is up and running"
 

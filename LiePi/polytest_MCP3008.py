@@ -5,7 +5,13 @@ import RPi.GPIO as GPIO
 # Import SPI library (for hardware SPI) and MCP3008 library.
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_MCP3008
-from moteinopy import MoteinoNetwork
+import SocketServer
+import socket
+import json
+import threading
+
+name = "A"
+
 Event = pygame.fastevent.Event
 
 GPIO.setmode(GPIO.BCM)
@@ -22,7 +28,7 @@ W, H = 720, 600
 # initialise display
 CLOCK = pygame.time.Clock()
 pygame.init()
-DS = pygame.display.set_mode((W, H),pygame.FULLSCREEN)
+DS = pygame.display.set_mode((W, H), pygame.FULLSCREEN)
 FPS = 100.00
 MSPF = 2.00 / FPS
 
@@ -34,27 +40,47 @@ StopEventType = pygame.USEREVENT + 2
 
 # StopEvent =  Event(StopEventType)
 
-#Define Moteino stuff
-moteino = MoteinoNetwork("/dev/ttyUSB0", base_id=53, init_base=False)
-Pope = moteino.add_node(1, "int Command;", "DaPope")
-Pope.add_translation("Command",
-    ("Status", 99),
-    ("Reset", 98),
-    ("Start", 50))
 
-def pope_receive(d):
-    if d['Command'] == "Start":
-        start_event = Event(StartEventType)
-        pygame.fastevent.post(start_event)
-    elif d['Command'] == "Reset":
-        stop_event = Event(StopEventType)
-        pygame.fastevent.post(stop_event)
-    elif d['Command'] == "Status":
-        Pope.send("Status")
+# Define Moteino stuff
+
+PORT = 16485
 
 
+class RequestHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        while True:
+            try:
+                data = self.request.recv(1024)
+            except socket.error:
+                return
+            if not data:
+                return
+            # print data
+            data = json.loads(data)
 
-Pope.bind(receive=pope_receive)
+            if "Command" not in data:
+                self.request.send(json.dumps("Must contain 'Command'"))
+                return
+            if data['Command'] == "Start":
+                start_event = Event(StartEventType)
+                pygame.fastevent.post(start_event)
+            elif data['Command'] == "Reset":
+                stop_event = Event(StopEventType)
+                pygame.fastevent.post(stop_event)
+
+
+class Server(SocketServer.TCPServer):
+    def __init__(self):
+        address = ("localhost", PORT)
+        self.allow_reuse_address = True
+        SocketServer.TCPServer.__init__(self, address, RequestHandler)
+
+        self.thread = threading.Thread(target=self.serve_forever)
+        self.thread.setDaemon(True)
+        self.thread.start()
+
+
+MoteinoServer = Server()
 
 
 # Software SPI configuration (MCP3008):
@@ -178,4 +204,4 @@ while True:
 
 print("Quitting pygame and shutting down moteinonetwork")
 pygame.quit()
-moteino.shut_down()
+MoteinoServer.shutdown()

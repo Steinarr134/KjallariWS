@@ -1,0 +1,74 @@
+17. október 2018
+
+Steinarr á páfanum, Ásgeir inni í herbergi
+
+
+Lyfta -		virkar en er aldrei í sambandi...
+
+Taperecorder -	Þarf að sameina fyrstu tvo hljóðfæla í einn.
+		Hann segir access(aðgengi) en ekki assess(meta)
+		Þarf að fara yfir alla hljóðfæla
+
+LockPicking -	virkar nema hvað hann restartar sér þegar hann sendir að hann hafi verið leystur
+                og við höfum ekki hugmynd um afhverju. Er samt ekki fatalt vandamál, aðrir moteinoar
+                geta ekki talað saman á meðan en það ætti ekki að gera mikið til því spilarar eiga eftir
+                að fatta að setja hálsfesti undir UV og fatta að stimpla þann kóða inn í GreenDude.
+                ómögulegt að það gerist á þessum 10 sekúndum sem Lockipicking er að öskra.
+
+UV lampi -	ekki augljóst hvernig á að kveikja á honum.
+
+GreenDude -	Kom í ljós að það var LockPicking sem var með vesenið.
+		
+
+LieDetector -	Fer í gang við 636.
+		Þarf að breyta hljóðfælnum "put the headstraps on...."
+		Gröf virka, handaskynjarar virka.
+		Þegar einhver feilar vantar að stöðva sjónvarpið strax. - komið!
+		Og það þarf meiri tíma á milli SplitFlap skrifanna. - komið!
+		Þegar fólok klárar senu ætti að skrifa á Splitflap: 
+		Scene 2 Done eða eitthvað því um líkt - komið
+
+Winebox -	Virkaði, nema að takkinn í páfranum varð ekki grayed out
+			Leyst 17.10.2018
+
+ShootingRange - Engig byssa til að testa skilnuarmechanismann.
+		Virkaði, en ekkert gerðist þegar þrautin kláraðist
+			(lagað 17.10.18)
+		Ætti að koma einhvers konar feedback um að þetta tókst og
+		síðan ætti líka að vera hægt að halda áfram að skjóta ef
+		fólk langar.
+		Ef fólk klárar skotin sín þarf hostinn að segja fail. Þá
+		ætti að koma eitthvað á splittið um fólkið feilaði
+
+Morse -		Virkaði, en það er ekki nógu aulgjóst fyrir spilendur
+		að það hafi tekist, eina sem gerist er að hurðin aflæsist
+		en það er ekki víst að fólk taki eftir því.
+
+Stealth -	virkar nokkuð vel, Slave 5 er stundum að trippa að óþörfu
+		Og sendir ekki alltaf ack en virðist þó alltaf heyra í okkur
+
+TimeBomb -	Fer í gang um leið og það er kveikt á henni, við höldum
+		að það sé ljósneminn sem er of næmur eða einhver tenging léleg
+		í honum. Hjálpar líklega að skipta um viðnám á ljósnemanum - komið!
+		
+
+
+Það sem best væri að laga fyrir næsta AlphaTest:
+
+* laga forrit í lockpick. Afhverju er hann að senda aftur að hann sé leystur?
+
+* sjá LieDetector athugasemd
+
+* Sjá seinni hluta af ShootingRange athugasemd
+
+* Laga Ljósnemann á Sprengjunni.
+
+
+Fleira sem mætti laga:
+
+* Klára að halda utan um upplýsingar um spilara:
+	Ætti að standa einhversstaðar í gui
+	implementa í grunnforritið
+	Henda edit group info í fésið á hostinum þegar fólkið opnar lyftuna
+
+

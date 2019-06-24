@@ -1,21 +1,10 @@
+from MoteinoConfig import SplitFlap
+import time
 
-class A(object):
-    def __init__(self, s):
-        self.stuff = s
+def final_countdown():
+        for i in range(60, -1, -5):
+            SplitFlap.send("Disp", str(i).ljust(11, ' ') if i % 10 == 0 else str(i).rjust(11, ' '))
+            time.sleep(5)
 
-    def p(self):
-        print "blablabla and also: " + str(self.stuff)
-
-
-
-a = A("test")
-
-a.p()
-
-
-def p2(self):
-    print "i've changed my mind about " + str(self.stuff)
-
-a.p = p2
-
-a.p()
+if __name__ == '__main__':
+    final_countdown()

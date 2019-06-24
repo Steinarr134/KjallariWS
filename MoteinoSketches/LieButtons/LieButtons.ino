@@ -32,6 +32,7 @@ typedef struct{
   int Command;
   byte PassCode[PassCodeLength];
   byte Lights[7];
+  byte Button;
 } Payload;
 
 // Two instances of payload:
@@ -40,6 +41,7 @@ Payload IncomingData;
 byte BaseID = 1;
 
 // Command values:
+const int Reset = 98;
 const int Status = 99;
 const int CorrectPassCode = 5101;
 const int ChangePassCode = 5102;
@@ -48,11 +50,12 @@ const int cmdSetActive = 5104;
 const int cmdSetInactive = 5105;
 const int cmdLightRight = 5106;
 const int cmdLightWrong = 5107;
+const int SendSingleButtonPress = 5108;
 
 const byte N = 7;  // fjoldi takka
 
-byte Lights[] = {A0, 9, 7, 6, 5, 4, 3};
-byte Buttons[] = {A7, A6, A5, A4, A3, A2, A1};
+byte Lights[] = {A0, 9, 7, 6, 5, 3, 4};
+byte Buttons[] = {A7, A6, A5, A4, A3, A1, A2};
 byte ButtonPresses[] = {-1, -1, -1};
 
 unsigned long int lastbuttontime = 0;
@@ -84,20 +87,14 @@ void setup() {
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
 
-
-  ////////////////// put your code here
-
-  OutgoingData.Command = 100;
-  sendOutgoingData();
-
   for (int i = 0; i< N; i++)
   {
-    pinMode(Lights[i], OUTPUT);
+    pinMode(Lights[i], OUTPUT); 
     pinMode(Buttons[i], INPUT);
   }
 
   for(int i=0; i<N;i++){
-  digitalWrite(Lights[i], HIGH);
+  digitalWrite(Lights[i], ON);
   delay(1);
   }
 }
@@ -120,9 +117,17 @@ void loop(){
     // thetta kallar a check fallid, sem skilar true og sendir pafa skilabod ef rett
     // annars skilar thad false, sem er geymt i breytu og notad.
     boolean correct = checkIfCorrectPassCode();
+    if (correct)
+    { 
+      // lightRight();  // kommentad ut, tvhi pafi akvedur thetta
+      Serial.println("Correct!, informing Pope");
+      OutgoingData.Command = CorrectPassCode;
+      sendOutgoingData();
+      resetButtonPresses();
+    }
 
     if((!correct) && ButtonPresses[0] != 255){
-      if((millis() - lastChange) >= 500){
+      if((millis() - lastChange) >= 2000){
         resetButtonPresses();     // setur allt i 255 (== -1)
         lastChange = millis();
         Serial.println("reset 1 triggered");
@@ -136,7 +141,6 @@ void loop(){
       {
        acceptButtonPress(i);
        Pressed[i] = false;
-       dispOn = false;
        Serial.print("Button ");
        Serial.print(i);
         Serial.print(" pressed, ButtonPresses=");
@@ -151,9 +155,17 @@ void loop(){
   } // if active
 
   if(active == 0){
-    for(int i=0; i<N;i++){
-    digitalWrite(Lights[i], HIGH);
-    delay(1);
+      checkOnButtons();
+      
+      for (int i = 0; i<N; i++)
+      {
+        if (Pressed[i])
+        {
+          Pressed[i] = false;
+          OutgoingData.Command = SendSingleButtonPress;
+          OutgoingData.Button = i;
+          sendOutgoingData();
+        }
     }
   } 
 }   // ## --- LOOP CLOSE --- ## // 
@@ -169,16 +181,8 @@ boolean checkIfCorrectPassCode(){
   for (int i=0; i<PassCodeLength; i++){
     if ((PassCode[i]-1) != ButtonPresses[i]){   // "-1" thvi takkar byrja 1 en fylki a 0
       check = false;
-      // return check;
+      return check;
     }
-  }
-
-  if(check){
-  active = 0;  
- // lightRight();  // kommentad ut, tvhi pafi akvedur thetta
-  Serial.println("Correct!, informing Pope");
-  OutgoingData.Command = CorrectPassCode;
-  sendOutgoingData();
   }
   return check;
 }
@@ -195,10 +199,13 @@ void checkOnButtons(){
   if (now - lastbuttontime > 80){
     lastbuttontime = now;
     for (int i = 0; i< N; i++){
-      byte state = (analogRead(Buttons[i]) > 1000);
-      if (!dispOn){
-        digitalWrite(Lights[i], state);
-      }
+      int val = analogRead(Buttons[i]);
+      //Serial.print(val);
+      //Serial.print("\t");
+      byte state = (val > 900);
+      //if (!dispOn){
+      //  digitalWrite(Lights[i], state);
+      //}
       if (state == laststate[i]){
         if (state == IN){
           if (!havenotified[i]){
@@ -215,6 +222,7 @@ void checkOnButtons(){
      laststate[i] = state;
       
     }
+    //Serial.println();
   }
 }
 
@@ -306,6 +314,8 @@ void checkOnRadio(){
       case cmdLightWrong:
         lightWrong();
         break;
+      case Reset:
+        asm volatile (" jmp 0");
       default:
         Serial.print("Received unkown Command: ");
         Serial.println(IncomingData.Command);

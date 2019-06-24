@@ -5,7 +5,23 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import time
+import Queue
 from Config import *
+
+
+# Possibly Persistant values
+class GlobalValues(object):
+    def __init__(self):
+        self.ClockHasStarted = False
+        self.ClockStartTime = None
+        self.StealthActive = True
+        # self.LieDetectorScenesAvailable = [None, None, None]
+        # self.LieDetectorCurrentSceneNumber = None
+        # self.LieDetectorCurrentSceneCurrentFileNumber = None
+
+
+globals = GlobalValues()
+
 
 top = tk.Tk()
 top.attributes("-fullscreen", True)
@@ -29,10 +45,11 @@ FailButtonNames = [
     "GreenDude Fail",
     "Start Lie Detector",
     "Lie Detector Fail",
-    "Wine Box Fail",
+    "Open WineBox",
     "Shooting Range Fail",
     "Morse Fail",
     "Stealth Fail",
+    "Start TimeBomb"
 ]
 
 
@@ -86,10 +103,10 @@ def player_info(exit_button_callback, info={}):
 
     # closes this window and calls the exit_button_callback passing player info
     def exit_init_window(event=None):
-        window.destroy()
         # top.deiconify()
-        ret_player_info = {"NofPlayers": 3,
+        ret_player_info = {"NofPlayers": int(number_of_players_entry.get().strip()),
                            "more info": "some info"}
+        window.destroy()
         exit_button_callback(ret_player_info)
 
     AboutPlayersSubmitButton = tk.Button(window, text="Submit", command=exit_init_window)
@@ -141,14 +158,25 @@ SplitFlapEntry.bind("<BackSpace>", lambda event: None)
 
 
 # Progress Plot
-ProgressPlot = Figure(figsize=(8, 4), dpi=50)
-ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlot, master=top)
+ProgressPlotFigure = Figure(figsize=(8, 4), dpi=50)
+ProgressPlotBaseLine = cumsum([0, 2*60, 5*60, 2*60, 4*60, 10*60, 5*60, 10*60, 2*60, 10*60, 5*60])
+ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlotFigure, master=top)
 ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
+
+
+def update_progress_plot(times):
+    ProgressPlotFigure.clear()
+    p = ProgressPlotFigure.add_subplot(111)
+    p.plot(range(11), ProgressPlotBaseLine, color="r")
+    print "plot times: {}".format(times)
+    p.plot(range(len(times)), times)
+    ProgressPlotCanvas.draw()
+
 
 
 # Log Text
 LogTextWidget = tk.Text(top, height=20, width=75, font="helvetica 10")
-LogTextWidget.place(x=550, y=225)
+LogTextWidget.place(x=500, y=25)
 LogTextWidget.insert('end', " System starting...")
 LogTextWidget['state'] = 'disabled'
 LogTextWidget.tag_configure("warning", foreground="#ff0000", font="helvetica 10 bold")
@@ -161,23 +189,42 @@ LogTextWidget.tag_configure("fail", foreground="#ff9900", font="helvetica 10 bol
 # ShootingFrame.place(x=100, y=500)
 # b1 = tk.Button()
 
-ShootingCanvas = tk.Canvas(top, height=200, width=200, bg='blue')
-ShootingCanvas.place(x=550, y=10)
-ShootingPositions = [
-    (135, 135, 195, 195),
-    (5, 135, 65, 195),
-    (5, 5, 65, 65),
-    (70, 70, 130, 130),
-    (135, 5, 195, 65)
-]
-ShootingCircles = []
-for position in ShootingPositions:
-    ShootingCircles.append(ShootingCanvas.create_oval(*position, fill='red'))
-# c2 = ShootingCanvas.create_oval()
+GreenDudeCanvas = tk.Canvas(top, height=200, width=400, bg='green4')
+GreenDudeCanvas.place(x=25, y=525)
+GreenDudePositions = []
+for i in range(7):
+    column = []
+    for j in range(3):
+        column.append((50*i + 30, 50*j+30, 50*i + 70, 50*j + 70))
+    GreenDudePositions.append(column)
+# print GreenDudePositions
+GreenDudeCircles = []
+
+# for column in GreenDudePositions:
+#     for position in column:
+#         GreenDudeCircles.append(GreenDudeCanvas.create_oval(*position, fill='red'))
+
+correct = [2 - ((c + 1) % 256) for c in GreenDudeCorrectPassCode]
+for i in range(7):
+    column = []
+    for j in range(3):
+        if j == correct[i]:
+            column.append(GreenDudeCanvas.create_oval(GreenDudePositions[i][j], outline='DodgerBlue4', width=3))
+        else:
+            column.append(GreenDudeCanvas.create_oval(GreenDudePositions[i][j], outline='green4', width=3))
+    GreenDudeCircles.append(column)
 
 
-def ShootingCirclesSetColor(n, color):
-    ShootingCanvas.itemconfig(ShootingCircles[n], fill=color)
+def GreenDudeSetColors(positions):
+    # print positions
+    ps = [2 - ((c + 1) % 256) for c in positions]
+    colors = ['yellow2', 'black', 'red']
+    for i in range(min(7, len(ps))):
+        for j in range(3):
+            if j == ps[i]:
+                GreenDudeCanvas.itemconfig(GreenDudeCircles[i][j], fill=colors[j])
+            else:
+                GreenDudeCanvas.itemconfig(GreenDudeCircles[i][j], fill="green4")
 
 # TapeRecorderControls
 TapeRecorderFrame = tk.Frame()
@@ -185,29 +232,41 @@ TapeRecorderPlayButton = tk.Button(TapeRecorderFrame, text="Play")
 TapeRecorderPlayButton.pack()
 TapeRecorderPauseButton = tk.Button(TapeRecorderFrame, text="Pause")
 TapeRecorderPauseButton.pack()
-TapeRecorderFrame.place(x=100, y=15)
+TapeRecorderFrame.place(x=50, y=15)
 
 
-def notify(text, warning=False, solved=False, fail=False):
-    text = "\n " + get_clock_text_now() + " -\t" + text
-    LogTextWidget['state'] = 'normal'
-    LogTextWidget.insert('end', text)
-    LogTextWidget.see(tk.END)
-    if warning:
-        line = str(int(LogTextWidget.index("end").split('.')[0])-1)
-        LogTextWidget.insert(line+".10", "WARNING: ")
-        LogTextWidget.tag_add("warning", line+".10", line+".19")
-        #print("notify: {}, tag=solved".format(line))
-    if solved:
-        line = str(int(LogTextWidget.index("end").split('.')[0])-1)
-        LogTextWidget.insert(line+".10", "SOLVED: ")
-        LogTextWidget.tag_add("solved", line+".10", line+".18")
-        #print("notify: {}, tag=solved".format(line))
-    if fail:
-        line = str(int(LogTextWidget.index("end").split('.')[0])-1)
-        LogTextWidget.insert(line+".10", "FAIL: ")
-        LogTextWidget.tag_add("fail", line+".9", line+".16")
-    LogTextWidget['state'] = 'disabled'
+NotifyQ = Queue.Queue()
+
+
+def _notify():
+    # print NotifyQ.qsize()
+    while not NotifyQ.empty():
+        (text, warning, solved, fail) = NotifyQ.get()
+        text = "\n " + get_clock_text_now() + " -\t" + text
+        LogTextWidget['state'] = 'normal'
+        LogTextWidget.insert('end', text)
+        LogTextWidget.see(tk.END)
+        if warning:
+            line = str(int(LogTextWidget.index("end").split('.')[0])-1)
+            LogTextWidget.insert(line+".10", "WARNING: ")
+            LogTextWidget.tag_add("warning", line+".10", line+".19")
+            #print("notify: {}, tag=solved".format(line))
+
+        if solved:
+            line = str(int(LogTextWidget.index("end").split('.')[0])-1)
+            LogTextWidget.insert(line+".10", "SOLVED: ")
+            LogTextWidget.tag_add("solved", line+".10", line+".18")
+            #print("notify: {}, tag=solved".format(line))
+
+        if fail:
+            line = str(int(LogTextWidget.index("end").split('.')[0])-1)
+            LogTextWidget.insert(line+".10", "FAIL: ")
+            LogTextWidget.tag_add("fail", line + ".9", line + ".16")
+        LogTextWidget['state'] = 'disabled'
+    top.after(100, _notify)
+
+
+top.after(1000, _notify)
 
 
 # Door Buttons
@@ -227,7 +286,7 @@ for name in DoorNameList:
 
 # Mission Failures
 MissionFailFrame = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
-MissionFailFrame.place(x=850, y=10)
+MissionFailFrame.place(x=1200, y=10)
 MissionFailButtons = []
 for bname in FailButtonNames:
     b = tk.Button(MissionFailFrame, text=bname, width=15, state=tk.NORMAL)
@@ -237,26 +296,24 @@ for bname in FailButtonNames:
 
 # Clock
 ClockLabel = tk.Label(top, text="0:00:00", font="Verdana 28 bold")
-ClockLabel.place(x=350, y=50)
-ClockHasStarted = False
-ClockStartTime = None
+ClockLabel.place(x=200, y=15)
 
 
 def clock_make_text(sec):
-    m,sec = divmod(sec,60)
-    h,m = divmod(m,60)
-    return "%02d:%02d:%02d" % (h,m,sec)
+    m, sec = divmod(sec, 60)
+    h, m = divmod(m, 60)
+    return "%02d:%02d:%02d" % (h, m, sec)
 
 
 def get_clock_text_now():
-    if ClockStartTime is None:
+    if globals.ClockStartTime is None:
         return "00:00:00"
-    displaytime = round(time.time() - ClockStartTime)
+    displaytime = round(time.time() - globals.ClockStartTime)
     return clock_make_text(displaytime)
 
 
 def update_clock(event=None):
-    if ClockHasStarted:
+    if globals.ClockHasStarted:
         ClockLabel.configure(text=get_clock_text_now())
     top.after(999, update_clock)
 
@@ -290,6 +347,8 @@ if __name__ == "__main__":
         ActionMenu.add_command(label=action)
 
     for submenu in DeviceSubmenus:
-        submenu.add_command(label="GetStatus")
+        submenu.add_command(label="example")
+
+    GreenDudeSetColors([1, 1, 0, 0, 255, 255, 255])
 
     top.mainloop()
