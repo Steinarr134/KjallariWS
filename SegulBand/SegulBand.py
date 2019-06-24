@@ -48,11 +48,13 @@ SomethingIsLoaded = False
 HaveReleasedEvent = threading.Event()
 
 def file_over():
+    # print "filelength: {:.2f}    realpos={:.2f}".format(f.FileLength, realpos())
     return abs(f.FileLength - realpos()) < 0.5 and SomethingIsLoaded
 
 class NoFinishFileThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
+        self.setDaemon(True)
 
     def run(self):
         while True:
@@ -151,10 +153,10 @@ def rewind():
     else:
         something_is_being_pressed = True
 
-    if f.FileName.split('/')[-1] == "1.ogg":
-        _until_beginning = realpos() - 37
-    else:
-        _until_beginning = realpos()
+    _until_beginning = realpos()
+    if f.FileName.split('/')[-1] == "1b.ogg":
+	if _until_beginning > 38.5:
+	        _until_beginning -= 38.5
     motor.rewind()
     HaveReleasedEvent.clear()
     print "waiting for release event"
@@ -362,8 +364,11 @@ motor.set_params(3000, 800, 2200)
 
 
 while True:
-    time.sleep(100)
-    
+    try:
+        time.sleep(100)
+    except KeyboardInterrupt as e:
+        Moteinos.shut_down()
+        break
     # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
     # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))
     
