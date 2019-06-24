@@ -1210,3 +1210,9 @@ if __name__ == "__main__":
     print "Dropped out of mainloop"
     exit()
 
+
+
+#TODO:
+# Shooting range hit instructions should not be overwritten
+# SplitFlap if TimeLeft notification occurs.
+

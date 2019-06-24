@@ -149,7 +149,11 @@ def rewind():
         return
     else:
         something_is_being_pressed = True
-    _until_beginning = realpos()
+
+    if f.FileName.split('/')[-1] == "1.ogg":
+        _until_beginning = realpos() - 37
+    else:
+        _until_beginning = realpos()
     motor.rewind()
     HaveReleasedEvent.clear()
     print "waiting for release event"
