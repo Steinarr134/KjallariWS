@@ -80,6 +80,24 @@ def join_threads():
 exitfunctions.append(join_threads)
 
 
+class SplitFlapAssistantObject(object):
+    def __init__(self):
+        self.ShouldSay = None
+
+    def clear(self):
+        if not self.ShouldSay is None:
+            SplitFlap.send("Disp", self.ShouldSay)
+        else:
+            SplitFlap.send("Clear")
+
+    def force_clear(self):
+        self.ShouldSay = None
+        self.clear()
+
+
+SplitFlapAssistant = SplitFlapAssistantObject()
+
+
 class Send2SplitFlapThread(threading.Thread):
     def __init__(self, stuff2send, time_between=7):
         threading.Thread.__init__(self)
@@ -99,9 +117,10 @@ class Send2SplitFlapThread(threading.Thread):
                 SplitFlap.send("Disp", part)
                 gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format(part))
                 if self.TimeBetween is None:
+                    SplitFlapAssistant.ShouldSay = part
                     return
                 time.sleep(self.TimeBetween)
-            SplitFlap.send("Clear")
+            SplitFlapAssistant.clear()
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
 
 
@@ -174,6 +193,7 @@ class Progressor(object):
 
 def gui_notify(text, warning=False, solved=False, fail=False):
     gui.NotifyQ.put((text, warning, solved, fail))
+    gui.globals.NotifyQHistory.append((text, warning, solved, fail))
     perri.save()
 
 

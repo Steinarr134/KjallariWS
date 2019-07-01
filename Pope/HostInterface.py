@@ -15,6 +15,7 @@ class GlobalValues(object):
         self.ClockHasStarted = False
         self.ClockStartTime = None
         self.StealthActive = True
+        self.NotifyQHistory = []
         # self.LieDetectorScenesAvailable = [None, None, None]
         # self.LieDetectorCurrentSceneNumber = None
         # self.LieDetectorCurrentSceneCurrentFileNumber = None
@@ -294,10 +295,50 @@ for bname in FailButtonNames:
     MissionFailButtons.append(b)
 
 
+# Next Up
+NextUpFrame = tk.Frame(top)
+NextUpFrame.place(x=800, y=500)
+NextUpStaticLabel = tk.Label(NextUpFrame, text="Next up:", font="Verdana, 20 bold")
+NextUpStaticLabel.pack()
+NextUpInsideFrame = tk.Frame(NextUpFrame, bd=5, relief=tk.RIDGE, padx=2, pady=2)
+NextUpInsideFrame.pack()
+NextUpLabel = tk.Label(NextUpInsideFrame, text="The Pope needs to complete the initialization",
+                       font="Verdana 14 bold")
+NextUpLabel.pack()
+NextUpQ = Queue.Queue()
+
+
+def _next_up():
+    if not NextUpQ.empty():
+        text, bg = NextUpQ.get()
+        NextUpLabel.configure(text=text)
+        if bg == "red":
+            NextUpLabel.configure(bg=bg)
+        else:
+            NextUpLabel.configure(bg=top.cget('bg'))
+        NextUpInsideFrame.configure(bg=bg)
+    top.after(500, _next_up)
+
+
+top.after(1000, _next_up)
+
+
+def next_up(text, bg="green"):
+    NextUpQ.put((text, bg))
+
 # Clock
 ClockLabel = tk.Label(top, text="0:00:00", font="Verdana 28 bold")
 ClockLabel.place(x=200, y=15)
 
+import random
+
+def test_nextup():
+    text = random.choice(["sldfjsdjf", "jjerwoiewoipewroipewropiwe", "sdavclkmcvnmcvblojknnm", "5546ds6846546847"])
+    bg = random.choice(["green", "red", "yellow"])
+    next_up(text, bg)
+    top.after(2000, test_nextup)
+
+# top.after(3000, test_nextup)
 
 def clock_make_text(sec):
     m, sec = divmod(sec, 60)
