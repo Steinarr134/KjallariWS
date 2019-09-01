@@ -74,16 +74,24 @@ void loop()
       if (digitalRead(TriggerPin))
       {
         sendTriggered();
-        LastTimeTriggerCheck = millis() + 500; // don't send again for half a second
+        LastTimeTriggerCheck = millis();
       }
     }
   }
 }
 
+unsigned long LastTimeTriggerSend = 0;
+
 void sendTriggered()
 {
-  OutgoingData.Command = Triggered;
-  sendOutgoingData();
+  if (millis() - LastTimeTriggerSend > 1000)
+  {
+    OutgoingData.Command = Triggered;
+    if (sendOutgoingData())
+    {
+      LastTimeTriggerSend = millis();
+    }
+  }
 }
 
 void checkOnRadio()
