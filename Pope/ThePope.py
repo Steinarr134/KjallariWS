@@ -924,11 +924,16 @@ def StealthStart():
 
 def StealthButton(press):
     if press == "Button1Press":
-        Stealth.send("SetSequence", Sequence=MorseSequence)
+        Stealth.send("SetSequence", Sequence=MorseSequence, Tempo=Stealth.Tempo)
         Sirens.send("SetPin2Low")
         gui_notify("Stealth has been reset")
     elif press == "Button2Press":
         Sirens.send("SetPin2High")
+
+
+def StealthSetTempo(tempo):
+    Stealth.Tempo = tempo
+    Stealth.send("SetTempo", Tempo=tempo)
 
 
 def StealthTripped(lasernr):
@@ -1149,7 +1154,7 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
         for i in range(10):
             t = 1000 + i*250
             subsubmenu.add_command(label=str(t),
-                                   command=lambda _t=t: Stealth.send("SetTempo", Tempo=_t))
+                                   command=lambda _t=t: StealthSetTempo(_t))
     if Device == "Sirens":
         DeviceSubmenu.add_command(label="Turn on",
                                   command=lambda: Sirens.send("SetPin2High"))
