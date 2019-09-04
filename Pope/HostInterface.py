@@ -138,11 +138,19 @@ SplitFlapEntry = tk.Text(top, bd=5, width=20, height=5, font="Verdana 16")
 SplitFlapEntry.place(x=50, y=100)
 SplitFlapEntryButton = tk.Button(top, text="Send hint")
 SplitFlapEntryButton.place(x=325, y=150)
+SplitFlapEntryClearButton = tk.Button(top, text="Clear")
+SplitFlapEntryClearButton.place(x=325, y=200)
 SplitFlapDisplayLabel = tk.Label(top,
                                  text="Now displaying: '           '",
                                  font="Verdana 12 bold")
 SplitFlapDisplayLabel.place(x=50, y=250)
 
+
+def clear_split_flap_entry(event=None):
+    SplitFlapEntry.delete(0., tk.END)
+
+
+SplitFlapEntryClearButton.bind("<Button-1>", clear_split_flap_entry)
 
 def fix_split_flap_input(event=None):
     # print "'" + event.char + "'"
@@ -294,6 +302,31 @@ for bname in FailButtonNames:
     b.pack()
     MissionFailButtons.append(b)
 
+# Hint Suggestion:
+HintFrame = tk.Frame(top)
+HintFrame.place(x=400, y=400)
+HintButtons = []
+
+
+def create_hint_buttons(hints):
+    for button in HintButtons:
+        button.destroy()
+    del HintButtons[:]
+
+    for hint in hints:
+        button = tk.Button(HintFrame, text=hint)
+        HintButtons.append(button)
+        button.pack()
+        button.bind("<Button-1>", hint_callback)
+
+
+def hint_callback(event):
+    button = event.widget
+    text = button.config("text")[-1]
+    SplitFlapEntry.delete(0., tk.END)
+    SplitFlapEntry.insert(0., text)
+
+
 
 # Next Up
 NextUpFrame = tk.Frame(top)
@@ -391,5 +424,7 @@ if __name__ == "__main__":
         submenu.add_command(label="example")
 
     GreenDudeSetColors([1, 1, 0, 0, 255, 255, 255])
+
+    create_hint_buttons(["How you doin?", "We were \non a break"])
 
     top.mainloop()
