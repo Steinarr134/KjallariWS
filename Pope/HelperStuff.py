@@ -1,20 +1,36 @@
-from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime
-import time
-
-scheduler = BackgroundScheduler()
-scheduler.start()
 
 
-def run_after(func, seconds=0, minutes=0):
-    scheduler.add_job(func,
-                      'date',
-                      run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
+class HintLoaderClass(object):
+    def __init__(self, filename):
+        self.Hints = {}
+        self.FileName = filename
+        self.load()
+
+    def load(self):
+        with file(self.FileName, 'r') as f:
+            lines = f.readlines()
+        print lines
+        hints = []
+        Qname = ""
+        for line in lines:
+            print line
+            if not line.strip():
+                continue
+            if not (line[0] == "\t"):
+                print "\t new Qname: " + line.strip()
+                if Qname:
+                    self.Hints[Qname] = hints
+                Qname = line.strip()
+                hints = []
+            else:
+                hints.append(line.strip().replace("\\", "\n"))
+
+        if Qname:
+            self.Hints[Qname] = hints
 
 
-def get_status(node):
-    status = node.send_and_receive('Status')
-    if status is None:
-        raise Exception(node.Name + " did not respond when we checked for status")
-    else:
-        return status
+
+
+if __name__ == '__main__':
+    HintLoader = HintLoaderClass("hints.txt")
+    print HintLoader.Hints

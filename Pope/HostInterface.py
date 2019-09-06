@@ -425,6 +425,8 @@ if __name__ == "__main__":
 
     GreenDudeSetColors([1, 1, 0, 0, 255, 255, 255])
 
-    create_hint_buttons(["How you doin?", "We were \non a break"])
+    from HelperStuff import HintLoaderClass
+    HintLoader = HintLoaderClass("hints.txt")
+    create_hint_buttons(HintLoader.Hints["Arrested Development"])
 
     top.mainloop()
