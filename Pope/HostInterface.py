@@ -427,6 +427,6 @@ if __name__ == "__main__":
 
     from HelperStuff import HintLoaderClass
     HintLoader = HintLoaderClass("hints.txt")
-    create_hint_buttons(HintLoader.Hints["Arrested Development"])
+    create_hint_buttons(HintLoader.Hints["Friends"])
 
     top.mainloop()

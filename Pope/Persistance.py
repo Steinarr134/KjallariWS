@@ -3,7 +3,7 @@ import os
 import pickle
 
 
-path = "/home/campz/PopePersistance/"
+path = "/home/pope/PopePersistance/"
 filename = path + "PreviousGroupState.pkl"
 
 

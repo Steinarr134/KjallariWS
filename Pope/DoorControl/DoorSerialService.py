@@ -1,6 +1,6 @@
 import sys
 sys.path.append("/home/campz/KjallariWS")
-with open("/home/campz/itworks.txt" , "w+") as f:
+with open("/home/pope/itworks.txt" , "w+") as f:
     f.write("title")
 
 
@@ -34,7 +34,7 @@ class SerialHandler(object):
             self.Serial.write(stuff.encode('ascii') +"\n")
 
     def handle(self, msg):
-        print msg
+        print "DoorSerial msg: '" + msg + "'"
         msg = json.loads(msg)
         if not "Command" in msg:
             return

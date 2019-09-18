@@ -2,7 +2,7 @@ import sys
 if "win" in sys.platform:
     sys.path.append("C:\Users\SteinarrHrafn\Documents\GitHub\moteinopy")
 else:
-    sys.path.append("/home/campz/moteinopy")
+    sys.path.append("/home/pope/moteinopy")
 from moteinopy import MoteinoNetwork, look_for_base
 import logging
 # logging.basicConfig(level=logging.DEBUG)

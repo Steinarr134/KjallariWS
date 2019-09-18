@@ -1,13 +1,13 @@
 import sys
 from datetime import datetime
-outputfile = open(datetime.now().strftime("/home/campz/LogFiles/ThePopeLog__%Y_%d_%m__%H_%M"), 'w+')
+outputfile = open(datetime.now().strftime("/home/pope/LogFiles/ThePopeLog__%Y_%d_%m__%H_%M"), 'w+')
 # sys.stdout = outputfile
-sys.stderr = outputfile
+# sys.stderr = outputfile
+
 
 from Setup import *
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
-
 # Initialize Scheduler
 
 scheduler = BackgroundScheduler()

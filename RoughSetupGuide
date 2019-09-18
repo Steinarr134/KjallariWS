@@ -1,0 +1,31 @@
+
+sudo apt update
+sudo apt upgrade
+
+# na i pycharm
+cd Downlads/pycharm-community-2019.2.2/
+cd bin
+sh pycharm.sh 
+# settings: https://drive.google.com/open?id=0B3iKexv5x2hlS3BfUDlUSkZnRjg
+
+
+sudo apt install git
+git clone https://github.com/Steinarr134/KjallariWS
+git clone https://github.com/Steinarr134/moteinopy
+sudp apt install python
+sudo apt install python-setuptools
+sudo apt install python-pip
+pip install apscheduler
+mkdir LogFiles
+mkdir PopePersistence
+sudo pip install pyserial
+sudo apt install python-tk
+sudo apt install python-matplotlib
+
+# na i arduino IDE
+cd  Downlads/arduino-1.8.10/
+sudo sh install.sh 
+
+sudo usermod -a -G dialout pope
+sudo reboot
+
