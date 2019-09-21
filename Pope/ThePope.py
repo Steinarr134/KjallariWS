@@ -401,6 +401,7 @@ def ElevatorEscaped(fail=False):
         gui.next_up("Players pless play on TapeRecorder. \n\n"
                     "Make sure they close the Elevator door behind them", bg='yellow')
         run_after(start_music, seconds=15)
+        gui.update_hints("Start Lie Detector")
 
 
 def elevator_receive(d):

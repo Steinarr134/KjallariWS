@@ -7,7 +7,7 @@ from matplotlib.figure import Figure
 import time
 import Queue
 from Config import *
-
+from HelperStuff import HintLoaderClass
 
 # Possibly Persistant values
 class GlobalValues(object):
@@ -303,6 +303,7 @@ for bname in FailButtonNames:
     MissionFailButtons.append(b)
 
 # Hint Suggestion:
+HintLoader = HintLoaderClass("hints.txt")
 HintFrame = tk.Frame(top)
 HintFrame.place(x=400, y=400)
 HintButtons = []
@@ -318,6 +319,28 @@ def create_hint_buttons(hints):
         HintButtons.append(button)
         button.pack()
         button.bind("<Button-1>", hint_callback)
+
+
+UpdateHints = False
+Hints = None
+
+
+def update_hints(key):
+    global Hints
+    global UpdateHints
+    Hints = HintLoader.Hints[key]
+    UpdateHints = True
+
+
+def _update_hints():
+    global UpdateHints
+    if UpdateHints:
+        create_hint_buttons(Hints)
+        UpdateHints = False
+    top.after(500, _update_hints)
+
+
+top.after(500, _update_hints)
 
 
 def hint_callback(event):
@@ -424,9 +447,5 @@ if __name__ == "__main__":
         submenu.add_command(label="example")
 
     GreenDudeSetColors([1, 1, 0, 0, 255, 255, 255])
-
-    from HelperStuff import HintLoaderClass
-    HintLoader = HintLoaderClass("hints.txt")
-    create_hint_buttons(HintLoader.Hints["Friends"])
 
     top.mainloop()

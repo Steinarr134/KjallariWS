@@ -11,3 +11,6 @@ Arrested Development
 	Hes going to\be all right
 	And thats why\you dont yell
 	Theres alway\money in the\banana stand
+
+Start Lie Detector
+	Press play
