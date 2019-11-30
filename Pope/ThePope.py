@@ -399,7 +399,8 @@ def ElevatorEscaped(fail=False):
         TapeRecorder.send("Pause")
         music_send("BACKGROUND NOISE")
         gui.next_up("Players pless play on TapeRecorder. \n\n"
-                    "Make sure they close the Elevator door behind them", bg='yellow')
+                    "Make sure they close the Elevator door behind them\n\n"
+                    "{} players, is that correct?".format(NofPlayers), bg='yellow')
         run_after(start_music, seconds=15)
         gui.update_hints("Start Lie Detector")
 
@@ -424,7 +425,7 @@ TapeRecorderFiles = [("1b.ogg", 58, "Room Intro", 2),
                      ("6.ogg", 30, "Bomb Go Boom!", 1.4),
                      ("8.ogg", 31, "Time Ran Out", 2.3),
                      ("a.ogg", 17, "Shooting Range Instructions", 2.3),
-                     ("b.ogg", 6, "Colored Circles", 0),
+                     ("b.ogg", 6, "Colored Circles", 0.1),
                      ("c.ogg", 18, "Stealth Rules", 0)]
 
 
@@ -446,6 +447,7 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
             # run_after(PlayLockPickingHint, seconds=5+50)
             nextFailButton("Start TapeRecorder")
             gui.next_up("Players Pick the Lock", bg='green')
+            gui.update_hints("LockPicking")
 
 
 # def PlayLockPickingHint(fail=False):
@@ -467,6 +469,7 @@ def LockPickingCompleted(fail=False):
         gui.next_up("Players examine pearls under ultraviolet lamp, input \n"
                     "the color sequence into GreenDude and turn the dial",
                     bg="green")
+        gui.update_hints("GreenDude")
 
 
 def lockpicking_receive(d):
@@ -541,12 +544,15 @@ def LieDetectorActivated(fail=False):
         LieDetectorHandler.setnofplayers(NofPlayers)
         gui_notify("Lie Detector Activated", fail=fail, solved=not fail)
         music_send("LIE DETECTOR START")
+        BookDrawer.open()
+        time.sleep(5)
         TapeRecorder_play("Lie Detector Instructions")
-        run_after(BookDrawer.open, seconds=8.3,)
+        # run_after(BookDrawer.open, seconds=19.5,)
         LieButtons.send("CorrectLightShow")
         nextFailButton("Start Lie Detector")
         run_after(LieDetectorHandler.start_lie_detector, seconds=5)
         gui.next_up("LieDetector!, Host input Required!", bg="red")
+        gui.update_hints("LieDetector")
 
 
 class Scene(object):
@@ -586,15 +592,14 @@ class LieDetectorOperationHandler(object):
                               ["B5_1.mov", "B5_2.mov", "B5_3.mov"], "B6.mov"], 0, 14),
                        Scene(["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
                               ["PP5_1.mov", "PP5_2.mov", "PP5_3.mov", "PP5_4.mov"], "PP6.mov"], 1, 15),
-                       Scene(["GB1_SJ.mov", "GB3_J.mov",
+                       Scene(["GB1_LJ.mov", "GB3_J.mov",
                               ["GB5_1.mov", "GB5_2.mov", "GB5_3.mov"], "GB6.mov"], 2, 20)]
         self.CurrentScene = None
 
     def setnofplayers(self, NP):
         self.P = NP
         if NP == 3:
-            bla = bool(int(random.random()+0.5))
-            self.ScenesAvailable = [bla, not bla, True]
+            self.ScenesAvailable = [True, False, True]
         elif NP == 4:
             self.ScenesAvailable = [True, True, False]
         elif NP == 5:
@@ -692,14 +697,16 @@ def LieDetectorCompleted(fail=False):
         gui_notify("Lie Detector Completed", fail=fail, solved=not fail)
         music_send("LIE DETECTOR COMPLETE")
         Send2SplitFlapThread("Well Done!", 10)
-        time.sleep(5)
+        time.sleep(3)
+        OpenWineBoxHolder()
+        time.sleep(2)
         TapeRecorder_play("WineBox Hint")
         nextFailButton("Lie Detector Fail")
         LiePiA.send("Reset")
         LiePiB.send("Reset")
-        run_after(OpenWineBoxHolder, seconds=3.5)
         gui.next_up("Players Discover WineBox, put it \n"
                     "on the correct place and it opens")
+        gui.update_hints("Wine Box")
 
 
 # WineBox
@@ -717,6 +724,7 @@ def WineBoxCompleted(fail=False):
         GunDrop.send("MonitorTrigger")
         gui.next_up("Players use the key to open the Gun Range closet and deposit the gun\n"
                     "Host --> Be ready to lower the gun range window thing", bg="yellow")
+        gui.update_hints("Shooting Range")
 
 
 def winebox_receive(d):
@@ -921,6 +929,7 @@ def StealthStart():
     gui.globals.StealthActive = True
     music_send("STEALTH")
     gui.next_up("Stealth! Host input needed!", bg="red")
+    gui.update_hints("Stealth")
 
 
 def StealthButton(press):
@@ -972,6 +981,7 @@ def BombActivated():
 
     Send2SplitFlapThread("Time left\n {}:{}".format(int(TimeLeft/60), seconds))
     gui.next_up("Bomb Active, Host --> keep up the Stealth duties", bg="red")
+    gui.update_hints("Bomb")
 
 
 def BombDiffused():
@@ -1170,7 +1180,7 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
                                    command=lambda _i=i: TapeRecorder.send("Load",
                                                                           s=TapeRecorderFiles[_i][0],
                                                                           FileLength=TapeRecorderFiles[_i][1],
-                                                                          StartPos=TapeRecorderFiles[_i][3]*10))
+                                                                          StartPos=int(TapeRecorderFiles[_i][3]*10)))
         DeviceSubmenu.add_command(label="Set Zero Position",
                                   command=lambda: TapeRecorder.send("SetCurrentPosAsZero"))
         DeviceSubmenu.add_command(label="Engage Stupid State",

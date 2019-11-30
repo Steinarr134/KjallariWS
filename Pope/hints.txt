@@ -14,3 +14,30 @@ Arrested Development
 
 Start Lie Detector
 	Press play
+
+LockPicking
+	You can\rewind
+	Spot the\jewels
+	Push button
+	Work\together
+
+GreenDude
+	You can\rewind
+	Try the\lamp
+	Backwards
+	In the\windowsill
+
+Rod
+	Useless\hint
+
+LieDetector
+	afslf
+
+Wine Box
+	dlfg
+
+Stealth
+	sdlf
+
+Bomb
+	dlæf

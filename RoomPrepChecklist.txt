@@ -1,0 +1,56 @@
+
+
+Elevator:
+	Turn on (lamp switch behind Hosts' desk)
+	Turn on audio
+	Test audio and vibration in floor
+
+Bomb:
+	Wires placed as planned
+	Turn on and test smoke machine
+
+Pope:
+	Reset
+
+TapeRecorder:
+	Make sure tape is in correct portions on spool (slightly more on left spool)
+Tv:
+	Turn on (channel up or down)
+	select AV
+	set brightness to 33
+	set contrast to 26
+
+LockPicking:
+	Pearls in place
+	Bomb hint in place
+	Rod in place
+	Close door
+	Put LockPicking-tool in its place
+
+GunRange:
+	Check pressure on air things, should be above 1
+	Turn on air pressure
+	Load both guns
+	Fire single test shot from each gun
+	Set up dropping mechanism
+	Lock Cabinet
+
+WineBox:
+	Gun and key in box
+	Close WineCase
+	WineCase  in WineCaseHolder
+	Bomb hint on WineCase
+	Close Door to WineCaseHolder
+
+BookCase Drawer:
+	Correct LieDetector Dossiers:
+		3 players:  Passport control and Buenos Aires
+		4 players: 	Buenos Aires and Power Plant
+		5 players: 	All 3 scenes. (only jamie, not blake)
+
+Pope:
+	Insert number of players
+
+
+
+

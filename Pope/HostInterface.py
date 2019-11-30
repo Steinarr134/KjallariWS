@@ -168,7 +168,17 @@ SplitFlapEntry.bind("<BackSpace>", lambda event: None)
 
 # Progress Plot
 ProgressPlotFigure = Figure(figsize=(8, 4), dpi=50)
-ProgressPlotBaseLine = cumsum([0, 2*60, 5*60, 2*60, 4*60, 10*60, 5*60, 10*60, 2*60, 10*60, 5*60])
+ProgressPlotBaseLine = cumsum([0,
+                               2*60,  # Press play on TapeRecorder
+                               8*60,  # LockPicking
+                               5*60,  # GreenDude
+                               7*60,  # Rod
+                               10*60,  # LieDetector
+                               3*60,  # WineCase
+                               10*60,  # Shooting Range
+                               2*60,   # Morse
+                               10*60,  # Stealth
+                               5*60])  # Bomb
 ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlotFigure, master=top)
 ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
 

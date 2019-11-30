@@ -197,6 +197,10 @@ void checkOnSerial()
       }
       else
       {
+        for (byte i=SerialCounter;i<63;i++)
+        {
+          SerialBuffer[i] = 0;
+        }
         sendTheStuff();
       }
       SerialCounter = 0;
@@ -346,4 +350,3 @@ byte hexval(char c)
     return 10 + c - 'a';
   }
 }
-

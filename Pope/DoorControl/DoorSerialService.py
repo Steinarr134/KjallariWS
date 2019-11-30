@@ -72,7 +72,7 @@ if __name__ == '__main__':
     def fun():
         while True:
             time.sleep(1)
-            with open("/home/campz/itworks.txt", "a+") as f:
+            with open("/home/pope/itworks.txt", "a+") as f:
                 f.write("{}\n".format(time.time()))
 
     tlkjt = threading.Thread(target=fun)
