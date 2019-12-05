@@ -50,7 +50,7 @@ if __name__ == '__main__':
     c = Object()
     c.a = 30
     c.b = 20
-    c = p.get("c", c)
+    c = p.get("c", default=c)
     c.a = 10
     p.save()
 

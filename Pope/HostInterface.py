@@ -392,6 +392,19 @@ top.after(1000, _next_up)
 def next_up(text, bg="green"):
     NextUpQ.put((text, bg))
 
+
+# Resend
+
+ResendButton = tk.Button(top, text="\n    Resend!!!    \n", font="Verdana 28 bold")
+ResendButton.place(x=800, y=600)
+
+
+def _resend_callback(event):
+    ResendButton.config(state=tk.DISABLED)
+
+ResendButton.bind("<Button-1>", _resend_callback)
+
+
 # Clock
 ClockLabel = tk.Label(top, text="0:00:00", font="Verdana 28 bold")
 ClockLabel.place(x=200, y=15)

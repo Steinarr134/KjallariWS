@@ -401,7 +401,7 @@ def ElevatorEscaped(fail=False):
         gui.next_up("Players pless play on TapeRecorder. \n\n"
                     "Make sure they close the Elevator door behind them\n\n"
                     "{} players, is that correct?".format(NofPlayers), bg='yellow')
-        run_after(start_music, seconds=15)
+        run_after(start_music, seconds=1)
         gui.update_hints("Start Lie Detector")
 
 
@@ -926,6 +926,7 @@ def CalibrateStealth():
 def StealthStart():
     gui_notify("Stealth Started")
     Stealth.send("SetSequence", Sequence=MorseSequence)
+    StealthSetTempo(1500)
     gui.globals.StealthActive = True
     music_send("STEALTH")
     gui.next_up("Stealth! Host input needed!", bg="red")

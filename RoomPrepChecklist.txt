@@ -9,8 +9,12 @@ Bomb:
 	Wires placed as planned
 	Turn on and test smoke machine
 
+Stealth Smoke Machine:
+	Turn on
+
 Pope:
 	Reset
+	Turn on audio program
 
 TapeRecorder:
 	Make sure tape is in correct portions on spool (slightly more on left spool)

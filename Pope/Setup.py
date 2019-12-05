@@ -124,14 +124,39 @@ class Send2SplitFlapThread(threading.Thread):
             gui.SplitFlapDisplayLabel.configure(text="Now displaying: '{}'".format("           "))
 
 
+FailedSend = {}
+
+
 def no_ack_fun(d):
     print d
     gui_notify("Oh, no! {} didn't hear us"
                "".format(d['Sender'].Name),
                warning=True)
+    global FailedSend
+    FailedSend = d
+    gui.ResendButton.config(state=gui.tk.ACTIVE, text="Resend '{}' to {}"
+                                                      "".format(d["Sender"]._translate("Command",
+                                                                                       d["Command"],
+                                                                                       from_network=True),
+                                                                d["Sender"].Name))
 
 
 mynetwork.bind_default(no_ack=no_ack_fun)
+
+
+def resend(event):
+    gui.ResendButton.config(state=gui.tk.DISABLED)
+    if FailedSend:
+        success = FailedSend["Sender"].send(diction=FailedSend)
+        if success:
+            gui_notify("'{}' successfully sent to {}".format(FailedSend["Sender"]._translate("Command",
+                                                                                             FailedSend["Command"],
+                                                                                             from_network=True),
+                                                             FailedSend["Sender"].Name))
+
+
+gui.ResendButton.bind("<Button-1>", resend)
+
 
 perri = Perri()
 
