@@ -38,23 +38,24 @@ class Server(SocketServer.TCPServer):
 
 
 class Client(object):
-    def __init__(self, port):
+    def __init__(self, port, ip="localhost"):
         self.s = socket.socket()
         self.port = port
+        self.ip = ip
 
     def send(self, shit):
         try:
-            self.s.send(shit)
+            self.s.send(str(shit))
         except socket.error:
             try:
                 self._connect()
-                self.s.send(shit)
+                self.s.send(str(shit))
             except socket.error:
                 return
 
     def _connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect(("localhost", self.port))
+        self.s.connect((self.ip, self.port))
 
 
 if __name__ == '__main__':
@@ -65,17 +66,17 @@ if __name__ == '__main__':
     # address = (socket.gethostname(), 3010)
     # address = ("10.75.53.170", 3010)
     address = ("", 3010)
-    ip, port = address
+    ip_adress, port = address
 
     def bla(message):
         logger = logging.getLogger("client")
-        logger.info('Server on %s:%s', ip, port)
+        logger.info('Server on %s:%s', ip_adress, port)
 
         # Connect to the server
         logger.debug('creating socket')
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         logger.debug('connecting to server')
-        s.connect((ip, port))
+        s.connect((ip_adress, port))
 
         # Send the data
         logger.debug('sending data: "%s"', message)
