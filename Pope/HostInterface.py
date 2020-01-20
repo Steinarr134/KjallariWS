@@ -152,6 +152,7 @@ def clear_split_flap_entry(event=None):
 
 SplitFlapEntryClearButton.bind("<Button-1>", clear_split_flap_entry)
 
+
 def fix_split_flap_input(event=None):
     # print "'" + event.char + "'"
     if event.char:
@@ -161,6 +162,7 @@ def fix_split_flap_input(event=None):
         # print "len: " + str(len(last_part))
         if len(last_part) > 10:
             SplitFlapEntry.insert(float(len(stuff)), '\n')
+
 
 SplitFlapEntry.bind("<Key>", fix_split_flap_input)
 SplitFlapEntry.bind("<BackSpace>", lambda event: None)
@@ -396,7 +398,7 @@ def next_up(text, bg="green"):
 # Resend
 
 ResendButton = tk.Button(top, text="\n    Resend!!!    \n", font="Verdana 28 bold")
-ResendButton.place(x=800, y=600)
+ResendButton.place(x=800, y=1000)
 
 
 def _resend_callback(event):
