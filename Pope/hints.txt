@@ -41,3 +41,6 @@ Stealth
 
 Bomb
 	dlæf
+
+Shooting Range
+	Shootstuff

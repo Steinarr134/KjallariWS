@@ -881,17 +881,28 @@ def get_shootingrange_sequence(length):
 
 class ShootingRangeGameClass(object):
     SequenceLength = 7
-    TargetNames = "5M6KG"
+    #TargetNames = "63SZGKY"
+    TargetNames = "NZ6KG"
+    #
+    # Because of way pope talks to shootingrange its unnecessarily complex to add 2 more to the sequence
+    # IMPROVE LATER
+    # TargetNames = "5M6KG"
+    #              01234
+    # N - 3 - S - Z - G - K - Y
     # br = bottom right, bl = bottom left, m = middle, tl = top left, tr = top right
     # gamla var: z p c m a
 
-    #       br  - bl    - tl - m - tr
-    # gamla: z  - p     - c  - m - a
-    # nyja: 5/N - M/H/7 - 6  - K - 9/G
-    # 63SZGKY a mismunandi skotskifum
+    #        br  - bl      - tl - m - tr
+    # gamla: z   - p       - c  - m - a
+    # nyja:  5/N - M/H/7/Z - 6  - K/S - 9/G/3
+    # corrected:
+    # N3SZGKY a mismunandi skotskifum
 
     def __init__(self):
-        self.TargetSequence = get_shootingrange_sequence(self.SequenceLength)
+        #self.TargetSequence = get_shootingrange_sequence(self.SequenceLength)
+        self.TargetSequence = [0, 1, 2, 3, 4, 3, 1]
+        #                  N  Z  6  K  G
+        #                 [0, 1, 2, 3, 4,]
         self.hitnr = 0
         self.GameOver = False
 
@@ -900,8 +911,8 @@ class ShootingRangeGameClass(object):
         self.send_next_target_to_splitflap()
         splitflaptimer.not_now()
         music_send("SHOOTING RANGE")
-        gui.askquestion("Reminder!","Have you turned on the smoke machine for STEALTH?")
-        # reminder for smoke machine -AJ
+        # gui.askquestion("Reminder!","Have you turned on the smoke machine for STEALTH?")
+        # FIND BETTER PLACE reminder for smoke machine -AJ
         gui.next_up("Players shoot the targets as advised through SplitFlap\n\n"
                     "Host --> Be ready to register hit if the system glitches", bg="yellow")
 
@@ -976,6 +987,8 @@ def register_hit_fun():
 MorseSequence = [63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38,
                  25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38]
 
+StopSequence = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 def MorseCompleted(fail=False):
     if progressor.log("Morser"):
@@ -1072,11 +1085,12 @@ def StealthTripped(lasernr):
     Sirens.send("SetPin2High")
     gui_notify("Stealth tripped on laser {}".format(lasernr))
 
-
+# testa betur
 def StealthCompleted(fail=False):
     gui_notify("Stealth Completed", fail=fail, solved=not fail)
     nextFailButton("Stealth Fail")
-
+    Stealth.send("SetSequence", Sequence=StopSequence, Tempo=0)
+    nextFailButton("Stealth Fail")
 
 def stealth_receive(d):
     if d['Command'] == 'Triggered':
@@ -1254,6 +1268,10 @@ def mission_fail_callback(event=None):
         result = gui.askquestion("Morse", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             MorseCompleted(fail=True)
+    elif b_text == "Stealth Stop":
+        result = gui.askquestion("StealthStop", "Are you sure you want to stop the stealth lazers?", icon='warning')
+        if result == 'yes':
+            StealthStop()
     elif b_text == "Stealth Fail":
         gui_notify("Stealth Fail --- Dont know what you want me to do here")
     elif b_text == "TimeBomb Fail":
