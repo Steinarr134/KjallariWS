@@ -598,8 +598,16 @@ LieDetectorOperationLock = threading.Lock()
 class LieDetectorOperationHandler(object):
     def __init__(self):
         self.P = None
-        self.hasfailed = False
-        self.no_fails = 0
+
+        self.has_failed_map = False
+        self.has_failed_factory = False
+        self.has_failed_passport= False
+        self.no_fails_map = 0
+        self.no_fails_factory = 0
+        self.no_fails_passport = 0
+        self.name_of_current_scene = ""
+
+
         self.ScenesAvailable = [None, None, None]
         #                       B  , PP     , GB
         #                       MAP, FACTORY, PASSPORT
@@ -607,45 +615,27 @@ class LieDetectorOperationHandler(object):
 
         self.setnofplayers(random.randint(2, 5))
 
-
-        # LAGA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
         # For passport, the first playthrough GB5_1 is played
         # if that fails, the next playthrough GB5_2 is played
         # third fail GB5_3 is played
         # in all Missions, if players fail, the first video (B1.mov, PP1.mov and GB1_LJ) is not played
         # in next playthrough
 
-        # if self.hasfailed: # If player has failed, we skip the first video of each mission
-        #     map_scenes = ["B2.mov", "B3.mov", "B4.mov",
-        #                   "B5_2.mov", "B6.mov"]
-        #     factory_scenes = ["PP2.mov", "PP3.mov", "PP4.mov",
-        #                       "PP5_2.mov", "PP5_4.mov", "PP6.mov"]
-        #     if self.no_fails == 1:
-        #         passport_scenes = ["GB3_J.mov","GB5_2.mov", "GB6.mov"]
-        #     else:
-        #         passport_scenes = ["GB3_J.mov","GB5_3.mov", "GB6.mov"]
+        # set all diff scenarios here:
+        self.map_scenes = ["B1.mov", "B2.mov", "B3.mov", "B4.mov", "B5_2.mov", "B6.mov"]
+        self.map_scenes_failed = ["B2.mov", "B3.mov", "B4.mov","B5_2.mov", "B6.mov"]
 
-         # If player has NOT failed yet, first playthrough, original video series is chosen
-        self.map_scenes = ["B1.mov", "B2.mov", "B3.mov", "B4.mov",
-                        "B5_2.mov", "B6.mov"]
-        self.factory_scenes = ["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
-                          "PP5_2.mov", "PP6.mov"]
+        self.factory_scenes = ["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov","PP5_2.mov", "PP6.mov"]
+        self.factory_scenes_failed1 = ["PP2.mov", "PP3.mov", "PP4.mov","PP5_3.mov", "PP6.mov"]
+        self.factory_scenes_failed2 = ["PP2.mov", "PP3.mov", "PP4.mov","PP5_4.mov", "PP6.mov"]
+
         self.passport_scenes = ["GB1_LJ.mov", "GB2_B.mov", "GB3_J.mov", "GB4_B.mov", "GB5_1.mov", "GB6.mov"]
+        self.passport_scenes_failed1 = ["GB2_B.mov", "GB3_J.mov","GB5_2.mov", "GB6.mov"]
+        self.passport_scenes_failed2 = ["GB2_B.mov","GB3_J.mov","GB5_3.mov", "GB6.mov"]
 
         self.Scenes = [Scene(self.map_scenes, 0, 14),
                        Scene(self.factory_scenes, 1, 15),
                        Scene(self.passport_scenes, 2, 20)]
-
-        # self.Scenes = [Scene(["B1.mov", "B2.mov", "B3.mov", "B4.mov",
-        #                     "B5_2.mov", "B6.mov"], 0, 14),
-        #                Scene(["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
-        #                       "PP5_2.mov", "PP5_4.mov", "PP6.mov"], 1, 15),
-        #                Scene([myscene], 2, 20)]
-
-        #Scene(["GB1_LJ.mov", "GB3_J.mov",
-        #["GB5_1.mov", "GB5_2.mov", "GB5_3.mov"], "GB6.mov"], 2, 20)]
-        # LAGA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         self.CurrentScene = None
 
@@ -668,20 +658,24 @@ class LieDetectorOperationHandler(object):
         self.disp_scenes_available()
 
     def disp_scenes_available(self):
-        # LAGA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if self.hasfailed: # If player has failed, we skip the first video of each mission
+        # Checks if player has failed any missions
 
-            self.map_scenes = ["B2.mov", "B3.mov", "B4.mov", "B5_2.mov", "B6.mov"]
+        if self.has_failed_map: # If player has failed, we skip the first video of each mission
+            self.map_scenes = self.map_scenes_failed
 
-            if self.no_fails == 1: # If player has failed once
-                self.factory_scenes = ["PP2.mov", "PP3.mov", "PP4.mov","PP5_3.mov", "PP6.mov"]
-                self.passport_scenes = ["GB2_B.mov", "GB3_J.mov","GB5_2.mov", "GB6.mov"]
-            elif self.no_fails >= 2 : # If player has failed twice or more often
-                self.factory_scenes = ["PP2.mov", "PP3.mov", "PP4.mov",
-                              "PP5_4.mov", "PP6.mov"]
-                self.passport_scenes = ["GB2_B.mov","GB3_J.mov","GB5_3.mov", "GB6.mov"]
-        # LAGA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if self.has_failed_factory:
+            if self.no_fails_factory == 1:
+                self.factory_scenes = self.factory_scenes_failed1
+            elif self.no_fails_factory >= 2:
+                self.factory_scenes = self.factory_scenes_failed2
 
+        if self.has_failed_passport:
+            if self.no_fails_passport == 1:
+                self.passport_scenes = self.passport_scenes_failed1
+            elif self.no_fails_passport >= 2:
+                self.passport_scenes = self.passport_scenes_failed2
+
+        # Redefines available scenes based on number of player failures
         self.Scenes = [
             Scene(self.map_scenes, 0, 14),
             Scene(self.factory_scenes, 1, 15),
@@ -689,6 +683,8 @@ class LieDetectorOperationHandler(object):
         ]
 
         bla = self.ScenesAvailable
+
+
         LieButtons.send("Disp", Lights=[int(not bla[0]), int(not bla[1]), int(not bla[2]), 1, 1, 1, 1])
         if not any(self.ScenesAvailable):
             LieDetectorCompleted()
@@ -722,8 +718,6 @@ class LieDetectorOperationHandler(object):
                                "".format(self.CurrentScene.N + 1,
                                          prev_file,
                                          self.CurrentScene.CurrentFile), solved=True)
-                    gui_notify("No of fails: " + str(self.no_fails))
-                    gui_notify("Has failed " + str(self.hasfailed))
 
                     if self.CurrentScene.Done:
 
@@ -734,15 +728,30 @@ class LieDetectorOperationHandler(object):
 
                         self.ScenesAvailable[self.CurrentScene.N] = False
                         self.CurrentScene = None
-                        self.hasfailed = False
-                        self.no_fails = 0
                         self.disp_scenes_available()
 
                 elif incoming["Command"] == "Button2Press":
                     # Players fail the Scene, Go back to Scene selection
-                    self.hasfailed = True # Player has failed once or more -> first video not replayed
-                    self.no_fails += 1 # Player has failed x times (random videos are changed)
                     music_send("WRONG ANSWER")
+
+                    # check what mission
+                    # trigger has failed for corresponding mission
+                    # add no of fails to that mission
+
+                    if self.name_of_current_scene == "factory":
+                        self.has_failed_factory = True # Player has failed once or more -> first video not replayed
+                        self.no_fails_factory += 1 # Player has failed x times (random videos are changed)
+
+                    elif self.name_of_current_scene == "map":
+                        self.has_failed_map = True
+                        self.no_fails_map += 1
+
+                    elif self.name_of_current_scene == "passport":
+                        self.has_failed_passport = True
+                        self.no_fails_passport += 1
+
+                    self.name_of_current_scene = ""
+
                     time.sleep(1)
                     music_send("LIE DETECTOR START")
                     if self.CurrentScene is None:
@@ -761,7 +770,7 @@ class LieDetectorOperationHandler(object):
                     run_after(self.disp_scenes_available, seconds=3)
 
             elif incoming["SenderName"] == "LieButtons":
-                if incoming["Command"] == "CorrectPassCode":
+                if incoming["Command"] == "CorrectPassCode": # Correct passcode was chosen and liedetector activated
                     LieDetectorActivated()
                 elif incoming["Command"] == "ButtonPress":
                     if incoming["Button"] in [0, 1, 2]:
@@ -769,10 +778,14 @@ class LieDetectorOperationHandler(object):
                             if self.ScenesAvailable[incoming["Button"]]:
                                 if incoming["Button"] == 2: #if PASSPORT mission is selected -AJ
                                     music_send("MISSION 2 PASSPORT START")
+                                    self.name_of_current_scene = "passport"
                                 elif incoming["Button"] == 0: #if MAP mission is selected -AJ
                                     music_send("MISSION 3 MAP START")
+                                    self.name_of_current_scene = "map"
                                 elif incoming["Button"] == 1: #if FACTORY mission is selected -AJ
                                     music_send("MISSION 1 FACTORY START")
+                                    self.name_of_current_scene = "factory"
+
                                 self.CurrentScene = self.Scenes[incoming["Button"]]
                                 self.CurrentScene.next_file()
                                 gui_notify("Player selected Scene({})".format(self.CurrentScene.N + 1))
