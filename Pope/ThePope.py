@@ -606,6 +606,8 @@ class LieDetectorOperationHandler(object):
         #                       removed randomization from map and factory, added 2 player mode -AJ
 
         self.setnofplayers(random.randint(2, 5))
+
+
         # LAGA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         # For passport, the first playthrough GB5_1 is played
