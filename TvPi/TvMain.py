@@ -7,6 +7,8 @@ from moteinopy import MoteinoNetwork
 import logging
 import threading
 
+from SocketCom import ComplicatedServer as CompServ
+
 logging.basicConfig(level=logging.DEBUG)
 
 # sys.stderr=open("/home/pi/logs/" + time.strftime("%c") + ".txt", 'w+')
@@ -34,14 +36,18 @@ def handle_command(stuff):
         pygame.fastevent.post(reset_event)
 
 print "starting network"
-mynetwork = MoteinoNetwork("/dev/ttyUSB0", base_id=41, init_base=False, baudrate=38400)
-mynetwork.logger.setLevel(logging.DEBUG)
-Pope = mynetwork.add_node(1, "int Command;char What2Play[10];", "Pope")
-Pope.add_translation("Command",
-                     ('Play', 4101),
-                     ('Status', 99),
-                     ("Reset", 98))
-Pope.bind(receive=handle_command)
+# mynetwork = MoteinoNetwork("/dev/ttyUSB0", base_id=41, init_base=False, baudrate=38400)
+# mynetwork.logger.setLevel(logging.DEBUG)
+# Pope = mynetwork.add_node(1, "int Command;char What2Play[10];", "Pope")
+# Pope.add_translation("Command",
+#                      ('Play', 4101),
+#                      ('Status', 99),
+#                      ("Reset", 98))
+# Pope.bind(receive=handle_command)
+
+Pope = CompServ(4141, arglist=["Command", "s"])
+Pope.bind(handle_command)
+
 
 pygame.init()
 pygame.fastevent.init()
