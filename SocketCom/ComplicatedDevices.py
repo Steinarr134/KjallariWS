@@ -1,5 +1,6 @@
-from SocketCom import Client, Server
+from SocketCom import Client, Server, get_ip
 import threading
+import random
 import json
 
 
@@ -7,7 +8,7 @@ class ComplicatedClient(object):
     def __init__(self, ip, port, arglist=["Command"]):
         assert "_ReturnPort_" not in arglist
         assert "_ReturnIP_" not in arglist
-        self.ReturnPort = port+10
+        self.ReturnPort = port+random.randint(1, 1000)
         self.ReturnServer = Server(self._rec, self.ReturnPort)
         self.Client = Client(port, ip)
         self.arglist = arglist
@@ -18,7 +19,7 @@ class ComplicatedClient(object):
         self.max_wait = 0.5
 
         self.Client.send(json.dumps({"_ReturnPort_":self.ReturnPort,
-                                     "_ReturnIP_": "localhost"}))
+                                     "_ReturnIP_": get_ip()}))
 
     def bind(self, receive=None):
         self.ReceiveFunc = receive
