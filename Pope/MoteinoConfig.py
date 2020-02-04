@@ -7,7 +7,7 @@ from moteinopy import MoteinoNetwork, look_for_base
 import logging
 # logging.basicConfig(level=logging.DEBUG)
 import os
-
+from SocketCom import ComplicatedClient
 
 """
 ToDo:
@@ -285,6 +285,9 @@ TvPi = mynetwork.add_node(MoteinoIDs['TvPi'],
 TvPi.add_translation("Command",
                      ("PlayFile", 4101))
 
+# TvPi = ComplicatedClient("192.168.1.155", 4141)
+
+
 TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],
                                   MoteinoStructs['TapeRecorder'],
                                   'TapeRecorder')
@@ -366,6 +369,8 @@ def StealthRec(d):
 
 
 def moteino_status(device):
+    if device == "TvPi":
+        return "Fuck you i don't know"
     d = mynetwork.send_and_receive(device, Command="Status")
     
     print("{} Received from {}".format(d, device))
