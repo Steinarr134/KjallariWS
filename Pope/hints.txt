@@ -37,7 +37,10 @@ Wine Box
 	dlfg
 
 Stealth
-	sdlf
+	2 buttons
 
 Bomb
 	dlæf
+
+Shooting Range
+	Shootstuff

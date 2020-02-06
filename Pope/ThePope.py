@@ -37,7 +37,7 @@ gera thannig ad haegt se ad breyta timanum on the fly
 """
 
 # Functions to open windows to input and edit group info
-
+0
 
 def save_group_info(player_info={}):  # kannski ad nota {} i stadinn fyrir ()
     print "save_group_info() wants to save:{} but need programming".format(player_info)
@@ -155,12 +155,15 @@ def initialize_room(player_info={}):
             display_status(device)
 
         ElevatorDoor.close()
-        Send2SplitFlapThread("  Camp Z   ", time_between=None)
+        # Send2SplitFlapThread("  Camp Z   ", time_between=None)
         # ShootingRange.send("DispColors", Colors=[0]*5)
         CalibrateStealth()
 
         DoorController.close_all()
         music_send("KILL AUDIO")
+        # Activate elevator noise that will loop until elevator is escaped -AJ
+        music_send("ELEVATOR NOISE")
+
 
     gui.next_up("Put People in Elevator and they escape into the room", bg="yellow")
     gui_notify("Initialization complete")
@@ -312,7 +315,6 @@ class SplitFlapTimeWarnerBro(threading.Thread):
                 time.sleep(wait)
                 self.notify()
 
-
 splitflaptimer = SplitFlapTimeWarnerBro()
 
 
@@ -385,10 +387,10 @@ def ElevatorEscaped(fail=False):
     if progressor.log("Elevator"):
 
         ElevatorDoor.open()
-        # run_after(StartTapeRecorderIntroMessage, seconds=20)
         gui.globals.ClockStartTime = time.time()
         gui.globals.ClockHasStarted = True
         logging.debug("starting clock")
+
         run_after(ElevatorDoor.close, seconds=15)
         if fail:
             gui_notify("Elevator failed, opened manually", fail=True)
@@ -401,8 +403,17 @@ def ElevatorEscaped(fail=False):
         gui.next_up("Players pless play on TapeRecorder. \n\n"
                     "Make sure they close the Elevator door behind them\n\n"
                     "{} players, is that correct?".format(NofPlayers), bg='yellow')
-        run_after(start_music, seconds=1)
+        run_after(start_music, seconds=0.5)
         gui.update_hints("Start Lie Detector")
+
+        # starts first hint after 3 minutes -AJ
+        run_after(start_tape, seconds=60*5)
+
+def start_tape():
+
+    result = gui.askquestion("Start first taperecorder hint", "Do you want to play the first tape msg?")
+    if result == "yes":
+        StartTapeRecorderIntroMessage(fail=True)
 
 
 def elevator_receive(d):
@@ -422,7 +433,7 @@ TapeRecorderFiles = [("1b.ogg", 58, "Room Intro", 2),
                      ("3.ogg", 24, "Lie Detector Instructions", 3.7),
                      ("4.ogg", 35, "WineBox Hint", 4.1),
                      ("5.ogg", 30, "Successfully Completed", 3.2),
-                     ("6.ogg", 30, "Bomb Go Boom!", 1.4),
+                     ("6.ogg", 30, "Bomb Go Boom!!!", 1.4),
                      ("8.ogg", 31, "Time Ran Out", 2.3),
                      ("a.ogg", 17, "Shooting Range Instructions", 2.3),
                      ("b.ogg", 6, "Colored Circles", 0.1),
@@ -448,6 +459,7 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
             nextFailButton("Start TapeRecorder")
             gui.next_up("Players Pick the Lock", bg='green')
             gui.update_hints("LockPicking")
+            print("asdf")
 
 
 # def PlayLockPickingHint(fail=False):
@@ -586,22 +598,56 @@ LieDetectorOperationLock = threading.Lock()
 class LieDetectorOperationHandler(object):
     def __init__(self):
         self.P = None
+
+        self.has_failed_map = False
+        self.has_failed_factory = False
+        self.has_failed_passport= False
+        self.no_fails_map = 0
+        self.no_fails_factory = 0
+        self.no_fails_passport = 0
+        self.name_of_current_scene = ""
+
+
         self.ScenesAvailable = [None, None, None]
-        self.setnofplayers(random.randint(3, 5))
-        self.Scenes = [Scene(["B1.mov", "B2.mov", "B3.mov", "B4.mov",
-                              ["B5_1.mov", "B5_2.mov", "B5_3.mov"], "B6.mov"], 0, 14),
-                       Scene(["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov",
-                              ["PP5_1.mov", "PP5_2.mov", "PP5_3.mov", "PP5_4.mov"], "PP6.mov"], 1, 15),
-                       Scene(["GB1_LJ.mov", "GB3_J.mov",
-                              ["GB5_1.mov", "GB5_2.mov", "GB5_3.mov"], "GB6.mov"], 2, 20)]
+        #                       B  , PP     , GB
+        #                       MAP, FACTORY, PASSPORT
+        #                       removed randomization from map and factory, added 2 player mode -AJ
+
+        self.setnofplayers(random.randint(2, 5))
+
+        # For passport, the first playthrough GB5_1 is played
+        # if that fails, the next playthrough GB5_2 is played
+        # third fail GB5_3 is played
+        # in all Missions, if players fail, the first video (B1.mov, PP1.mov and GB1_LJ) is not played
+        # in next playthrough
+
+        # set all diff scenarios here:
+        self.map_scenes = ["B1.mov", "B2.mov", "B3.mov", "B4.mov", "B5_2.mov", "B6.mov"]
+        self.map_scenes_failed = ["B2.mov", "B3.mov", "B4.mov","B5_2.mov", "B6.mov"]
+
+        self.factory_scenes = ["PP1.mov", "PP2.mov", "PP3.mov", "PP4.mov","PP5_2.mov", "PP6.mov"]
+        self.factory_scenes_failed1 = ["PP2.mov", "PP3.mov", "PP4.mov","PP5_3.mov", "PP6.mov"]
+        self.factory_scenes_failed2 = ["PP2.mov", "PP3.mov", "PP4.mov","PP5_4.mov", "PP6.mov"]
+
+        self.passport_scenes = ["GB1_LJ.mov", "GB2_B.mov", "GB3_J.mov", "GB4_B.mov", "GB5_1.mov", "GB6.mov"]
+        self.passport_scenes_failed1 = ["GB2_B.mov", "GB3_J.mov","GB5_2.mov", "GB6.mov"]
+        self.passport_scenes_failed2 = ["GB2_B.mov","GB3_J.mov","GB5_3.mov", "GB6.mov"]
+
+        self.Scenes = [Scene(self.map_scenes, 0, 14),
+                       Scene(self.factory_scenes, 1, 15),
+                       Scene(self.passport_scenes, 2, 20)]
+
         self.CurrentScene = None
 
     def setnofplayers(self, NP):
+        # added 2 player mode - AJ
         self.P = NP
-        if NP == 3:
-            self.ScenesAvailable = [True, False, True]
+        if NP == 2:
+            self.ScenesAvailable = [False, True, False]
+        elif NP == 3:
+            self.ScenesAvailable = [False, True, True]
         elif NP == 4:
-            self.ScenesAvailable = [True, True, False]
+            self.ScenesAvailable = [False, True, True]
         elif NP == 5:
             self.ScenesAvailable = [True, True, True]
 
@@ -612,7 +658,33 @@ class LieDetectorOperationHandler(object):
         self.disp_scenes_available()
 
     def disp_scenes_available(self):
+        # Checks if player has failed any missions
+
+        if self.has_failed_map: # If player has failed, we skip the first video of each mission
+            self.map_scenes = self.map_scenes_failed
+
+        if self.has_failed_factory:
+            if self.no_fails_factory == 1:
+                self.factory_scenes = self.factory_scenes_failed1
+            elif self.no_fails_factory >= 2:
+                self.factory_scenes = self.factory_scenes_failed2
+
+        if self.has_failed_passport:
+            if self.no_fails_passport == 1:
+                self.passport_scenes = self.passport_scenes_failed1
+            elif self.no_fails_passport >= 2:
+                self.passport_scenes = self.passport_scenes_failed2
+
+        # Redefines available scenes based on number of player failures
+        self.Scenes = [
+            Scene(self.map_scenes, 0, 14),
+            Scene(self.factory_scenes, 1, 15),
+            Scene(self.passport_scenes, 2, 20)
+        ]
+
         bla = self.ScenesAvailable
+
+
         LieButtons.send("Disp", Lights=[int(not bla[0]), int(not bla[1]), int(not bla[2]), 1, 1, 1, 1])
         if not any(self.ScenesAvailable):
             LieDetectorCompleted()
@@ -634,7 +706,10 @@ class LieDetectorOperationHandler(object):
 
                 elif incoming["Command"] == "Button1Press":
                     # Players pass the question
+                    music_send("RIGHT ANSWER")
+                    time.sleep(1)
                     if self.CurrentScene is None:
+                        music_send("LIE DETECTOR START")
                         print "No CurrentScene, byebye"
                         return
                     prev_file = str(self.CurrentScene.CurrentFile)
@@ -643,6 +718,7 @@ class LieDetectorOperationHandler(object):
                                "".format(self.CurrentScene.N + 1,
                                          prev_file,
                                          self.CurrentScene.CurrentFile), solved=True)
+
                     if self.CurrentScene.Done:
 
                         time.sleep(5)
@@ -656,6 +732,28 @@ class LieDetectorOperationHandler(object):
 
                 elif incoming["Command"] == "Button2Press":
                     # Players fail the Scene, Go back to Scene selection
+                    music_send("WRONG ANSWER")
+
+                    # check what mission
+                    # trigger has failed for corresponding mission
+                    # add no of fails to that mission
+
+                    if self.name_of_current_scene == "factory":
+                        self.has_failed_factory = True # Player has failed once or more -> first video not replayed
+                        self.no_fails_factory += 1 # Player has failed x times (random videos are changed)
+
+                    elif self.name_of_current_scene == "map":
+                        self.has_failed_map = True
+                        self.no_fails_map += 1
+
+                    elif self.name_of_current_scene == "passport":
+                        self.has_failed_passport = True
+                        self.no_fails_passport += 1
+
+                    self.name_of_current_scene = ""
+
+                    time.sleep(1)
+                    music_send("LIE DETECTOR START")
                     if self.CurrentScene is None:
                         return
 
@@ -672,12 +770,22 @@ class LieDetectorOperationHandler(object):
                     run_after(self.disp_scenes_available, seconds=3)
 
             elif incoming["SenderName"] == "LieButtons":
-                if incoming["Command"] == "CorrectPassCode":
+                if incoming["Command"] == "CorrectPassCode": # Correct passcode was chosen and liedetector activated
                     LieDetectorActivated()
                 elif incoming["Command"] == "ButtonPress":
                     if incoming["Button"] in [0, 1, 2]:
                         if self.CurrentScene is None:
                             if self.ScenesAvailable[incoming["Button"]]:
+                                if incoming["Button"] == 2: #if PASSPORT mission is selected -AJ
+                                    music_send("MISSION 2 PASSPORT START")
+                                    self.name_of_current_scene = "passport"
+                                elif incoming["Button"] == 0: #if MAP mission is selected -AJ
+                                    music_send("MISSION 3 MAP START")
+                                    self.name_of_current_scene = "map"
+                                elif incoming["Button"] == 1: #if FACTORY mission is selected -AJ
+                                    music_send("MISSION 1 FACTORY START")
+                                    self.name_of_current_scene = "factory"
+
                                 self.CurrentScene = self.Scenes[incoming["Button"]]
                                 self.CurrentScene.next_file()
                                 gui_notify("Player selected Scene({})".format(self.CurrentScene.N + 1))
@@ -773,10 +881,28 @@ def get_shootingrange_sequence(length):
 
 class ShootingRangeGameClass(object):
     SequenceLength = 7
-    TargetNames = "zpcma"
+    #TargetNames = "63SZGKY"
+    TargetNames = "NZ6KG"
+    #
+    # Because of way pope talks to shootingrange its unnecessarily complex to add 2 more to the sequence
+    # IMPROVE LATER
+    # TargetNames = "5M6KG"
+    #              01234
+    # N - 3 - S - Z - G - K - Y
+    # br = bottom right, bl = bottom left, m = middle, tl = top left, tr = top right
+    # gamla var: z p c m a
+
+    #        br  - bl      - tl - m - tr
+    # gamla: z   - p       - c  - m - a
+    # nyja:  5/N - M/H/7/Z - 6  - K/S - 9/G/3
+    # corrected:
+    # N3SZGKY a mismunandi skotskifum
 
     def __init__(self):
-        self.TargetSequence = get_shootingrange_sequence(self.SequenceLength)
+        #self.TargetSequence = get_shootingrange_sequence(self.SequenceLength)
+        self.TargetSequence = [0, 1, 2, 3, 4, 3, 1]
+        #                  N  Z  6  K  G
+        #                 [0, 1, 2, 3, 4,]
         self.hitnr = 0
         self.GameOver = False
 
@@ -785,6 +911,8 @@ class ShootingRangeGameClass(object):
         self.send_next_target_to_splitflap()
         splitflaptimer.not_now()
         music_send("SHOOTING RANGE")
+        # gui.askquestion("Reminder!","Have you turned on the smoke machine for STEALTH?")
+        # FIND BETTER PLACE reminder for smoke machine -AJ
         gui.next_up("Players shoot the targets as advised through SplitFlap\n\n"
                     "Host --> Be ready to register hit if the system glitches", bg="yellow")
 
@@ -859,6 +987,8 @@ def register_hit_fun():
 MorseSequence = [63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38,
                  25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38]
 
+StopSequence = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 def MorseCompleted(fail=False):
     if progressor.log("Morser"):
@@ -926,7 +1056,11 @@ def CalibrateStealth():
 def StealthStart():
     gui_notify("Stealth Started")
     Stealth.send("SetSequence", Sequence=MorseSequence)
+
+    # senda nytt sequence sem er = 0 thegar stealth er klarad og tha hreyfast ljos aldrei
+
     StealthSetTempo(1500)
+
     gui.globals.StealthActive = True
     music_send("STEALTH")
     gui.next_up("Stealth! Host input needed!", bg="red")
@@ -951,11 +1085,12 @@ def StealthTripped(lasernr):
     Sirens.send("SetPin2High")
     gui_notify("Stealth tripped on laser {}".format(lasernr))
 
-
+# testa betur
 def StealthCompleted(fail=False):
     gui_notify("Stealth Completed", fail=fail, solved=not fail)
     nextFailButton("Stealth Fail")
-
+    Stealth.send("SetSequence", Sequence=StopSequence, Tempo=0)
+    nextFailButton("Stealth Fail")
 
 def stealth_receive(d):
     if d['Command'] == 'Triggered':
@@ -972,7 +1107,7 @@ def BombActivated():
         RoomTimeLeft = 10*60  # 10 minutes
     else:
         RoomTimeLeft = MaxPlayingTime - (time.time() - gui.globals.ClockStartTime)
-    TimeLeft = max(min(MaxBombTime, RoomTimeLeft), MinBombTime)  # max 10 minute, min 1 minute
+    TimeLeft = max(min(MaxBombTime, RoomTimeLeft), MinBombTime)
     gui_notify("Bomb Activated, Time to solve: {}:{}"
                "".format(int(TimeLeft/60), int(TimeLeft) % 60), solved=True)
     TimeBomb.send("SetExplosionTime", Time=int(TimeLeft*1000))
@@ -1133,6 +1268,10 @@ def mission_fail_callback(event=None):
         result = gui.askquestion("Morse", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             MorseCompleted(fail=True)
+    elif b_text == "Stealth Stop":
+        result = gui.askquestion("StealthStop", "Are you sure you want to stop the stealth lazers?", icon='warning')
+        if result == 'yes':
+            StealthStop()
     elif b_text == "Stealth Fail":
         gui_notify("Stealth Fail --- Dont know what you want me to do here")
     elif b_text == "TimeBomb Fail":

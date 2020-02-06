@@ -1,5 +1,6 @@
 from SocketCom import Client, Server
 import threading
+import random
 import json
 import socket
 
@@ -21,7 +22,7 @@ class ComplicatedClient(object):
     def __init__(self, ip, port, arglist=["Command"]):
         assert "_ReturnPort_" not in arglist
         assert "_ReturnIP_" not in arglist
-        self.ReturnPort = port+10
+        self.ReturnPort = port+random.randint(1, 1000)
         self.ReturnServer = Server(self._rec, self.ReturnPort, ip=get_ip())
         self.Client = Client(port, ip)
         self.arglist = arglist
