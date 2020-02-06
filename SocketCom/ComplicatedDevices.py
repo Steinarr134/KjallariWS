@@ -1,6 +1,20 @@
 from SocketCom import Client, Server
 import threading
 import json
+import socket
+
+
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
 
 
 class ComplicatedClient(object):
@@ -8,7 +22,7 @@ class ComplicatedClient(object):
         assert "_ReturnPort_" not in arglist
         assert "_ReturnIP_" not in arglist
         self.ReturnPort = port+10
-        self.ReturnServer = Server(self._rec, self.ReturnPort)
+        self.ReturnServer = Server(self._rec, self.ReturnPort, ip=get_ip())
         self.Client = Client(port, ip)
         self.arglist = arglist
         self.ReceiveWithSendAndReceive = False
@@ -18,7 +32,7 @@ class ComplicatedClient(object):
         self.max_wait = 0.5
 
         self.Client.send(json.dumps({"_ReturnPort_":self.ReturnPort,
-                                     "_ReturnIP_": "localhost"}))
+                                     "_ReturnIP_": get_ip()}))
 
     def bind(self, receive=None):
         self.ReceiveFunc = receive
@@ -26,6 +40,8 @@ class ComplicatedClient(object):
     def _receive_func(self, stuff):
         if self.ReceiveFunc is not None:
             self.ReceiveFunc(stuff)
+        else:
+            print "ComplicatedClient received: ", stuff
 
     def _rec(self, stuff):
         if self.ReceiveWithSendAndReceive:
@@ -55,7 +71,7 @@ class ComplicatedClient(object):
 
 class ComplicatedServer(object):
     def __init__(self, port, arglist=["Command"]):
-        self.Server = Server(self._handle, port)
+        self.Server = Server(self._handle, port, ip=get_ip())
         self.handle_shit = None
         self.arglist = arglist
         self.ReturnClient = None
@@ -71,10 +87,15 @@ class ComplicatedServer(object):
     def bind(self, receive=None):
         self.handle_shit = receive
 
-    def send(self, stuff):
-        # print "ServerSend"
+    def send(self, *args, **kwargs):
         if self.ReturnClient:
-            self.ReturnClient.send(json.dumps(stuff))
+            tosend = {}
+            for i, arg in enumerate(args):
+                tosend[self.arglist[i]] = arg
+            for (kw, kwarg) in kwargs.items():
+                tosend[kw] = kwarg
+
+            self.ReturnClient.send(json.dumps(tosend))
 
     def _handle(self, stuff):
         try:
