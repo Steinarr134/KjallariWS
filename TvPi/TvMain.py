@@ -6,7 +6,7 @@ sys.path.append("/home/pi/moteinopy")
 from moteinopy import MoteinoNetwork
 import logging
 import threading
-
+sys.path.append("/home/pi/KjallariWS")
 from SocketCom import ComplicatedServer as CompServ
 
 logging.basicConfig(level=logging.DEBUG)
@@ -21,10 +21,10 @@ RESETEVENT = pygame.USEREVENT + 2
 
 
 def handle_command(stuff):
-    logging.info("command received: " + str(stuff))
+    print("command received: " + str(stuff))
     if type(stuff) != dict:
         stuff = dict(stuff)
-    if stuff['Command'] == "Play":
+    if (stuff['Command'] == "Play") or (stuff["Command"] == "PLayFile"):
         print "putting in play event"
         play_event = pygame.fastevent.Event(PLAYEVENT,
                                         message=videofolder + stuff['What2Play'].rstrip('\0').strip())
