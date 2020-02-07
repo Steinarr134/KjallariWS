@@ -1,2 +1,2 @@
-from SocketCommunication import Server, Client, get_ip
+from SocketCommunication import Server, Client
 from ComplicatedDevices import ComplicatedClient, ComplicatedServer

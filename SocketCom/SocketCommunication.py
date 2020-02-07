@@ -10,21 +10,8 @@ import threading
 PORT = 3010
 
 
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
-
 class Server(SocketServer.TCPServer):
-    def __init__(self, handle_shit, port=PORT):
+    def __init__(self, handle_shit, port=PORT, ip="localhost"):
 
         class RequestHandler(SocketServer.BaseRequestHandler):
             def handle(self):
@@ -38,7 +25,7 @@ class Server(SocketServer.TCPServer):
                     # print data
                     handle_shit(data.strip())
 
-        address = (get_ip(), port)
+        address = (ip, port)
         SocketServer.TCPServer.__init__(self, address, RequestHandler)
 
         self.Thread = threading.Thread(target=self.serve_forever)
@@ -118,5 +105,7 @@ if __name__ == '__main__':
     client.send("Hello there")
     time.sleep(1)
     client.send("Hello some more")
-    time.sleep(10)
-    server.shutdown()
+    time.sleep(3)
+    print "...shutting down..."
+    # server.shutdown()
+    print "goodbye"
