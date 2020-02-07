@@ -370,7 +370,10 @@ def StealthRec(d):
 
 def moteino_status(device):
     if device == "TvPi":
-        return "Fuck you i don't know"
+        answer = TvPi.send_and_receive("Status")
+        if answer:
+            return "TvPi is up and running, Now playing: {}".format(answer["s"])
+
     d = mynetwork.send_and_receive(device, Command="Status")
     
     print("{} Received from {}".format(d, device))

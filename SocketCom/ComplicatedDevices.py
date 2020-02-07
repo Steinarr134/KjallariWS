@@ -3,6 +3,7 @@ import threading
 import random
 import json
 import socket
+import select
 
 
 def get_ip():
@@ -27,9 +28,8 @@ class ComplicatedClient(object):
     def __init__(self, ip, port, arglist=["Command"]):
         assert "_ReturnPort_" not in arglist
         assert "_ReturnIP_" not in arglist
-        self.ReturnPort = port+random.randint(1, 1000)
-        self.ReturnServer = Server(self._rec, self.ReturnPort, ip=get_ip())
-        self.Client = Client(port, ip)
+        self.port = port
+        self.ip = ip
         self.arglist = arglist
         self.ReceiveWithSendAndReceive = False
         self.SendAndReceiveEvent = threading.Event()
@@ -37,7 +37,16 @@ class ComplicatedClient(object):
         self.StuffReceived = None
         self.max_wait = 0.5
 
-        self.Client.send(json.dumps({"_ReturnPort_":self.ReturnPort,
+        self.ReturnPort = None
+        self.ReturnServer = None
+        self.Client = None
+        self._connect()
+
+    def _connect(self):
+        self.ReturnPort = self.port+random.randint(1, 1000)
+        self.ReturnServer = Server(self._rec, self.ReturnPort, ip=get_ip())
+        self.Client = Client(self.port, self.ip)
+        self.Client.send(json.dumps({"_ReturnPort_": self.ReturnPort,
                                      "_ReturnIP_": get_ip()}))
 
     def bind(self, receive=None):
@@ -63,7 +72,10 @@ class ComplicatedClient(object):
         for (kw, kwarg) in kwargs.items():
             tosend[kw] = kwarg
 
-        self.Client.send(json.dumps(tosend))
+        if select.select([self.Client.s], [], [], 0.1)[0]:
+            self._connect()
+
+        return self.Client.send(json.dumps(tosend))
 
     def send_and_receive(self, *args, **kwargs):
         self.send(*args, **kwargs)
