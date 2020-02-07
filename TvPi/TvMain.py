@@ -24,10 +24,11 @@ def handle_command(stuff):
     print("command received: " + str(stuff))
     if type(stuff) != dict:
         stuff = dict(stuff)
-    if (stuff['Command'] == "Play") or (stuff["Command"] == "PLayFile"):
+    print stuff["Command"]
+    if (stuff['Command'] == "Play") or (stuff["Command"] == "PlayFile"):
         print "putting in play event"
         play_event = pygame.fastevent.Event(PLAYEVENT,
-                                        message=videofolder + stuff['What2Play'].rstrip('\0').strip())
+                                        message=videofolder + stuff['s'].rstrip('\0').strip())
         pygame.fastevent.post(play_event)
     elif stuff["Command"] == "Status":
         Pope.send("Status")
@@ -45,11 +46,12 @@ print "starting network"
 #                      ("Reset", 98))
 # Pope.bind(receive=handle_command)
 
-Pope = CompServ(4141, arglist=["Command", "s"])
+Pope = CompServ(4141, arglist=["Command", "What2Play"])
 Pope.bind(handle_command)
 
 
 pygame.init()
+time.sleep(0.2)
 pygame.fastevent.init()
 pygame.mouse.set_visible(False)
 
