@@ -15,6 +15,9 @@ import demjson
 import os
 import logging
 logging.basicConfig(level=logging.DEBUG)
+import sys
+sys.path.append("/home/pi/KjallariWS")
+from SocketCom import ComplicatedServer as CompServ
 
 print "imports done..."
 
@@ -339,26 +342,28 @@ def handle_command(stuff):
 
 print "setting up moteinos"
 
-if motor.Port == "/dev/ttyUSB0":
-    Moteinos = MoteinoNetwork("/dev/ttyUSB1", base_id=42, baudrate=38400)
-else:
-    Moteinos = MoteinoNetwork("/dev/ttyUSB0", base_id=42, baudrate=38400)
+# if motor.Port == "/dev/ttyUSB0":
+#     Moteinos = MoteinoNetwork("/dev/ttyUSB1", base_id=42, baudrate=38400)
+# else:
+#     Moteinos = MoteinoNetwork("/dev/ttyUSB0", base_id=42, baudrate=38400)
+#
+# Pope = Moteinos.add_node(1, "int Command;char s[10];int FileLength;int LightValue;int StartPos", "Pope")
+# Pope.add_translation("Command",
+#     ("Play", 4201),
+#     ("Pause", 4202),
+#     ("Forward", 4207),
+#     ("Rewind", 4208),
+#     ("ShutDown", 4203),
+#     ("Reboot", 4204),
+#     ("Setlights", 4205),
+#     ("Load", 4206),
+#     ("Status", 99),
+#     ("Reset", 98),
+#     ("SetCurrentPosAsZero", 4209),
+#     ("SetStupidState", 4210))
 
-Pope = Moteinos.add_node(1, "int Command;char s[10];int FileLength;int LightValue;int StartPos", "Pope")
+Pope = CompServ(4242, ["Command", "s", "FileLength", "LightValue", "StartPos"])
 Pope.bind(receive=handle_command)
-Pope.add_translation("Command",
-    ("Play", 4201),
-    ("Pause", 4202),
-    ("Forward", 4207),
-    ("Rewind", 4208),
-    ("ShutDown", 4203),
-    ("Reboot", 4204),
-    ("Setlights", 4205),
-    ("Load", 4206),
-    ("Status", 99),
-    ("Reset", 98),
-    ("SetCurrentPosAsZero", 4209),
-    ("SetStupidState", 4210))
 
 motor.set_params(3000, 800, 2200)
 
@@ -367,7 +372,7 @@ while True:
     try:
         time.sleep(100)
     except KeyboardInterrupt as e:
-        Moteinos.shut_down()
+        # Moteinos.shut_down()
         break
     # inn = raw_input("dfsadfhlkjkjjjTHESTUFFFFFFFFFF\n")
     # motor.set_params(*(int(s.strip()) for s in inn.strip().split(',')))

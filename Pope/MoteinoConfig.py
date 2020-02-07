@@ -288,22 +288,24 @@ WineBox.add_translation("Command",
 TvPi = ComplicatedClient("192.168.1.155", 4141)
 
 
-TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],
-                                  MoteinoStructs['TapeRecorder'],
-                                  'TapeRecorder')
-TapeRecorder.add_translation("Command",
-                             ("Play", 4201),
-                             ("Pause", 4202),
-                             ("Forward", 4207),
-                             ("Reverse", 4208),
-                             ("ShutDown", 4203),
-                             ("Reboot", 4204),
-                             ("Setlights", 4205),
-                             ("Load", 4206),
-                             ("Status", 99),
-                             ("Reset", 98),
-                             ("SetCurrentPosAsZero", 4209),
-                             ("SetStupidState", 4210))
+# TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],
+#                                   MoteinoStructs['TapeRecorder'],
+#                                   'TapeRecorder')
+# TapeRecorder.add_translation("Command",
+#                              ("Play", 4201),
+#                              ("Pause", 4202),
+#                              ("Forward", 4207),
+#                              ("Reverse", 4208),
+#                              ("ShutDown", 4203),
+#                              ("Reboot", 4204),
+#                              ("Setlights", 4205),
+#                              ("Load", 4206),
+#                              ("Status", 99),
+#                              ("Reset", 98),
+#                              ("SetCurrentPosAsZero", 4209),
+#                              ("SetStupidState", 4210))
+
+TapeRecorder = ComplicatedClient("192.168.1.145", 4242, ["Command", "s", "FileLength", "LightValue", "StartPos"])
 
 Sirens = mynetwork.add_node(MoteinoIDs['Sirens'],
                             MoteinoStructs['Sirens'],
@@ -373,6 +375,11 @@ def moteino_status(device):
         answer = TvPi.send_and_receive("Status")
         if answer:
             return "TvPi is up and running, Now playing: {}".format(answer["s"])
+
+    if device == "TapeRecorder":
+        answer = TapeRecorder.send_and_receive("Status")
+        if answer:
+            return "TapeRecorder is up and running"
 
     d = mynetwork.send_and_receive(device, Command="Status")
     
