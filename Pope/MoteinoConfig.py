@@ -279,13 +279,13 @@ WineBox.add_translation("Command",
                         ("IWasSolved", 2402),
                         ("SetTime2Solve", 2403))
 
-TvPi = mynetwork.add_node(MoteinoIDs['TvPi'],
-                          MoteinoStructs['TvPi'],
-                          'TvPi')
-TvPi.add_translation("Command",
-                     ("PlayFile", 4101))
+# TvPi = mynetwork.add_node(MoteinoIDs['TvPi'],
+#                           MoteinoStructs['TvPi'],
+#                           'TvPi')
+# TvPi.add_translation("Command",
+#                      ("PlayFile", 4101))
 
-# TvPi = ComplicatedClient("192.168.1.155", 4141)
+TvPi = ComplicatedClient("192.168.1.155", 4141)
 
 
 TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],

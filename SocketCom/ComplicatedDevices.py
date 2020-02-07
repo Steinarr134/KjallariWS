@@ -18,6 +18,11 @@ def get_ip():
     return IP
 
 
+def ascii_encode_dict(data):
+    ascii_encode = lambda x: x.encode('ascii')
+    return dict(map(ascii_encode, pair) for pair in data.items())
+
+
 class ComplicatedClient(object):
     def __init__(self, ip, port, arglist=["Command"]):
         assert "_ReturnPort_" not in arglist
@@ -67,7 +72,7 @@ class ComplicatedClient(object):
         self.SendAndReceiveEvent.wait(self.max_wait)
         self.ReceiveWithSendAndReceive = False
         received = str(self.StuffReceived)
-        return json.loads(received)
+        return json.loads(received, object_hook=ascii_encode_dict)
 
 
 class ComplicatedServer(object):
@@ -100,14 +105,14 @@ class ComplicatedServer(object):
 
     def _handle(self, stuff):
         try:
-            d = json.loads(stuff)
+            d = json.loads(stuff, object_hook=ascii_encode_dict)
             # print "d=", d
             if "_ReturnPort_" in d:
                 self._setup_return(d)
                 return
         except (ValueError, TypeError):
             pass
-        self.handle_shit(json.loads(stuff))
+        self.handle_shit(json.loads(stuff, object_hook=ascii_encode_dict))
 
 
 if __name__ == '__main__':
