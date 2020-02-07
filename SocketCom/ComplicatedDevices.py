@@ -20,7 +20,7 @@ def get_ip():
 
 
 def ascii_encode_dict(data):
-    ascii_encode = lambda x: x.encode('ascii')
+    ascii_encode = lambda x: x.encode('ascii') if type(x) is not int else x
     return dict(map(ascii_encode, pair) for pair in data.items())
 
 
@@ -117,6 +117,7 @@ class ComplicatedServer(object):
 
     def _handle(self, stuff):
         try:
+	    print stuff
             d = json.loads(stuff, object_hook=ascii_encode_dict)
             # print "d=", d
             if "_ReturnPort_" in d:
