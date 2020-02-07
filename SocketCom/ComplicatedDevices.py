@@ -81,10 +81,13 @@ class ComplicatedClient(object):
         self.send(*args, **kwargs)
         self.ReceiveWithSendAndReceive = True
         self.SendAndReceiveEvent.clear()
-        self.SendAndReceiveEvent.wait(self.max_wait)
+        if self.SendAndReceiveEvent.wait(self.max_wait):
+            received = str(self.StuffReceived)
+            ret = json.loads(received, object_hook=ascii_encode_dict)
+        else:
+            ret = None
         self.ReceiveWithSendAndReceive = False
-        received = str(self.StuffReceived)
-        return json.loads(received, object_hook=ascii_encode_dict)
+        return ret
 
 
 class ComplicatedServer(object):

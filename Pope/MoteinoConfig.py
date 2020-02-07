@@ -375,11 +375,15 @@ def moteino_status(device):
         answer = TvPi.send_and_receive("Status")
         if answer:
             return "TvPi is up and running, Now playing: {}".format(answer["s"])
+        else:
+            return "No answer from " + device
 
     if device == "TapeRecorder":
         answer = TapeRecorder.send_and_receive("Status")
         if answer:
             return "TapeRecorder is up and running"
+        else:
+            return "No answer from " + device
 
     d = mynetwork.send_and_receive(device, Command="Status")
     
