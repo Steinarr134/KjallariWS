@@ -166,6 +166,14 @@ def initialize_room(player_info={}):
 
 
     gui.next_up("Put People in Elevator and they escape into the room", bg="yellow")
+
+    # Look at further!! -AJ
+    # result = gui.askquestion("Guns", "Are both guns active?", icon='warning')
+    # if result == "yes":
+    #     both_guns_active = True
+    # elif result == "no":
+    #     both_guns_active = False
+
     gui_notify("Initialization complete")
 
     def printrssi():
@@ -428,16 +436,39 @@ Elevator.bind(receive=elevator_receive)
 # TapeRecorder
 
 TapeRecorderIntroMessageStarted = False
-TapeRecorderFiles = [("1b.ogg", 58, "Room Intro", 2),
-                     ("2.ogg", 24, "Rod Hint", 4.2),
-                     ("3.ogg", 24, "Lie Detector Instructions", 3.7),
-                     ("4.ogg", 35, "WineBox Hint", 4.1),
-                     ("5.ogg", 30, "Successfully Completed", 3.2),
-                     ("6.ogg", 30, "Bomb Go Boom!!!", 1.4),
-                     ("8.ogg", 31, "Time Ran Out", 2.3),
-                     ("a.ogg", 17, "Shooting Range Instructions", 2.3),
-                     ("b.ogg", 6, "Colored Circles", 0.1),
-                     ("c.ogg", 18, "Stealth Rules", 0)]
+# TapeRecorderFiles = [("1b.ogg", 58, "Room Intro", 2),
+#                      ("2.ogg", 24, "Rod Hint", 4.2),
+#                      ("3.ogg", 24, "Lie Detector Instructions", 3.7),
+#                      ("4.ogg", 35, "WineBox Hint", 4.1),
+#                      ("5.ogg", 30, "Successfully Completed", 3.2),
+#                      ("6.ogg", 30, "Bomb Go Boom!!!", 1.4),
+#                      ("8.ogg", 31, "Time Ran Out", 2.3),
+#                      ("a.ogg", 17, "Shooting Range Instructions", 2.3),
+#                      ("b.ogg", 6, "Colored Circles", 0.1),
+#                      ("c.ogg", 18, "Stealth Rules", 0),]
+#
+TapeRecorderFiles = [("004_intro_1.ogg", 74,            "Room Intro", 0.1),
+                     ("005_intro_2.ogg", 68,            "Room intro (Lockpick finished)", 0.1),
+                     ("006_rod.ogg", 21,                "Rod Hint", 0.1),
+                     ("007_lie.ogg", 28,                "Lie Detector Instructions", 0.1),
+                     ("008_wine.ogg", 29,               "WineBox Hint", 0.1),
+                     ("009_shooting_1.ogg", 16,         "Shooting Range Instructions", 0.1),
+                     ("010_shooting_2.ogg", 16,         "Shooting ONLY 1 GUN", 0.0),
+                     ("011_stealth.ogg", 17,            "Stealth Rules", 0.0),
+                     ("012_bomb.ogg", 13,               "Bomb Go Boom!!!", 0.0),
+                     ("013_success.ogg", 14,            "Successfully Completed", 0.0),
+                     ("019_time.ogg", 31,               "Time Ran Out", 2.3),
+                     ]
+
+# ("014_time_30min.ogg", 4,   "XTimewarning30", 0),
+# ("015_time_10min.ogg", 2.5, "Timewarning10", 0),
+# ("016_time_5min.ogg", 2.5,  "Timewarning5", 0),
+# ("017_time_3min.ogg", 4,    "XTimewarning3min", 0.01),
+# ("018_time_1min.ogg", 4,    "Timewarning60sek", 0),
+# ("001_lyfta_1.ogg", 9,      "Lyfta 1", 0.1),
+# ("002_lyfta_2.ogg", 7,      "Lyfta 2", 0.0),
+# ("003_lyfta_3.ogg", 4,      "Lyfta 3", 0.0),
+
 
 
 def TapeRecorder_play(filehandle):
@@ -504,6 +535,7 @@ def GreenDudeCompleted(fail=False):
         gui.next_up("Players put the rod into lamp and discover \n"
                     "the sequence for the LieDetector (636)", bg="green")
 
+        gui.askquestion("Reminder!","Have you turned on the smoke machine for STEALTH?")
 
 def green_dude_receive(d):
     print "GreenDude Receive"
@@ -706,7 +738,7 @@ class LieDetectorOperationHandler(object):
 
                 elif incoming["Command"] == "Button1Press":
                     # Players pass the question
-                    music_send("RIGHT ANSWER")
+                    # music_send("RIGHT ANSWER")
                     time.sleep(1)
                     if self.CurrentScene is None:
                         music_send("LIE DETECTOR START")
@@ -910,9 +942,16 @@ class ShootingRangeGameClass(object):
         self.send_next_target_to_shootingrange()
         self.send_next_target_to_splitflap()
         splitflaptimer.not_now()
+
         music_send("SHOOTING RANGE")
-        # gui.askquestion("Reminder!","Have you turned on the smoke machine for STEALTH?")
-        # FIND BETTER PLACE reminder for smoke machine -AJ
+        TapeRecorder_play("Shooting Range Instructions")
+
+        # Look at further!! -AJ
+        # if both_guns_active:
+        #     TapeRecorder_play("Shooting Range Instructions")
+        # else:
+        #     TapeRecorder_play("Shooting ONLY 1 GUN")
+
         gui.next_up("Players shoot the targets as advised through SplitFlap\n\n"
                     "Host --> Be ready to register hit if the system glitches", bg="yellow")
 
@@ -987,8 +1026,8 @@ def register_hit_fun():
 MorseSequence = [63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38,
                  25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38, 25, 6, 63, 32, 31, 6, 57, 38, 31, 0, 63, 38]
 
-StopSequence = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+StopSequence = [0b10000000]*50
+
 
 def MorseCompleted(fail=False):
     if progressor.log("Morser"):
@@ -998,6 +1037,7 @@ def MorseCompleted(fail=False):
         StealthDoor.open()
         StealthSensor.send("MonitorTrigger")
         TapeRecorder_play("Stealth Rules")
+        gui_notify("Stealth should start now")
 
 
 def morse_receive(d):
@@ -1017,7 +1057,9 @@ def stealthsensor_receive(d):
         StealthSensor.send("StopMonitoring")
         if not StealthSensorReceivedAlreadyJustShutTheF_UP:
             StealthSensorReceivedAlreadyJustShutTheF_UP = True
+            gui_notify("!!!Stealthsensor_recieve!!!")
             StealthStart()
+
 
 
 StealthSensor.bind(receive=stealthsensor_receive)
@@ -1054,6 +1096,7 @@ def CalibrateStealth():
 
 
 def StealthStart():
+    music_send("STEALTH")
     gui_notify("Stealth Started")
     Stealth.send("SetSequence", Sequence=MorseSequence)
 
@@ -1062,7 +1105,6 @@ def StealthStart():
     StealthSetTempo(1500)
 
     gui.globals.StealthActive = True
-    music_send("STEALTH")
     gui.next_up("Stealth! Host input needed!", bg="red")
     gui.update_hints("Stealth")
 
@@ -1085,12 +1127,15 @@ def StealthTripped(lasernr):
     Sirens.send("SetPin2High")
     gui_notify("Stealth tripped on laser {}".format(lasernr))
 
+
 # testa betur
 def StealthCompleted(fail=False):
-    gui_notify("Stealth Completed", fail=fail, solved=not fail)
-    nextFailButton("Stealth Fail")
-    Stealth.send("SetSequence", Sequence=StopSequence, Tempo=0)
-    nextFailButton("Stealth Fail")
+    if progressor.log("Stealth"):
+        gui_notify("Stealth Completed", fail=fail, solved=not fail)
+        nextFailButton("Stealth Fail")
+        Stealth.send("SetSequence", Sequence=StopSequence)
+        # music_send("LIE DETECTOR COMPLETE")  # holdum bara afram med staelth tonlistina
+
 
 def stealth_receive(d):
     if d['Command'] == 'Triggered':
@@ -1268,12 +1313,14 @@ def mission_fail_callback(event=None):
         result = gui.askquestion("Morse", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             MorseCompleted(fail=True)
-    elif b_text == "Stealth Stop":
-        result = gui.askquestion("StealthStop", "Are you sure you want to stop the stealth lazers?", icon='warning')
-        if result == 'yes':
-            StealthStop()
+    # elif b_text == "Stealth Stop":
+    #     result = gui.askquestion("StealthStop", "Are you sure you want to stop the stealth lazers?", icon='warning')
+    #     if result == 'yes':
+    #         StealthStop()
     elif b_text == "Stealth Fail":
-        gui_notify("Stealth Fail --- Dont know what you want me to do here")
+        result = gui.askquestion("Stealth", "Are you sure want to skip this mission?", icon='warning')
+        if result == 'yes':
+            StealthCompleted(fail=True)
     elif b_text == "TimeBomb Fail":
         gui_notify("TimeBomb Fail --- Dont know what you want me to do here")
     else:

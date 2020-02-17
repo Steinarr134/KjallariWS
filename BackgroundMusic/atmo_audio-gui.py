@@ -58,7 +58,7 @@ snd1.set_volume(0.1)  # Music #1
 snd2.set_volume(0.1)  # Music #2
 snd3.set_volume(0.1)  # Music #3
 snd4.set_volume(0.1)  # Music #4
-snd5.set_volume(0.6)  # Shooting Range Music
+snd5.set_volume(0.8)  # Shooting Range Music
 snd6.set_volume(0.6)  # Stealth Music
 snd7.set_volume(0.9)  # BOMB Music
 snd8.set_volume(0.6)  # WIN Music
@@ -68,7 +68,7 @@ snd11.set_volume(0.15) # Mission 1 factory atmo
 snd12.set_volume(0.25) # mission 2 passport atmo
 snd13.set_volume(0.25) # mission 3 map atmo
 snd14.set_volume(0.9) # elevator atmo
-snd15.set_volume(0.8) # Win sound Mission
+# snd15.set_volume(0.8) # Win sound Mission
 buzzer.set_volume(0.6)  # Timeout buzzer
 buzzer2.set_volume(0.6)  # Short buzzer
 sndWSwin.set_volume(1.0)  # WIN voice-over
@@ -79,7 +79,7 @@ sndCh1.set_volume(0.3)  # value 0.0 - 1.0
 sndCh2.set_volume(0.8)  # value 0.0 - 1.0
 sndCh3.set_volume(1.0)  # value 0.0 - 1.0
 sndCh4.set_volume(0.4)  # value 0.0 - 1.0
-sndCh5.set_volume(1.0)  # value 0.0 - 1.0
+sndCh5.set_volume(0.4)  # value 0.0 - 1.0
 sndCh6.set_volume(1.0)  # value 0.0 - 1.0
 sndCh7.set_volume(1.0)  # value 0.0 - 1.0
 sndCh8.set_volume(1.0)  # value 0.0 - 1.0
@@ -126,7 +126,7 @@ def audio_busy(truefalse):
 
 
 def ElevatorNoise():        # ELEVATOR NOISE, BEFORE ESCAPING ELEVATOR
-    text1.set("")
+    # text1.set("")
     text2.set("Playing:  Elevator atmo")
     text3.set("")
     pygame.mixer.music.load('audio/elevator.ogg')
@@ -139,7 +139,7 @@ def StartAudio():           # BAKGRUNNSHLJÓÐ, footsteps etc
     text1.set("Footsteps playing in background")
     Status3Label.configure(bg=frmbgd)
     sndCh2.set_volume(0.8)
-    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.set_volume(0.6)
     pygame.mixer.music.load("audio/bgndNoise.ogg")
     pygame.mixer.music.play(-1)  # LOOP PLAYBACK
 
@@ -162,6 +162,7 @@ def StartMusic():           # RÆSA SÍSPILANDI BAKGRUNNS-TÓNLIST
 
 
 def MusicUnmute():          # EFTIR LIE DETECTOR / SHOOTING RANGE
+    StartAudio()
     global MusicOn
     text3.set("")
     audio_busy(False)
@@ -280,10 +281,10 @@ def StartMisMap():
     sndCh4.play(snd13)
 
 def WrongAnswer():
-    sndCh4.play(buzzer2)
+    sndCh5.play(buzzer2)
 
-def RightAnswer():
-    sndCh4.play(snd15)
+# def RightAnswer():
+#     sndCh4.play(snd15)
 
 def StartShooting():            # SHOOTING RANGE
     audio_busy(True)
@@ -471,10 +472,10 @@ WrongBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="WRONG 
 pairing["WRONG ANSWER"] = WrongAnswer
 pairing["WRONG ANSWER"] = WrongAnswer
 
-WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="RIGHT ANSWER", fg=btnfg,
-                 bg=btnbg, activebackground=btnactbg, command=RightAnswer)
-pairing["RIGHT ANSWER"] = RightAnswer
-pairing["RIGHT ANSWER"] = RightAnswer
+# WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="RIGHT ANSWER", fg=btnfg,
+#                  bg=btnbg, activebackground=btnactbg, command=RightAnswer)
+# pairing["RIGHT ANSWER"] = RightAnswer
+# pairing["RIGHT ANSWER"] = RightAnswer
 
 killBtn = Button(topFrame, font=("Comic Sans MS", 14, "bold"), text="KILL AUDIO", fg="black",
                  bg="red", activebackground=noAudioBtnactbg, command=KillAudio)

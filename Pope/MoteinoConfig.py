@@ -236,6 +236,7 @@ TimeBomb.add_translation('Command',
                          ("BombActivated", 17004),
                          ("SetOptions", 17005),
                          ("CalibrateSolution", 17006))
+#                           ARIEl
 
 ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],
                                    MoteinoStructs['ShootingRange'],
@@ -285,7 +286,7 @@ WineBox.add_translation("Command",
 # TvPi.add_translation("Command",
 #                      ("PlayFile", 4101))
 
-TvPi = ComplicatedClient("192.168.1.155", 4141)
+TvPi = ComplicatedClient("192.168.1.155", 4141, arglist=["Command", "s"])
 
 
 # TapeRecorder = mynetwork.add_node(MoteinoIDs['TapeRecorder'],
@@ -374,7 +375,8 @@ def moteino_status(device):
     if device == "TvPi":
         answer = TvPi.send_and_receive("Status")
         if answer:
-            return "TvPi is up and running, Now playing: {}".format(answer["s"])
+            # return "TvPi is up and running, Now playing: {}".format(answer["s"])
+            return "TvPi is up and running, Now playing: Duno"
         else:
             return "No answer from " + device
 

@@ -60,6 +60,7 @@ const int SetXplosionTime = 17003;
 const int BombActivated = 17004; 
 const int SetOptions = 17005;
 const int CalibrateSolution = 17006;
+// ARIEL
 
 
 // --------------------------- Pins ------------------------------
@@ -444,6 +445,8 @@ void checkOnRadio()
         break;
       case CalibrateSolution:
         calibrateSolution();
+//       case FSDFSJdf
+			// isChestOpen = true;
       default:
         Serial.print("Received unkown Command: ");
         Serial.println(IncomingData.Command);
