@@ -263,7 +263,10 @@ Elevator.add_translation("Command",
                          ('SolveDoor1', 503),
                          ('SolveDoor2', 504),
                          ('SetActiveDoor', 506),
-                         ('Solved', 507))
+                         ('Solved', 507),
+                         ('PlayHint1', 511),
+                         ('PlayHint2', 512),
+                         ('PlayHint3', 513))
 
 
 WineBoxHolder = mynetwork.add_node(MoteinoIDs['WineBoxHolder'],

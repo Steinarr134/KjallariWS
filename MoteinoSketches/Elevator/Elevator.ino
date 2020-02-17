@@ -36,22 +36,30 @@ const int SolveDoor2 = 504;
 const int OpenDoors = 505;
 const int SetActiveDoor = 506;
 const int Solved = 507;
+const int PlayHint1 = 511;
+const int PlayHint2 = 512;
+const int PlayHint3 = 513;
 
-byte passcode1[4] = {1,2,3,4};
+
+byte passcode1[4] =  {4,1,3,2}; //{1,2,3,4}; //
 byte passcode2[4] = {1,3,4,1}; 
 byte code[4]; 
 
-const int takki1 = 8;//5
-const int takki2 = 9;//6
-const int takki3 = 10;//7
-const int takki4 = 11;//8
+const int takki1 = 7; //8;//5
+const int takki2 = 6; //9;//6
+const int takki3 = 5; //10;//7
+const int takki4 = 4; //11;//8
 
-const int greenled = 14;//11
-const int redled = 13;//10
+const int greenled = A3; // 14;//11
+const int redled = A2;  ;//10
 const int las1 = 19;//3 laus apels
 const int las2 = 16;//13
-const int motor = 20;//4 hvit laus
-const int hljod = 22;
+const int motor = A0; //20;//4 hvit laus
+const int hljod = A1;
+
+const int hint1 = 9;
+const int hint2 = A4;
+const int hint3 = A5;
 
 boolean takki1_OldState;
 boolean takki2_OldState;
@@ -79,12 +87,16 @@ pinMode(takki4, INPUT);
 
 pinMode(greenled, OUTPUT);
 pinMode(redled, OUTPUT);
-pinMode(las1, OUTPUT);
-pinMode(las2, OUTPUT);
 pinMode(motor, OUTPUT);
 pinMode(hljod, OUTPUT);
+pinMode(hint1, OUTPUT);
+pinMode(hint2, OUTPUT);
+pinMode(hint3, OUTPUT);
 
 digitalWrite(hljod, HIGH);
+digitalWrite(hint1, HIGH);
+digitalWrite(hint2, HIGH);
+digitalWrite(hint3, HIGH);
 digitalWrite(redled, HIGH);
 digitalWrite(greenled, LOW);
 digitalWrite(motor, LOW);
@@ -122,12 +134,12 @@ void opna(byte las){
   digitalWrite(greenled, HIGH);    
   digitalWrite(motor, HIGH);
   digitalWrite(hljod, LOW);
-  delay(10);
+  delay(250);
   digitalWrite(hljod, HIGH);
   delayWithRadio(7000);
   digitalWrite(motor, LOW);
   delayWithRadio(1000);
-  digitalWrite(las, HIGH);
+  //digitalWrite(las, HIGH);
   
   resetdoorstime = millis();
   resetdoorsflag = true;
@@ -140,8 +152,8 @@ void resetDoors(){
   }
 }
 void _resetDoors(){
-  digitalWrite(las1, LOW);
-  digitalWrite(las2, LOW);
+  //digitalWrite(las1, LOW);
+  //digitalWrite(las2, LOW);
   digitalWrite(greenled, LOW);       
   digitalWrite(redled, HIGH);
   digitalWrite(motor, LOW);
@@ -270,19 +282,6 @@ void checkOnRadio()
       case SolveDoor2:
         opna(las2);
         break;
-      case OpenDoors:
-        if (IncomingData.ActiveDoor == 1)
-          digitalWrite(las1, HIGH);
-        else if (IncomingData.ActiveDoor == 2)
-          digitalWrite(las2, HIGH);
-        else
-        {
-          digitalWrite(las1, HIGH);
-          digitalWrite(las2, HIGH);
-        }
-        resetdoorsflag = true;
-        resetdoorstime = millis();
-        break;
       case SetPassCode:
         for (byte i = 0; i < 4; i++)
         {
@@ -300,6 +299,21 @@ void checkOnRadio()
           door1active = false;
           door2active = true; 
         }
+        break;
+      case PlayHint1:
+        digitalWrite(hint1, LOW);
+        delay(500);
+        digitalWrite(hint1, HIGH);
+        break;
+      case PlayHint2:
+        digitalWrite(hint2, LOW);
+        delay(500);
+        digitalWrite(hint2, HIGH);
+        break;
+      case PlayHint3:
+        digitalWrite(hint3, LOW);
+        delay(500);
+        digitalWrite(hint3, HIGH);
         break;
       case Reset:
         asm volatile (" jmp 0"); 
@@ -338,4 +352,3 @@ bool sendOutgoingData()
 {
   return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),sizeof(OutgoingData));
 }
-
