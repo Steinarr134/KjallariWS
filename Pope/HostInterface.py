@@ -50,7 +50,10 @@ FailButtonNames = [
     "Shooting Range Fail",
     "Morse Fail",
     "Stealth Fail",
-    "Start TimeBomb"
+    "Start TimeBomb",
+    "ElevatorHint 1",
+    "ElevatorHint 2",
+    "ElevatorHint 3"
 ]
 
 

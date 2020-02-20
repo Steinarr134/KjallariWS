@@ -141,7 +141,6 @@ def initialize_room(player_info={}):
         GreenDude.send("SetPasscode", PassCode=GreenDudeCorrectPassCode)
         LockPicking.send("SetCorrectPickOrder", LockPickCorrectPickOrder)
         gui_notify("Sending pickorder:{}".format(LockPickCorrectPickOrder))
-
         # taperecorder load 1 and pauses
 
         failed = display_status_all_devices()
@@ -162,7 +161,7 @@ def initialize_room(player_info={}):
         DoorController.close_all()
         music_send("KILL AUDIO")
         # Activate elevator noise that will loop until elevator is escaped -AJ
-        music_send("ELEVATOR NOISE")
+        music_send("STARTING ATMO")
 
 
     gui.next_up("Put People in Elevator and they escape into the room", bg="yellow")
@@ -394,7 +393,7 @@ def ElevatorEscaped(fail=False):
 
     if progressor.log("Elevator"):
 
-        ElevatorDoor.open()
+        run_after(ElevatorDoor.open, seconds=10)
         gui.globals.ClockStartTime = time.time()
         gui.globals.ClockHasStarted = True
         logging.debug("starting clock")
@@ -425,7 +424,7 @@ def start_tape():
 
 
 def elevator_receive(d):
-    if d["Command"] == "SolveDoor1":
+    if d["Command"] == "SolveDoor1" or d["Command"] == "Solved":
         ElevatorEscaped()
     else:
         print "elevator receive: " + str(d)
@@ -447,15 +446,16 @@ TapeRecorderIntroMessageStarted = False
 #                      ("b.ogg", 6, "Colored Circles", 0.1),
 #                      ("c.ogg", 18, "Stealth Rules", 0),]
 #
+
 TapeRecorderFiles = [("004_intro_1.ogg", 74,            "Room Intro", 0.1),
                      ("005_intro_2.ogg", 68,            "Room intro (Lockpick finished)", 0.1),
                      ("006_rod.ogg", 21,                "Rod Hint", 0.1),
-                     ("007_lie.ogg", 28,                "Lie Detector Instructions", 0.1),
+                     ("007_lie.ogg", 27,                "Lie Detector Instructions", 0.1),
                      ("008_wine.ogg", 29,               "WineBox Hint", 0.1),
                      ("009_shooting_1.ogg", 16,         "Shooting Range Instructions", 0.1),
                      ("010_shooting_2.ogg", 16,         "Shooting ONLY 1 GUN", 0.0),
                      ("011_stealth.ogg", 17,            "Stealth Rules", 0.0),
-                     ("012_bomb.ogg", 13,               "Bomb Go Boom!!!", 0.0),
+                     ("012_bomb.ogg", 13,               "Bomb Go Boom!!!", 0.2),
                      ("013_success.ogg", 14,            "Successfully Completed", 0.0),
                      ("019_time.ogg", 31,               "Time Ran Out", 2.3),
                      ]
@@ -465,9 +465,7 @@ TapeRecorderFiles = [("004_intro_1.ogg", 74,            "Room Intro", 0.1),
 # ("016_time_5min.ogg", 2.5,  "Timewarning5", 0),
 # ("017_time_3min.ogg", 4,    "XTimewarning3min", 0.01),
 # ("018_time_1min.ogg", 4,    "Timewarning60sek", 0),
-# ("001_lyfta_1.ogg", 9,      "Lyfta 1", 0.1),
-# ("002_lyfta_2.ogg", 7,      "Lyfta 2", 0.0),
-# ("003_lyfta_3.ogg", 4,      "Lyfta 3", 0.0),
+
 
 
 
@@ -490,7 +488,7 @@ def StartTapeRecorderIntroMessage(timeout=False, fail=False):
             nextFailButton("Start TapeRecorder")
             gui.next_up("Players Pick the Lock", bg='green')
             gui.update_hints("LockPicking")
-            print("asdf")
+            # print("asdf")
 
 
 # def PlayLockPickingHint(fail=False):
@@ -589,7 +587,7 @@ def LieDetectorActivated(fail=False):
         gui_notify("Lie Detector Activated", fail=fail, solved=not fail)
         music_send("LIE DETECTOR START")
         BookDrawer.open()
-        time.sleep(5)
+        time.sleep(8)
         TapeRecorder_play("Lie Detector Instructions")
         # run_after(BookDrawer.open, seconds=19.5,)
         LieButtons.send("CorrectLightShow")
@@ -752,6 +750,7 @@ class LieDetectorOperationHandler(object):
                                          self.CurrentScene.CurrentFile), solved=True)
 
                     if self.CurrentScene.Done:
+                        music_send("LIE DETECTOR START")
 
                         time.sleep(5)
                         Send2SplitFlapThread("Mission {}\n Completed".format(self.CurrentScene.N + 1))
@@ -1136,6 +1135,16 @@ def StealthCompleted(fail=False):
         Stealth.send("SetSequence", Sequence=StopSequence)
         # music_send("LIE DETECTOR COMPLETE")  # holdum bara afram med staelth tonlistina
 
+def ElevatorHint(hint):
+    if hint == "1":
+        Elevator.send("PlayHint3")
+        gui_notify("Elevator hint 1 sent - Agents you have everything in your hand")
+    elif hint == "2":
+        Elevator.send("PlayHint1")
+        gui_notify("Elevator hint 2 sent - Agents, you have everything you need and light above")
+    elif hint == "3":
+        Elevator.send("PlayHint2")
+        gui_notify("Elevator hint 3 sent - Push the mirror")
 
 def stealth_receive(d):
     if d['Command'] == 'Triggered':
@@ -1169,6 +1178,7 @@ def BombDiffused():
     gui_notify("Bomb Diffused ", solved=True)
     gui_notify("Room Completed!!!", solved=True)
     music_send("VICTORY")
+    Send2SplitFlapThread("VICTORY!!!")
     FinalExitDoor.open()
     RoomOver()
 
@@ -1176,6 +1186,7 @@ def BombDiffused():
 def BombExploded():
     gui_notify("Bomb Exploded!", fail=True)
     music_send("YOU LOSE")
+    Send2SplitFlapThread("YOURE DEAD...")
     FinalExitDoor.open()
     RoomOver()
 
@@ -1183,6 +1194,7 @@ def BombExploded():
 def TimeRunsOut():
     gui_notify("Time's Up! They have lost. MuHAHAH!", fail=True)
     music_send("OUT OF TIME")
+    Send2SplitFlapThread("GAME OVER...")
     RoomOver()
 
 
@@ -1313,10 +1325,18 @@ def mission_fail_callback(event=None):
         result = gui.askquestion("Morse", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             MorseCompleted(fail=True)
-    # elif b_text == "Stealth Stop":
-    #     result = gui.askquestion("StealthStop", "Are you sure you want to stop the stealth lazers?", icon='warning')
-    #     if result == 'yes':
-    #         StealthStop()
+    elif b_text == "ElevatorHint 1":
+        result = gui.askquestion("ElevatorHint 1", "Are you sure want to give Elevator hint 1?", icon='warning')
+        if result == 'yes':
+            ElevatorHint("1")
+    elif b_text == "ElevatorHint 2":
+        result = gui.askquestion("ElevatorHint 2", "Are you sure want to give Elevator hint 2?", icon='warning')
+        if result == 'yes':
+            ElevatorHint("2")
+    elif b_text == "ElevatorHint 3":
+        result = gui.askquestion("ElevatorHint 3", "Are you sure want to give Elevator hint 3?", icon='warning')
+        if result == 'yes':
+            ElevatorHint("3")
     elif b_text == "Stealth Fail":
         result = gui.askquestion("Stealth", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
