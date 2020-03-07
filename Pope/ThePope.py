@@ -887,6 +887,7 @@ def gundrop_receive(d):
 
 GunDrop.bind(receive=gundrop_receive)
 
+
 # Shooting Range
 
 
@@ -911,6 +912,10 @@ def get_shootingrange_sequence(length):
     return ret
 
 
+
+
+
+
 class ShootingRangeGameClass(object):
     SequenceLength = 7
     #TargetNames = "63SZGKY"
@@ -930,6 +935,7 @@ class ShootingRangeGameClass(object):
     # corrected:
     # N3SZGKY a mismunandi skotskifum
 
+
     def __init__(self):
         #self.TargetSequence = get_shootingrange_sequence(self.SequenceLength)
         self.TargetSequence = [0, 1, 2, 3, 4, 3, 1]
@@ -937,6 +943,7 @@ class ShootingRangeGameClass(object):
         #                 [0, 1, 2, 3, 4,]
         self.hitnr = 0
         self.GameOver = False
+
 
     def start(self):
         self.send_next_target_to_shootingrange()
@@ -954,6 +961,7 @@ class ShootingRangeGameClass(object):
 
         gui.next_up("Players shoot the targets as advised through SplitFlap\n\n"
                     "Host --> Be ready to register hit if the system glitches", bg="yellow")
+
 
     def send_next_target_to_shootingrange(self):
         ShootingRange.send("NewSequence", Sequence=[self.TargetSequence[self.hitnr]]*5)
@@ -988,6 +996,8 @@ class ShootingRangeGameClass(object):
         self.send_next_target_to_splitflap()
         time.sleep(0.3)
         self.send_next_target_to_shootingrange()
+
+
 
     def game_over(self, win=False, lose=False):
         self.GameOver = True
