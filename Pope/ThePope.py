@@ -1,28 +1,22 @@
-import sys
 from datetime import datetime
 outputfile = open(datetime.now().strftime("/home/pope/LogFiles/ThePopeLog__%Y_%d_%m__%H_%M"), 'w+')
-# sys.stdout = outputfile
-# sys.stderr = outputfile
-
 
 from Setup import *
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
-# Initialize Scheduler
 
+# Initialize Scheduler
 scheduler = BackgroundScheduler()
 scheduler.start()
 
-
 # A nice little quick hand function to run something at a later time using the Scheduler.
 def run_after(func, seconds=0., minutes=0.):
-    scheduler.add_job(func,
-                      'date',
-                      run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
+    scheduler.add_job(func, 'date', run_date=datetime.fromtimestamp(time.time() + seconds + 60*minutes))
 
 
 # Configurate logging module
 logging.basicConfig(level=logging.DEBUG)
+
 
 # This is supposed to hold the player info
 CurrentPlayerInfo = perri.get("CurrentPlayerInfo", {})
@@ -30,9 +24,18 @@ CurrentPlayerInfo = perri.get("CurrentPlayerInfo", {})
 """
 TODO:
 
-WinBoxHolder tharf ekki ad opnast i byrjun
+- CLEAN UP
 
-gera thannig ad haegt se ad breyta timanum on the fly
+- Extend time function
+- Play correct bomb sound when bomb starts
+- time remaining sounds into atmo gui
+- FIX atmo gui BUG (starts playing song #2 after x time)
+- IF lockpick is finished, different intro is played
+- FIX SPLIT FLAP BUG, frozen on 6/7 
+- NICE2HAVE -- split flap next target is more obvious
+- OPEN SHOOTING RANGE GUN DEPRTMT from control room
+- NEW GROUP function does not work, look at and fix
+- FIX TVPI RESET BUG
 
 """
 
@@ -188,6 +191,15 @@ def initialize_room(player_info={}):
 
 
 def display_status_all_devices():
+    ret = []
+    for device in Devices:
+        state = display_status(device)
+        time.sleep(0.1)
+        if not state:
+            ret.append(device)
+    return ret
+
+def display_status_all_devices_button(event):
     ret = []
     for device in Devices:
         state = display_status(device)
@@ -967,9 +979,10 @@ class ShootingRangeGameClass(object):
         ShootingRange.send("NewSequence", Sequence=[self.TargetSequence[self.hitnr]]*5)
 
     def send_next_target_to_splitflap(self):
-        # if self.hitnr == 7: Send2SplitFlapThread("{}/{} DONE".format(7,7),time_between=1)
 
-        # else:
+        # mynetwork.send(SplitFlap, "Reset")
+        # print("Worked")
+
         print(self.TargetNames)
         print(self.TargetSequence)
         print(self.hitnr)
@@ -997,15 +1010,18 @@ class ShootingRangeGameClass(object):
         time.sleep(0.3)
         self.send_next_target_to_shootingrange()
 
-
+Send2SplitFlapThread(" ")
 
     def game_over(self, win=False, lose=False):
         self.GameOver = True
         splitflaptimer.ok_now()
         music_send("SHOOTING RANGE DONE")
         if win:
+            time.sleep(0.5)
+            Send2SplitFlapThread("Well Done!")
             ShootingRangeCompleted()
-            Send2SplitFlapThread("Well Done!", time_between=10)
+
+            time.sleep(0.5)
 
         if lose:
             Send2SplitFlapThread("Mission \n Failed")
@@ -1038,6 +1054,10 @@ def register_hit_fun():
     print "register_hit_fun"
     ShootingRangeGame.target_hit()
 
+def register_hit_button(event):
+    if progressor.current_cp() == "WineBox":
+        print "register_hit_fun"
+        ShootingRangeGame.target_hit()
 
 # Morser
 
@@ -1462,10 +1482,17 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
 
 
 gui.ActionMenu.add_command(label="Check All Device Status", command=display_status_all_devices)
+
+# LOOK AT BETTER -AJ
 # gui.ActionMenu.add_command(label="Reset Room")
 gui.ActionMenu.add_command(label="New Group", command=new_group)
 gui.ActionMenu.add_command(label="Edit Group info", command=edit_group_info)
 
+# gui.ActionButtons
+gui.ActionButtonCheckDevice.bind("<Button-1>", display_status_all_devices_button)
+# gui.ActionButtonNewGroup.bind("<Button-1>", xxx)
+# gui.ActionButtonEditGroup.bind("<Button-1>", xxx)
+gui.ActionButtonShootingRangeRegisterHit.bind("<Button-1>", register_hit_button)
 
 if __name__ == "__main__":
     run_after(initialize_room, seconds=1)

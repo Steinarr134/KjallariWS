@@ -53,7 +53,7 @@ FailButtonNames = [
     "Start TimeBomb",
     "ElevatorHint 1",
     "ElevatorHint 2",
-    "ElevatorHint 3"
+    "ElevatorHint 3",
 ]
 
 
@@ -128,6 +128,38 @@ Actions = ["Check All Device Status",
            "Reset Room",
            "New Group"]
 
+
+#Action buttons
+ActionButtonFrame = tk.Frame(width=50)
+ActionButtons = []
+
+ActionButtonLabel = tk.Label(ActionButtonFrame, text="Main Actions", font="Verdana, 10 bold", pady=8)
+ActionButtonLabel.pack()
+
+ActionButtonCheckDevice = tk.Button(ActionButtonFrame,text="Check All Device Status")
+ActionButtonCheckDevice.pack()
+
+ActionButtonNewGroup = tk.Button(ActionButtonFrame, text="New Group")
+ActionButtonNewGroup.pack()
+
+ActionButtonEditGroup = tk.Button(ActionButtonFrame, text="Edit Group")
+ActionButtonEditGroup.pack()
+
+# ActionButtonEditGroup = tk.Button(ActionButtonFrame, text="Reset Room")
+# ActionButtonEditGroup.pack()
+
+ActionButtonShootingRangeRegisterHit = tk.Button(ActionButtonFrame, text="Register Hit!")
+ActionButtonShootingRangeRegisterHit.pack()
+
+ActionButtons.append(ActionButtonCheckDevice)
+ActionButtons.append(ActionButtonNewGroup)
+ActionButtons.append(ActionButtonEditGroup)
+ActionButtons.append(ActionButtonShootingRangeRegisterHit)
+
+ActionButtonFrame.place(x=10, y=120)
+
+# ActionButtons = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
+
 DeviceMenu = tk.Menu(Menu, tearoff=False)
 Menu.add_cascade(label="Devices", menu=DeviceMenu)
 for device in Devices:
@@ -137,16 +169,21 @@ for device in Devices:
 
 
 # SplitFlap
-SplitFlapEntry = tk.Text(top, bd=5, width=20, height=5, font="Verdana 16")
-SplitFlapEntry.place(x=50, y=100)
+# SplitFlapEntryFrame = tk.Frame(relief=tk.RIDGE)
+# SplitFlapEntryFrame.place(x=10, y=130)
+# SplitFlapEntryFrame.pack()
+SplitFlapLabel = tk.Label(text="Splitflap Hint Text:", font="Verdana, 10 bold")
+SplitFlapLabel.place(x=15, y=300)
+SplitFlapEntry = tk.Text(bd=3, width=20, height=5, font="Verdana 16")
+SplitFlapEntry.place(x=15, y=330)
 SplitFlapEntryButton = tk.Button(top, text="Send hint")
-SplitFlapEntryButton.place(x=325, y=150)
+SplitFlapEntryButton.place(x=325, y=340)
 SplitFlapEntryClearButton = tk.Button(top, text="Clear")
-SplitFlapEntryClearButton.place(x=325, y=200)
+SplitFlapEntryClearButton.place(x=325, y=380)
 SplitFlapDisplayLabel = tk.Label(top,
                                  text="Now displaying: '           '",
                                  font="Verdana 12 bold")
-SplitFlapDisplayLabel.place(x=50, y=250)
+SplitFlapDisplayLabel.place(x=15, y=480)
 
 
 def clear_split_flap_entry(event=None):
@@ -185,7 +222,7 @@ ProgressPlotBaseLine = cumsum([0,
                                10*60,  # Stealth
                                5*60])  # Bomb
 ProgressPlotCanvas = FigureCanvasTkAgg(ProgressPlotFigure, master=top)
-ProgressPlotCanvas.get_tk_widget().place(x=25, y=300)
+ProgressPlotCanvas.get_tk_widget().place(x=25, y=700)
 
 
 def update_progress_plot(times):
@@ -214,7 +251,7 @@ LogTextWidget.tag_configure("fail", foreground="#ff9900", font="helvetica 10 bol
 # b1 = tk.Button()
 
 GreenDudeCanvas = tk.Canvas(top, height=200, width=400, bg='green4')
-GreenDudeCanvas.place(x=25, y=525)
+GreenDudeCanvas.place(x=25, y=875)
 GreenDudePositions = []
 for i in range(7):
     column = []
@@ -252,11 +289,13 @@ def GreenDudeSetColors(positions):
 
 # TapeRecorderControls
 TapeRecorderFrame = tk.Frame()
+TapeRecorderLabel= tk.Label(TapeRecorderFrame, text="TapeRec Actions", font="Verdana, 10 bold", pady=8)
+TapeRecorderLabel.pack()
 TapeRecorderPlayButton = tk.Button(TapeRecorderFrame, text="Play")
 TapeRecorderPlayButton.pack()
 TapeRecorderPauseButton = tk.Button(TapeRecorderFrame, text="Pause")
 TapeRecorderPauseButton.pack()
-TapeRecorderFrame.place(x=50, y=15)
+TapeRecorderFrame.place(x=10, y=20)
 
 
 NotifyQ = Queue.Queue()
@@ -322,6 +361,8 @@ HintLoader = HintLoaderClass("hints.txt")
 HintFrame = tk.Frame(top)
 HintFrame.place(x=400, y=400)
 HintButtons = []
+
+
 
 
 def create_hint_buttons(hints):
@@ -473,6 +514,7 @@ if __name__ == "__main__":
 
     for submenu in DeviceSubmenus:
         submenu.add_command(label="example")
+
 
     GreenDudeSetColors([1, 1, 0, 0, 255, 255, 255])
 
