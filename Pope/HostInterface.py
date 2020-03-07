@@ -49,7 +49,7 @@ FailButtonNames = [
     "Open WineBox",
     "Shooting Range Fail",
     "Morse Fail",
-    "Stealth Fail",
+    "Stealth Finish",
     "Start TimeBomb",
     "ElevatorHint 1",
     "ElevatorHint 2",

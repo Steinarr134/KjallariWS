@@ -413,8 +413,9 @@ def ElevatorEscaped(fail=False):
         run_after(start_music, seconds=0.5)
         gui.update_hints("Start Lie Detector")
 
-        # starts first hint after 3 minutes -AJ
+        # starts first hint after 5 minutes -AJ
         run_after(start_tape, seconds=60*5)
+        # run_after(music_send("TenMin"), seconds=60)
 
 def start_tape():
 
@@ -447,16 +448,16 @@ TapeRecorderIntroMessageStarted = False
 #                      ("c.ogg", 18, "Stealth Rules", 0),]
 #
 
-TapeRecorderFiles = [("004_intro_1.ogg", 74,            "Room Intro", 0.1),
-                     ("005_intro_2.ogg", 68,            "Room intro (Lockpick finished)", 0.1),
-                     ("006_rod.ogg", 21,                "Rod Hint", 0.1),
-                     ("007_lie.ogg", 27,                "Lie Detector Instructions", 0.1),
-                     ("008_wine.ogg", 29,               "WineBox Hint", 0.1),
-                     ("009_shooting_1.ogg", 16,         "Shooting Range Instructions", 0.1),
-                     ("010_shooting_2.ogg", 16,         "Shooting ONLY 1 GUN", 0.0),
-                     ("011_stealth.ogg", 17,            "Stealth Rules", 0.0),
-                     ("012_bomb.ogg", 13,               "Bomb Go Boom!!!", 0.2),
-                     ("013_success.ogg", 14,            "Successfully Completed", 0.0),
+TapeRecorderFiles = [("004_intro_1.ogg", 76,            "Room Intro", 0.0),
+                     ("005_intro_2.ogg", 70,            "Room intro (Lockpick finished)", 0.0),
+                     ("006_rod.ogg", 23,                "Rod Hint", 0.0),
+                     ("007_lie.ogg", 29,                "Lie Detector Instructions", 0.0),
+                     ("008_wine.ogg", 31,               "WineBox Hint", 0.0),
+                     ("009_shooting_1.ogg", 18,         "Shooting Range Instructions", 0.0),
+                     ("010_shooting_2.ogg", 18,         "Shooting ONLY 1 GUN", 0.0),
+                     ("011_stealth.ogg", 19,            "Stealth Rules", 0.0),
+                     ("012_bomb.ogg", 15,               "Bomb Go Boom!!!", 0.0),
+                     ("013_success.ogg", 16,            "Successfully Completed", 0.0),
                      ("019_time.ogg", 31,               "Time Ran Out", 2.3),
                      ]
 
@@ -958,10 +959,18 @@ class ShootingRangeGameClass(object):
         ShootingRange.send("NewSequence", Sequence=[self.TargetSequence[self.hitnr]]*5)
 
     def send_next_target_to_splitflap(self):
+        # if self.hitnr == 7: Send2SplitFlapThread("{}/{} DONE".format(7,7),time_between=1)
+
+        # else:
+        print(self.TargetNames)
+        print(self.TargetSequence)
+        print(self.hitnr)
         Send2SplitFlapThread("{}/{}  next:{}".format(self.hitnr,
-                                                     self.SequenceLength,
-                                                     self.TargetNames[self.TargetSequence[self.hitnr]]),
-                             time_between=None)
+                                                 self.SequenceLength,
+                                                 self.TargetNames[self.TargetSequence[self.hitnr]]),
+                         time_between=None)
+
+
 
     def target_hit(self):
         target = self.TargetNames[self.TargetSequence[self.hitnr]]
@@ -1034,7 +1043,10 @@ def MorseCompleted(fail=False):
         nextFailButton("Morse Fail")
         # TvPi.send("")
         StealthDoor.open()
-        StealthSensor.send("MonitorTrigger")
+        StealthStart()
+
+        # Skip stealth sensor
+        # StealthSensor.send("MonitorTrigger")
         TapeRecorder_play("Stealth Rules")
         gui_notify("Stealth should start now")
 
@@ -1057,7 +1069,7 @@ def stealthsensor_receive(d):
         if not StealthSensorReceivedAlreadyJustShutTheF_UP:
             StealthSensorReceivedAlreadyJustShutTheF_UP = True
             gui_notify("!!!Stealthsensor_recieve!!!")
-            StealthStart()
+            # StealthStart()
 
 
 
@@ -1107,7 +1119,6 @@ def StealthStart():
     gui.next_up("Stealth! Host input needed!", bg="red")
     gui.update_hints("Stealth")
 
-
 def StealthButton(press):
     if press == "Button1Press":
         Stealth.send("SetSequence", Sequence=MorseSequence, Tempo=Stealth.Tempo)
@@ -1131,7 +1142,7 @@ def StealthTripped(lasernr):
 def StealthCompleted(fail=False):
     if progressor.log("Stealth"):
         gui_notify("Stealth Completed", fail=fail, solved=not fail)
-        nextFailButton("Stealth Fail")
+        nextFailButton("Stealth Finish")
         Stealth.send("SetSequence", Sequence=StopSequence)
         # music_send("LIE DETECTOR COMPLETE")  # holdum bara afram med staelth tonlistina
 
@@ -1168,7 +1179,7 @@ def BombActivated():
     music_send("BOMB!!!")
     seconds = int(TimeLeft) % 60
     seconds = "0" + str(seconds) if len(str(seconds)) == 1 else str(seconds)
-
+    music_send()
     Send2SplitFlapThread("Time left\n {}:{}".format(int(TimeLeft/60), seconds))
     gui.next_up("Bomb Active, Host --> keep up the Stealth duties", bg="red")
     gui.update_hints("Bomb")
@@ -1337,7 +1348,7 @@ def mission_fail_callback(event=None):
         result = gui.askquestion("ElevatorHint 3", "Are you sure want to give Elevator hint 3?", icon='warning')
         if result == 'yes':
             ElevatorHint("3")
-    elif b_text == "Stealth Fail":
+    elif b_text == "Stealth Finish":
         result = gui.askquestion("Stealth", "Are you sure want to skip this mission?", icon='warning')
         if result == 'yes':
             StealthCompleted(fail=True)

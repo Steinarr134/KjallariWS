@@ -37,6 +37,8 @@ buzzer2 = pygame.mixer.Sound('audio/buzzer1s.ogg')
 sndWSwin = pygame.mixer.Sound('audio/voWin.ogg')
 sndWSLose = pygame.mixer.Sound('audio/voLose.ogg')
 sndWStimeout = pygame.mixer.Sound('audio/voTimeOut.ogg')
+snd16 = pygame.mixer.Sound('audio/10min.ogg')
+
 
 
 
@@ -125,9 +127,9 @@ def audio_busy(truefalse):
         playMusic()
 
 
-def ElevatorNoise():        # ELEVATOR NOISE, BEFORE ESCAPING ELEVATOR
+def StartingAtmo():        # ELEVATOR NOISE, BEFORE ESCAPING ELEVATOR
     # text1.set("")
-    text2.set("Playing:  Elevator atmo")
+    text2.set("Playing:  Starting atmo")
     text3.set("")
     pygame.mixer.music.load('audio/elevator.ogg')
     pygame.mixer.music.set_volume(1.3)
@@ -283,6 +285,9 @@ def StartMisMap():
 def WrongAnswer():
     sndCh5.play(buzzer2)
 
+# def TenMin():
+#     sndCh5.play(snd16)
+
 # def RightAnswer():
 #     sndCh4.play(snd15)
 
@@ -401,10 +406,10 @@ pairing["StartLie"] = StartLie
 pairing["LIE DETECTOR START"] = StartLie
 
 #elevator button
-ElevatorBtn = Button(topFrame, font=("Comic Sans MS", 14), text="ELEVATOR NOISE", fg=btnfg,
-                  bg=btnbg, activebackground=btnactbg, command=ElevatorNoise)
-pairing["ElevatorNoise"] = ElevatorNoise
-pairing["ELEVATOR NOISE"] = ElevatorNoise
+StartingAtmoBtn = Button(topFrame, font=("Comic Sans MS", 14), text="STARTING ATMO", fg=btnfg,
+                  bg=btnbg, activebackground=btnactbg, command=StartingAtmo)
+pairing["STARTING ATMO"] = StartingAtmo
+pairing["STARTING ATMO"] = StartingAtmo
 
 #MISSION 1: FACTORY
 Mission1Btn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="MISSION 1 FACTORY START", fg=btnfg,
@@ -472,6 +477,12 @@ WrongBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="WRONG 
 pairing["WRONG ANSWER"] = WrongAnswer
 pairing["WRONG ANSWER"] = WrongAnswer
 
+# TenMinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="10 Min left", fg=btnfg,
+#                  bg=btnbg, activebackground=btnactbg, command=TenMin)
+# pairing["WRONG ANSWER"] = TenMin
+# pairing["WRONG ANSWER"] = TenMin
+
+
 # WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="RIGHT ANSWER", fg=btnfg,
 #                  bg=btnbg, activebackground=btnactbg, command=RightAnswer)
 # pairing["RIGHT ANSWER"] = RightAnswer
@@ -481,6 +492,7 @@ killBtn = Button(topFrame, font=("Comic Sans MS", 14, "bold"), text="KILL AUDIO"
                  bg="red", activebackground=noAudioBtnactbg, command=KillAudio)
 pairing["KillAudio"] = KillAudio
 pairing["KILL AUDIO"] = KillAudio
+
 
 mussik = Label(root, font=('times', 20, 'bold'), bg='green')
 
@@ -492,7 +504,7 @@ StatusLabel.pack(side=BOTTOM,)
 StartBtn.pack(side=TOP, anchor=W, fill=X, expand=YES)
 killBtn.pack(side=LEFT, fill=X, expand=YES)
 MusicBtn.pack(side=TOP)
-ElevatorBtn.pack(side=TOP)
+StartingAtmoBtn.pack(side=TOP)
 LieBtn.pack(side=TOP)
 Mission1Btn.pack(side=TOP)
 Mission2Btn.pack(side=TOP)
@@ -507,6 +519,7 @@ LoseBtn.pack(side=BOTTOM)
 WrongBtn.pack(side=BOTTOM)
 WinBtn.pack(side=BOTTOM)
 TimeBtn.pack(side=BOTTOM)
+# TenMinBtn.pack(side=BOTTOM)
 
 
 def playMusic():                # SONG QUEUE

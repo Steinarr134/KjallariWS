@@ -40,15 +40,14 @@ const int PlayHint1 = 511;
 const int PlayHint2 = 512;
 const int PlayHint3 = 513;
 
-
 byte passcode1[4] =  {4,1,3,2}; //{1,2,3,4}; //
 byte passcode2[4] = {1,3,4,1}; 
 byte code[4]; 
 
-const int takki1 = 7; //8;//5
-const int takki2 = 6; //9;//6
-const int takki3 = 5; //10;//7
-const int takki4 = 4; //11;//8
+const int takki1 = 4; //8;//5
+const int takki2 = 5; //9;//6
+const int takki3 = 6; //10;//7
+const int takki4 = 7; //11;//8
 
 const int greenled = A3; // 14;//11
 const int redled = A2;  ;//10
@@ -80,10 +79,10 @@ boolean resetdoorsflag = false;
 void setup(){
 //Serial.begin(9600);
 
-pinMode(takki1, INPUT);
-pinMode(takki2, INPUT);
-pinMode(takki3, INPUT);
-pinMode(takki4, INPUT);
+pinMode(takki1, INPUT_PULLUP);
+pinMode(takki2, INPUT_PULLUP);
+pinMode(takki3, INPUT_PULLUP);
+pinMode(takki4, INPUT_PULLUP);
 
 pinMode(greenled, OUTPUT);
 pinMode(redled, OUTPUT);
@@ -131,18 +130,27 @@ void solve(byte las){
 
 void opna(byte las){
   digitalWrite(redled, LOW);
-  digitalWrite(greenled, HIGH);    
-  digitalWrite(motor, HIGH);
+  digitalWrite(greenled, HIGH);  
+    
+  digitalWrite(motor, HIGH); // motor ON
+  
   digitalWrite(hljod, LOW);
   delay(250);
   digitalWrite(hljod, HIGH);
+  
   delayWithRadio(7000);
   digitalWrite(motor, LOW);
-  delayWithRadio(1000);
+  delayWithRadio(2000);
+  digitalWrite(hljod, HIGH);
+  
+  delayWithRadio(2000);
+  digitalWrite(motor, LOW);
+  delayWithRadio(3000);
   //digitalWrite(las, HIGH);
   
   resetdoorstime = millis();
   resetdoorsflag = true;
+
 }
 
 void resetDoors(){
@@ -225,7 +233,8 @@ void loop(){
       code[state] = takki;
       state++;
     }
-    else if(takki != 0) state = 0;
+    else if(takki != 0)
+    	state = 0;
     
     if(state == 4){
       state = 0;
