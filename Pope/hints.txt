@@ -28,19 +28,19 @@ GreenDude
 	In the\windowsill
 
 Rod
-	Useless\hint
+	ROD
 
 LieDetector
-	afslf
+	ACT!
 
 Wine Box
-	dlfg
+	TURN IT\AROUND
 
 Stealth
 	2 buttons
 
 Bomb
-	dlæf
+	Hurry!
 
 Shooting Range
 	Shootstuff

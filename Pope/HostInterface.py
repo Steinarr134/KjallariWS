@@ -22,11 +22,16 @@ class GlobalValues(object):
 
 
 globals = GlobalValues()
+frmbgd = "lightsteelblue4" #Backgroundcolor
 
 
 top = tk.Tk()
-top.attributes("-fullscreen", True)
-# top.withdraw()
+# top.attributes("-fullscreen", True)
+top.geometry("1400x1200")
+top.configure(bg=frmbgd)
+top.title('The Pope 1.1')
+
+frmbgd = "light slate gray"   # Background colour
 
 """
 To Do in this skjal
@@ -110,6 +115,12 @@ def player_info(exit_button_callback, info={}):
         # top.deiconify()
         ret_player_info = {"NofPlayers": int(number_of_players_entry.get().strip()),
                            "more info": "some info"}
+
+        PlayersFrame.config(background="goldenrod")
+        PlayersLabel.config(background="goldenrod")
+        PlayersLabel1.config(background="goldenrod")
+        NumberOfPlayersLabel.config(bg="goldenrod", fg="white", text=ret_player_info["NofPlayers"])
+
         window.destroy()
         exit_button_callback(ret_player_info)
 
@@ -130,10 +141,10 @@ Actions = ["Check All Device Status",
 
 
 #Action buttons
-ActionButtonFrame = tk.Frame(width=50)
+ActionButtonFrame = tk.Frame(width=50, background="goldenrod")
 ActionButtons = []
 
-ActionButtonLabel = tk.Label(ActionButtonFrame, text="Main Actions", font="Verdana, 10 bold", pady=8)
+ActionButtonLabel = tk.Label(ActionButtonFrame, background="goldenrod", text="Main Actions", font="Verdana, 10 bold", pady=8)
 ActionButtonLabel.pack()
 
 ActionButtonCheckDevice = tk.Button(ActionButtonFrame,text="Check All Device Status")
@@ -158,6 +169,19 @@ ActionButtons.append(ActionButtonShootingRangeRegisterHit)
 
 ActionButtonFrame.place(x=10, y=120)
 
+PlayersFrame = tk.Frame(width=100, background="red")
+PlayersFrame.pack()
+PlayersFrame.place(x=200, y=120)
+PlayersLabel = tk.Label(PlayersFrame, background="red", text="Players Info", font="Verdana, 14 bold", pady=8)
+PlayersLabel.pack()
+PlayersLabel1 = tk.Label(PlayersFrame, background="red", text="Number of Players:", font="Verdana, 10 bold")
+PlayersLabel1.pack()
+NumberOfPlayersLabel = tk.Label(PlayersFrame, bg="red", fg="white", text="Unknown",
+                       font="Verdana 10 bold")
+NumberOfPlayersLabel.pack()
+
+
+
 # ActionButtons = tk.Frame(top, bd=5, relief=tk.RIDGE, padx=2, pady=2)
 
 DeviceMenu = tk.Menu(Menu, tearoff=False)
@@ -172,17 +196,18 @@ for device in Devices:
 # SplitFlapEntryFrame = tk.Frame(relief=tk.RIDGE)
 # SplitFlapEntryFrame.place(x=10, y=130)
 # SplitFlapEntryFrame.pack()
-SplitFlapLabel = tk.Label(text="Splitflap Hint Text:", font="Verdana, 10 bold")
+SplitFlapLabel = tk.Label(text="Splitflap Hint Text:",fg="white", font="Verdana, 10 bold", background="lightsteelblue4")
 SplitFlapLabel.place(x=15, y=300)
 SplitFlapEntry = tk.Text(bd=3, width=20, height=5, font="Verdana 16")
 SplitFlapEntry.place(x=15, y=330)
-SplitFlapEntryButton = tk.Button(top, text="Send hint")
+SplitFlapEntryButton = tk.Button(top, bg="green", text="Send hint")
 SplitFlapEntryButton.place(x=325, y=340)
 SplitFlapEntryClearButton = tk.Button(top, text="Clear")
 SplitFlapEntryClearButton.place(x=325, y=380)
 SplitFlapDisplayLabel = tk.Label(top,
                                  text="Now displaying: '           '",
-                                 font="Verdana 12 bold")
+                                 fg="white", font="Verdana 12 bold", background="lightsteelblue4"
+                                 )
 SplitFlapDisplayLabel.place(x=15, y=480)
 
 
@@ -236,8 +261,8 @@ def update_progress_plot(times):
 
 
 # Log Text
-LogTextWidget = tk.Text(top, height=20, width=75, font="helvetica 10")
-LogTextWidget.place(x=500, y=25)
+LogTextWidget = tk.Text(top, height=25, width=60, font="helvetica 12")
+LogTextWidget.place(x=450, y=25)
 LogTextWidget.insert('end', " System starting...")
 LogTextWidget['state'] = 'disabled'
 LogTextWidget.tag_configure("warning", foreground="#ff0000", font="helvetica 10 bold")
@@ -288,8 +313,8 @@ def GreenDudeSetColors(positions):
                 GreenDudeCanvas.itemconfig(GreenDudeCircles[i][j], fill="green4")
 
 # TapeRecorderControls
-TapeRecorderFrame = tk.Frame()
-TapeRecorderLabel= tk.Label(TapeRecorderFrame, text="TapeRec Actions", font="Verdana, 10 bold", pady=8)
+TapeRecorderFrame = tk.Frame(background="lightblue3")
+TapeRecorderLabel= tk.Label(TapeRecorderFrame, background="lightblue3", text="TapeRec Actions", font="Verdana, 10 bold", pady=8)
 TapeRecorderLabel.pack()
 TapeRecorderPlayButton = tk.Button(TapeRecorderFrame, text="Play")
 TapeRecorderPlayButton.pack()
@@ -408,13 +433,14 @@ def hint_callback(event):
 
 
 # Next Up
-NextUpFrame = tk.Frame(top)
-NextUpFrame.place(x=800, y=500)
-NextUpStaticLabel = tk.Label(NextUpFrame, text="Next up:", font="Verdana, 20 bold")
+NextUpFrame = tk.Frame(top, background="yellow2")
+NextUpFrame.place(x=500, y=550)
+
+NextUpStaticLabel = tk.Label(NextUpFrame, text="Next up:", font="Verdana, 20 bold", bg="yellow2")
 NextUpStaticLabel.pack()
-NextUpInsideFrame = tk.Frame(NextUpFrame, bd=5, relief=tk.RIDGE, padx=2, pady=2)
+NextUpInsideFrame = tk.Frame(NextUpFrame, bd=5, relief=tk.RIDGE, padx=2, pady=2, bg="white")
 NextUpInsideFrame.pack()
-NextUpLabel = tk.Label(NextUpInsideFrame, text="The Pope needs to complete the initialization",
+NextUpLabel = tk.Label(NextUpInsideFrame, bg="azure2", text="The Pope needs to complete the initialization",
                        font="Verdana 14 bold")
 NextUpLabel.pack()
 NextUpQ = Queue.Queue()
@@ -441,8 +467,8 @@ def next_up(text, bg="green"):
 
 # Resend
 
-ResendButton = tk.Button(top, text="\n    Resend!!!    \n", font="Verdana 28 bold")
-ResendButton.place(x=800, y=1000)
+ResendButton = tk.Button(top, bg="OrangeRed2", text="\n    Resend!!!    \n", font="Verdana 28 bold")
+ResendButton.place(x=500, y=900)
 
 
 def _resend_callback(event):

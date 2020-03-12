@@ -5,6 +5,8 @@ import time
 from Tkinter import *
 import tkMessageBox
 
+#http://www.science.smith.edu/dftwiki/images/3/3d/TkInterColorCharts.png
+
 pygame.init()
 sngtime = 0
 sngtime2 = 0
@@ -38,10 +40,10 @@ sndWSwin = pygame.mixer.Sound('audio/voWin.ogg')
 sndWSLose = pygame.mixer.Sound('audio/voLose.ogg')
 sndWStimeout = pygame.mixer.Sound('audio/voTimeOut.ogg')
 snd16 = pygame.mixer.Sound('audio/10min.ogg')
-
-
-
-
+snd17 = pygame.mixer.Sound('audio/5min.ogg')
+snd18 = pygame.mixer.Sound('audio/3min.ogg')
+snd19 = pygame.mixer.Sound('audio/1min.ogg')
+snd20 = pygame.mixer.Sound('audio/bombStart.ogg')
 
 
 # ---------------------SET UP AUDIO CHANNELS ---------------------#
@@ -86,16 +88,16 @@ sndCh6.set_volume(1.0)  # value 0.0 - 1.0
 sndCh7.set_volume(1.0)  # value 0.0 - 1.0
 sndCh8.set_volume(1.0)  # value 0.0 - 1.0
 
-frmbgd = "dim gray"   # Background colour
+frmbgd = "light slate gray"   # Background colour
 btnfg = "black"       # Button text color
-btnbg = "ivory2"      # Button background color
-btnactbg = "gold"     # Button color when mouse over
+btnbg = "white smoke"      # Button background color
+btnactbg = "light goldenrod"     # Button color when mouse over
 noAudioBtnactbg = "tomato"
 
 # --------------------------------------------------------------------------------- #
 root = Tk()
 root.title('CAMP-Z AUDIO')                  # Window title
-root.geometry("500x550")                    # Window size
+root.geometry("500x700")                    # Window size
 root.configure(bg=frmbgd)                   # Window fill color
 root.resizable(width=False, height=False)   # Window not resizable
 
@@ -147,6 +149,8 @@ def StartAudio():           # BAKGRUNNSHLJÓÐ, footsteps etc
 
 
 def StartMusic():           # RÆSA SÍSPILANDI BAKGRUNNS-TÓNLIST
+    print("Started music without asked!")
+
     global MusicOn
     global sngtime
     text2.set("Playing:  Song #1")
@@ -158,9 +162,6 @@ def StartMusic():           # RÆSA SÍSPILANDI BAKGRUNNS-TÓNLIST
     sndCh2.play(snd1)
     sngtime = time.time()
     audio_busy(False)
-
-
-
 
 
 def MusicUnmute():          # EFTIR LIE DETECTOR / SHOOTING RANGE
@@ -175,7 +176,6 @@ def MusicUnmute():          # EFTIR LIE DETECTOR / SHOOTING RANGE
     sndCh8.stop()
     sndCh4.stop()
     StartMusic()
-
 
     if MusicOn == 1:
         text2.set("Playing:  Song #1")
@@ -217,30 +217,14 @@ def StartLie():             # LIE DETECTOR START
 
     sndCh4.stop()
     StartMusic()
-    #Status3Label.configure(bg="red")
-    #text3.set("ALL MUTED")
-
-    #audio_busy(True)
-    #text3.set("")
 
     # -------- FADE-OUT -------------- #
     sndCh2.set_volume(0.5)
     time.sleep(0.2)
-    #pygame.mixer.music.set_volume(0.0)
     sndCh2.set_volume(0.4)
     time.sleep(0.2)
     sndCh2.set_volume(0.3)
-    #audio_busy(True)
-    #sndCh4.play(snd10)
 
-    #time.sleep(0.2)
-    #sndCh2.set_volume(0.2)
-    #time.sleep(0.2)
-    #sndCh2.set_volume(0.1)
-    #time.sleep(0.2)
-    #sndCh2.set_volume(0.0)
-    #time.sleep(0.2)
-    #sndCh8.play(snd10)
 
 #MISSION 1: FACTORY
 def StartMisFact():
@@ -249,9 +233,6 @@ def StartMisFact():
     text3.set("")
     audio_busy(True)
     pygame.mixer.music.set_volume(0.0)
-    #sndCh2.set_volume(0.4)
-    #pygame.mixer.music.set_volume(0.0)
-    #sndCh2.set_volume(0.0)
     sndCh4.play(snd11)
     sndCh2.stop()
 
@@ -263,9 +244,6 @@ def StartMisPass():
     text3.set("")
     audio_busy(True)
     pygame.mixer.music.set_volume(0.0)
-    #sndCh2.set_volume(0.4)
-    #pygame.mixer.music.set_volume(0.0)
-    #sndCh2.set_volume(0.0)
     sndCh4.play(snd12)
     sndCh2.stop()
 
@@ -276,20 +254,26 @@ def StartMisMap():
     text3.set("")
     audio_busy(True)
     pygame.mixer.music.set_volume(0.0)
-    #sndCh2.set_volume(0.4)
-    #pygame.mixer.music.set_volume(0.0)
-    #sndCh2.set_volume(0.0)
     sndCh2.stop()
     sndCh4.play(snd13)
 
 def WrongAnswer():
     sndCh5.play(buzzer2)
 
-# def TenMin():
-#     sndCh5.play(snd16)
+def TenMin():
+    sndCh5.play(snd16)
 
-# def RightAnswer():
-#     sndCh4.play(snd15)
+def FiveMin():
+    sndCh5.play(snd17)
+
+def ThreeMin():
+    sndCh5.play(snd18)
+
+def OneMin():
+    sndCh5.play(snd19)
+
+def BombStart():
+    sndCh5.play(snd20)
 
 def StartShooting():            # SHOOTING RANGE
     audio_busy(True)
@@ -381,114 +365,123 @@ def KillAudio():                # KILL ALL AUDIO
 
 pairing = {}
 
-
-StatusLabel = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text1, fg="black", bg=frmbgd)
-Status2Label = Label(bottomFrame, font=("Comic Sans MS", 14), textvariable=text2, fg="black", bg=frmbgd)
+StatusLabel = Label(bottomFrame, font=("Arial", 14), textvariable=text1, fg="black", bg=frmbgd)
+Status2Label = Label(bottomFrame, font=("Arial", 14), textvariable=text2, fg="black", bg=frmbgd)
 Status3Label = Label(bottomFrame, font=("Arial", 16, "bold"), textvariable=text3, fg="black")
 
 
-
-
-
-StartBtn = Button(topFrame, font=("Comic Sans MS", 14), text="BACKGROUND NOISE", fg=btnfg,
+StartBtn = Button(topFrame, font=("Arial", 14), text="BACKGROUND NOISE", fg=btnfg,
                   bg=btnbg, activebackground=btnactbg, command=StartAudio)
 pairing["StartAudio"] = StartAudio
 pairing["BACKGROUND NOISE"] = StartAudio
 
-MusicBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="START/RESTART MUSIC", fg=btnfg,
+MusicBtn = Button(leftFrame, font=("Arial", 14), width=24, text="START/RESTART MUSIC", fg=btnfg,
                   bg=btnbg, activebackground=btnactbg, command=StartMusic)
 pairing["StartMusic"] = StartMusic
 pairing["START/RESTART MUSIC"] = StartMusic
 
-LieBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR START", fg=btnfg,
+LieBtn = Button(leftFrame, font=("Arial", 14), width=24, text="LIE DETECTOR START", fg=btnfg,
                 bg=btnbg, activebackground=btnactbg, command=StartLie)
 pairing["StartLie"] = StartLie
 pairing["LIE DETECTOR START"] = StartLie
 
 #elevator button
-StartingAtmoBtn = Button(topFrame, font=("Comic Sans MS", 14), text="STARTING ATMO", fg=btnfg,
+StartingAtmoBtn = Button(topFrame, font=("Arial", 14), text="STARTING ATMO", fg=btnfg,
                   bg=btnbg, activebackground=btnactbg, command=StartingAtmo)
 pairing["STARTING ATMO"] = StartingAtmo
 pairing["STARTING ATMO"] = StartingAtmo
 
 #MISSION 1: FACTORY
-Mission1Btn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="MISSION 1 FACTORY START", fg=btnfg,
+Mission1Btn = Button(leftFrame, font=("Arial", 14), width=24, text="MISSION 1 FACTORY START", fg=btnfg,
                 bg=btnbg, activebackground=btnactbg, command=StartMisFact)
 pairing["StartMisFact"] = StartMisFact
 pairing["MISSION 1 FACTORY START"] = StartMisFact
 
 #MISSION 2: PASSPORT
-Mission2Btn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="MISSION 2 PASSPORT START", fg=btnfg,
+Mission2Btn = Button(leftFrame, font=("Arial", 14), width=24, text="MISSION 2 PASSPORT START", fg=btnfg,
                 bg=btnbg, activebackground=btnactbg, command=StartMisPass)
 pairing["StartMisPass"] = StartMisPass
 pairing["MISSION 2 PASSPORT START"] = StartMisPass
 
 #MISSION 3: MAP
-Mission3Btn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="MISSION 3 MAP START", fg=btnfg,
+Mission3Btn = Button(leftFrame, font=("Arial", 14), width=24, text="MISSION 3 MAP START", fg=btnfg,
                 bg=btnbg, activebackground=btnactbg, command=StartMisMap)
 pairing["StartMisMap"] = StartMisMap
 pairing["MISSION 3 MAP START"] = StartMisMap
 
 
-
-MusicUnmuteBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="LIE DETECTOR COMPLETE",
+MusicUnmuteBtn = Button(leftFrame, font=("Arial", 14), width=24, text="LIE DETECTOR COMPLETE",
                         fg=btnfg, activebackground=btnactbg, bg=btnbg, command=MusicUnmute)
 pairing["MusicUnmute"] = MusicUnmute
 pairing["LIE DETECTOR COMPLETE"] = MusicUnmute
 
-ShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE", fg=btnfg,
+ShootBtn = Button(leftFrame, font=("Arial", 14), width=24, text="SHOOTING RANGE", fg=btnfg,
                   bg=btnbg, activebackground=btnactbg, command=StartShooting)
 pairing["StartShooting"] = StartShooting
 pairing["SHOOTING RANGE"] = StartShooting
 
-StopShootBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="SHOOTING RANGE DONE",
+StopShootBtn = Button(leftFrame, font=("Arial", 14), width=24, text="SHOOTING RANGE DONE",
                       fg=btnfg, activebackground=btnactbg, bg=btnbg, command=MusicUnmute)
 pairing["MusicUnmute"] = MusicUnmute
 pairing["SHOOTING RANGE DONE"] = MusicUnmute
 
-StealthBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="STEALTH", fg=btnfg,
+StealthBtn = Button(leftFrame, font=("Arial", 14), width=24, text="STEALTH", fg=btnfg,
                     bg=btnbg, activebackground=btnactbg, command=StartStealth)
 pairing["StartStealth"] = StartStealth
 pairing["STEALTH"] = StartStealth
 
-BombBtn = Button(leftFrame, font=("Comic Sans MS", 14), width=24, text="BOMB!!!", fg=btnfg,
+BombBtn = Button(leftFrame, font=("Arial", 14), width=24, text="BOMB!!!", fg=btnfg,
                  bg=btnbg, activebackground=btnactbg, command=StartBomb)
 pairing["StartBomb"] = StartBomb
 pairing["BOMB!!!"] = StartBomb
 pairing["BOMB"] = StartBomb
 
-WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="VICTORY", fg=btnfg,
-                bg=btnbg, activebackground=btnactbg, command=StartWin)
+WinBtn = Button(rightFrame, font=("Arial", 20, "bold"), width=24, text="VICTORY", fg=btnfg,
+                bg="green", activebackground=btnactbg, command=StartWin)
 pairing["StartWin"] = StartWin
 pairing["VICTORY"] = StartWin
 
-LoseBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="YOU LOSE", fg=btnfg,
-                 bg=btnbg, activebackground=btnactbg, command=StartLose)
-pairing["StartLose"] = StartLose
-pairing["YOU LOSE"] = StartLose
+LoseBtn = Button(rightFrame, font=("Arial", 20, "bold"), width=24, text="EXPLODED", fg=btnfg,
+                 bg="orange", activebackground=btnactbg, command=StartLose)
+pairing["EXPLODED"] = StartLose
+pairing["EXPLODED"] = StartLose
 
-TimeBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="OUT OF TIME", fg=btnfg,
-                 bg=btnbg, activebackground=btnactbg, command=StartTimeout)
+TimeBtn = Button(rightFrame, font=("Arial", 20, "bold"), width=24, text="OUT OF TIME", fg=btnfg,
+                 bg="red", activebackground=btnactbg, command=StartTimeout)
 pairing["StartTimeout"] = StartTimeout
 pairing["OUT OF TIME"] = StartTimeout
 
-WrongBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="WRONG ANSWER", fg=btnfg,
-                 bg=btnbg, activebackground=btnactbg, command=WrongAnswer)
-pairing["WRONG ANSWER"] = WrongAnswer
-pairing["WRONG ANSWER"] = WrongAnswer
+WrongBtn = Button(rightFrame, font=("Arial", 20), width=24, text="Wrong Answer", fg=btnfg,
+                 bg="red4", activebackground=btnactbg, command=WrongAnswer)
+pairing["Wrong Answer"] = WrongAnswer
+# pairing["WRONG ANSWER"] = WrongAnswer
 
-# TenMinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="10 Min left", fg=btnfg,
-#                  bg=btnbg, activebackground=btnactbg, command=TenMin)
-# pairing["WRONG ANSWER"] = TenMin
-# pairing["WRONG ANSWER"] = TenMin
+TenMinBtn = Button(rightFrame, font=("Arial", 20), width=24, text="10 Min left", fg=btnfg,
+                 bg="yellow", activebackground=btnactbg, command=TenMin)
+pairing["10 Min left"] = TenMin
+pairing["10min"] = TenMin
 
+FiveMinBtn = Button(rightFrame, font=("Arial", 20), width=24, text="5 Min left", fg=btnfg,
+                 bg="yellow", activebackground=btnactbg, command=FiveMin)
+pairing["5 Min left"] = FiveMin
+pairing["5min"] = FiveMin
 
-# WinBtn = Button(rightFrame, font=("Comic Sans MS", 14), width=24, text="RIGHT ANSWER", fg=btnfg,
-#                  bg=btnbg, activebackground=btnactbg, command=RightAnswer)
-# pairing["RIGHT ANSWER"] = RightAnswer
-# pairing["RIGHT ANSWER"] = RightAnswer
+ThreeMinBtn = Button(rightFrame, font=("Arial", 20), width=24, text="3 Min left", fg=btnfg,
+                 bg="yellow", activebackground=btnactbg, command=ThreeMin)
+pairing["3 Min left"] = ThreeMin
+pairing["3min"] = ThreeMin
 
-killBtn = Button(topFrame, font=("Comic Sans MS", 14, "bold"), text="KILL AUDIO", fg="black",
+OneMinBtn = Button(rightFrame, font=("Arial", 20), width=24, text="1 Min left", fg=btnfg,
+                 bg="yellow", activebackground=btnactbg, command=OneMin)
+pairing["1 Min left"] = OneMin
+pairing["1min"] = OneMin
+
+BombStartBtn = Button(rightFrame, font=("Arial", 20), width=24, text="Bomb Start", fg=btnfg,
+                 bg="medium slate blue", activebackground=btnactbg, command=BombStart)
+pairing["Bomb Start"] = BombStart
+pairing["bombStart"] = BombStart
+
+killBtn = Button(topFrame, font=("Arial", 14, "bold"), text="KILL AUDIO", fg="black",
                  bg="red", activebackground=noAudioBtnactbg, command=KillAudio)
 pairing["KillAudio"] = KillAudio
 pairing["KILL AUDIO"] = KillAudio
@@ -513,13 +506,17 @@ MusicUnmuteBtn.pack(side=TOP)
 ShootBtn.pack(side=TOP)
 StopShootBtn.pack(side=TOP)
 StealthBtn.pack(side=TOP)
-BombBtn.pack(side=TOP)
+BombBtn.pack(side=TOP, padx=2, pady=2)
+BombStartBtn.pack(side=TOP, padx=2, pady=2)
 WinBtn.pack(side=BOTTOM)
 LoseBtn.pack(side=BOTTOM)
+TimeBtn.pack(side=BOTTOM)
+OneMinBtn.pack(side=BOTTOM)
+ThreeMinBtn.pack(side=BOTTOM)
+FiveMinBtn.pack(side=BOTTOM)
+TenMinBtn.pack(side=BOTTOM)
 WrongBtn.pack(side=BOTTOM)
 WinBtn.pack(side=BOTTOM)
-TimeBtn.pack(side=BOTTOM)
-# TenMinBtn.pack(side=BOTTOM)
 
 
 def playMusic():                # SONG QUEUE
@@ -528,6 +525,7 @@ def playMusic():                # SONG QUEUE
     global sngtime2
     global sngtime3
     global sngtime4
+
     if MusicOn == 1 and time.time() - sngtime > 1128:        # 1128:
         if audioBusy == 0:
             text2.set("Playing Song #2")
@@ -563,9 +561,11 @@ def playMusic():                # SONG QUEUE
                 print time.strftime('%H:%M:%S')
             sndCh2.play(snd1)
             sngtime = time.time()
+
     # LOOP FUNCTION
+    # print("'loopfunction' ",audioBusy)
     if not audioBusy:
-        mussik.after(200, playMusic)
+        mussik.after(1, playMusic)
 
 
 def on_closing():               # QUIT WARNING WINDOW

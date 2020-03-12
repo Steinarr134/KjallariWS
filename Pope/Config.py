@@ -42,6 +42,7 @@ MaxPlayingTime = 60*60
 MinBombTime = 2*60   # 2 minutes
 MaxBombTime = 3*60  # 3 minutes
 TimeLeftWarnings = [80, 70, 40, 20, 10, 5, 4, 3, 2, 1]
+AudioTimeWarnings = []
 
 NofPlayers = 5
 
