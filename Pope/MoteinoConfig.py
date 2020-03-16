@@ -235,7 +235,8 @@ TimeBomb.add_translation('Command',
                          ("SetExplosionTime", 17003),
                          ("BombActivated", 17004),
                          ("SetOptions", 17005),
-                         ("CalibrateSolution", 17006))
+                         ("CalibrateSolution", 17006),
+                         ("RegisterOpenChest", 17011))
 #                           ARIEl
 
 ShootingRange = mynetwork.add_node(MoteinoIDs['ShootingRange'],

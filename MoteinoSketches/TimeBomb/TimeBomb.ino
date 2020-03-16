@@ -60,6 +60,7 @@ const int SetXplosionTime = 17003;
 const int BombActivated = 17004; 
 const int SetOptions = 17005;
 const int CalibrateSolution = 17006;
+const int ForceChestOpen = 17011;
 // ARIEL
 
 
@@ -250,11 +251,7 @@ void chestHasBeenOpened()
     chestHasBeenOpenedLastCheckTime = millis();
     // Serial.println(analogRead(PhotoRes));
     if (analogRead(PhotoRes)>PhotoResThreshold) {
-      isChestOpen = true;
-      ChestOpeningTime = millis();
-      Serial.print("ChestOpened");
-      OutgoingData.Command = BombActivated;
-      sendOutgoingData();
+      registerChestHasBeenOpen();
       return;
     }
     else {
@@ -262,6 +259,14 @@ void chestHasBeenOpened()
       return;
     }
   }
+}
+
+void registerChestHasBeenOpen(){
+  isChestOpen = true;
+  ChestOpeningTime = millis();
+  Serial.print("ChestOpened");
+  OutgoingData.Command = BombActivated;
+  sendOutgoingData();
 }
 
 byte _BananaPinCorrectTolerance = 15;
@@ -445,6 +450,10 @@ void checkOnRadio()
         break;
       case CalibrateSolution:
         calibrateSolution();
+        break;
+      case ForceChestOpen:
+        registerChestHasBeenOpen();
+        break;
 //       case FSDFSJdf
 			// isChestOpen = true;
       default:
@@ -496,5 +505,3 @@ bool sendOutgoingData()
 {
   return radio.sendWithRetry(BaseID,(const void*)(&OutgoingData),sizeof(OutgoingData));
 }
-
-
