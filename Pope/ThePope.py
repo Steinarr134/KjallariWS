@@ -1219,7 +1219,7 @@ def BombActivated():
     music_send("BOMB!!!")
     seconds = int(TimeLeft) % 60
     seconds = "0" + str(seconds) if len(str(seconds)) == 1 else str(seconds)
-    music_send()
+    # music_send()
     Send2SplitFlapThread("Time left\n {}:{}".format(int(TimeLeft/60), seconds))
     gui.next_up("Bomb Active, Host --> keep up the Stealth duties", bg="red")
     gui.update_hints("Bomb")
@@ -1454,6 +1454,8 @@ for DeviceSubmenu, Device in zip(gui.DeviceSubmenus, Devices):
                                   command=lambda: LieButtons.send("IncorrectLightShow"))
 
     if Device == "TvPi":
+        DeviceSubmenu.add_command(label="The true Reset command, for now",
+                                  command=lambda: TvPi.send("Reset"))
         for i, scene in enumerate(LieDetectorHandler.Scenes):
             subsubmenu = gui.tk.Menu(DeviceSubmenu, tearoff=False)
             DeviceSubmenu.add_cascade(label="Scene {}".format(i+1), menu=subsubmenu)
